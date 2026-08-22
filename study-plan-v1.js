@@ -1,5 +1,4 @@
 import { LESSONS } from './data.js';
-import { CORE_LESSON_META, REPAIR_LESSONS } from './adaptive-data.js';
 import './question-type-lab-v2.js';
 import { QUESTION_TYPE_LABS } from './question-type-lab-v1.js';
 import { MINI_TESTS } from './mini-test-data-v1.js';
@@ -29,12 +28,13 @@ const CORE_BY_SKILL = {
   'ielts-strategy':['I01','I02','I03']
 };
 
-const esc = (v='') => String(v).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+const esc = (v='') => String(v).replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[c]));
 const read = key => { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; } };
 const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 const clamp = (v,min=0,max=1) => Math.min(max, Math.max(min, v));
 const lessonById = id => LESSONS.find(l => l.id === id);
 const label = skill => ({reading:'Reading',listening:'Listening',writing:'Writing',speaking:'Speaking',vocabulary:'Vocabulary',grammar:'Grammar','learning-better':'Learning Better','ielts-strategy':'IELTS Strategy'})[skill] || skill;
+const retryCount = (adaptive, skill) => (adaptive.productiveEvidence?.[skill] || []).filter(x => x.attemptKind === 'retry').length;
 
 function localDateString(ts=Date.now()) {
   const d = new Date(ts - new Date(ts).getTimezoneOffset() * 60000);
@@ -110,6 +110,11 @@ function generatePlan(config={}) {
   const usedTests = new Set(testHistory.map(x => x.testId));
   const planWeeks = [];
   const skillCursor = Object.fromEntries(Object.keys(CORE_BY_SKILL).map(k => [k,0]));
+  const productiveBaseline = {
+    writing: retryCount(adaptive,'writing'),
+    speaking: retryCount(adaptive,'speaking')
+  };
+  const productivePlanned = { writing:0, speaking:0 };
 
   const nextCore = preferredSkill => {
     const rankedSkills = [preferredSkill, ...priorities.map(x=>x.skill), 'learning-better', 'ielts-strategy', 'grammar', 'vocabulary'].filter((v,i,a)=>a.indexOf(v)===i);
@@ -164,12 +169,14 @@ function generatePlan(config={}) {
     if (!ranked.length) return null;
     const skill = ranked[0].skill;
     const id = skill === 'writing' ? 'W05' : 'S04';
-    return task('productive-retry', id, `${label(skill)} feedback → retry`, skill, minutesPerSession, 'Turn feedback into a second attempt instead of collecting comments.', { examSpecific:false });
+    productivePlanned[skill] += 1;
+    return task('productive-retry', id, `${label(skill)} feedback → retry`, skill, minutesPerSession, 'Turn feedback into a second attempt instead of collecting comments.', {
+      examSpecific:false,
+      requiredRetryCount: productiveBaseline[skill] + productivePlanned[skill]
+    });
   };
 
-  if (!core.placement) {
-    planned.add('PLACEMENT');
-  }
+  if (!core.placement) planned.add('PLACEMENT');
 
   for (let w=1; w<=weeks; w++) {
     const phase = phaseFor(w,weeks);
@@ -243,27 +250,35 @@ function currentWeek(plan) {
   return Math.min(plan.config.weeks, Math.floor(elapsed/7)+1);
 }
 
-function actualDone(taskItem, core, adaptive, plan) {
-  if ((plan.manualDone || []).includes(taskItem.key)) return true;
+function automaticallyDone(taskItem, core, adaptive) {
   if (taskItem.kind === 'placement') return Boolean(core.placement);
   if (taskItem.kind === 'lesson' || taskItem.kind === 'lab') return (core.completedLessons || []).includes(taskItem.sourceId);
   if (taskItem.kind === 'mini-test') return (adaptive.miniTestHistory || []).some(x => x.testId === taskItem.sourceId);
-  if (taskItem.kind === 'productive-retry') return (adaptive.productiveEvidence?.[taskItem.skill] || []).some(x => x.attemptKind === 'retry' && x.ts >= plan.generatedAt);
+  if (taskItem.kind === 'productive-retry') return retryCount(adaptive,taskItem.skill) >= Number(taskItem.requiredRetryCount || 1);
   return false;
+}
+
+function actualDone(taskItem, core, adaptive, plan) {
+  if (automaticallyDone(taskItem,core,adaptive)) return true;
+  return taskItem.kind === 'review' && (plan.manualDone || []).includes(taskItem.key);
 }
 
 function taskButton(t) {
   if (t.kind === 'lesson' || t.kind === 'lab' || t.kind === 'productive-retry') return `<button class="btn soft small-btn" data-lesson="${esc(t.sourceId)}">Open</button>`;
   if (t.kind === 'placement') return `<button class="btn soft small-btn" data-nav="placement">Open</button>`;
   if (t.kind === 'review') return `<button class="btn soft small-btn" data-nav="improve">Review</button>`;
-  if (t.kind === 'mini-test') return `<button class="btn soft small-btn" data-nav="ielts">Open Mini Tests</button>`;
+  if (t.kind === 'mini-test') return `<button class="btn soft small-btn" data-mini-action="start" data-test-id="${esc(t.sourceId)}">Start Mini Test</button>`;
   return '';
 }
 
 function taskRow(t, core, adaptive, plan) {
+  const auto = automaticallyDone(t,core,adaptive);
   const done = actualDone(t,core,adaptive,plan);
+  const completionControl = t.kind === 'review'
+    ? `<button class="btn ghost small-btn" data-sp-action="toggle-done" data-task-key="${esc(t.key)}">${done?'Undo':'Mark done'}</button>`
+    : `<span class="small muted">${auto?'Auto tracked':'Completion is auto tracked'}</span>`;
   return `<div class="card subtle" style="padding:14px;${done?'opacity:.72':''}">
-    <div class="cluster" style="justify-content:space-between;align-items:flex-start"><div><div class="cluster"><span class="chip ${done?'success':(t.examSpecific?'warning':'')}">${done?'Done':esc(t.kind.replaceAll('-',' '))}</span><span class="small muted">${esc(label(t.skill))} · ${t.minutes} min</span></div><strong style="display:block;margin-top:8px">${esc(t.title)}</strong><div class="small muted" style="margin-top:5px">${esc(t.reason)}</div></div><div class="cluster">${taskButton(t)}<button class="btn ghost small-btn" data-sp-action="toggle-done" data-task-key="${esc(t.key)}">${done?'Undo':'Mark done'}</button></div></div>
+    <div class="cluster" style="justify-content:space-between;align-items:flex-start"><div><div class="cluster"><span class="chip ${done?'success':(t.examSpecific?'warning':'')}">${done?'Done':esc(t.kind.replaceAll('-',' '))}</span><span class="small muted">${esc(label(t.skill))} · ${t.minutes} min</span></div><strong style="display:block;margin-top:8px">${esc(t.title)}</strong><div class="small muted" style="margin-top:5px">${esc(t.reason)}</div></div><div class="cluster">${taskButton(t)}${completionControl}</div></div>
   </div>`;
 }
 
@@ -273,7 +288,9 @@ function builderHTML(plan) {
   const cfg = plan?.config || { weeks:8, daysPerWeek:5, minutesPerSession:Number(core.study?.preferredMinutes)>=30?Number(core.study.preferredMinutes):30 };
   const priority = plan?.priorities || prioritySnapshot(core,adaptive);
   const weekNow = plan ? currentWeek(plan) : 1;
+  const profileChanged = Boolean(plan?.weeks?.length && !plan.profileReady && core.placement);
   const planBody = !plan ? `<div class="empty-state"><strong>No study plan yet.</strong><p>Create a plan from your current profile. If Placement is missing, it becomes the first session.</p></div>` : `
+    ${profileChanged?`<div class="callout warning" style="margin:16px 0"><strong>Placement is now available.</strong><br><span class="small">The plan is being rebalanced from your new skill profile.</span></div>`:''}
     <div class="grid four" style="margin:16px 0"><div class="card stat"><div class="stat-value">${plan.config.weeks}</div><div class="stat-label">weeks</div></div><div class="card stat"><div class="stat-value">${plan.summary.totalSessions}</div><div class="stat-label">planned sessions</div></div><div class="card stat"><div class="stat-value">${Math.round(plan.summary.examRatio*100)}%</div><div class="stat-label">explicit IELTS transfer</div></div><div class="card stat"><div class="stat-value">${weekNow}</div><div class="stat-label">current week</div></div></div>
     <div class="callout"><strong>Top priorities:</strong> ${priority.slice(0,3).map(x=>`${label(x.skill)} ${Math.round(x.score*100)}`).join(' · ')}<br><span class="small muted">Priority is a planning signal from Placement, observed answers, productive retry evidence and saved errors—not an IELTS score.</span></div>
     <div class="stack" style="margin-top:16px">${plan.weeks.map(w=>`<details ${w.week===weekNow?'open':''}><summary><strong>Week ${w.week} · ${esc(w.phase)}</strong> <span class="small muted">${w.sessions.filter(s=>actualDone(s,core,adaptive,plan)).length}/${w.sessions.length} done</span></summary><div class="stack" style="margin-top:10px">${w.sessions.map(s=>taskRow(s,core,adaptive,plan)).join('')}</div></details>`).join('')}</div>`;
@@ -330,6 +347,15 @@ function replaceBuilder() {
   old.replaceWith(wrap.firstElementChild);
 }
 
+function refreshAfterPlacement() {
+  const plan = read(PLAN_KEY);
+  if (!plan?.weeks?.length || plan.profileReady) return false;
+  const core = read(CORE_KEY);
+  if (!core.placement) return false;
+  generatePlan(plan.config);
+  return true;
+}
+
 function handleAction(button) {
   const action=button.dataset.spAction;
   if (action==='generate') {
@@ -343,6 +369,8 @@ function handleAction(button) {
     const plan=read(PLAN_KEY); if(!plan?.weeks)return;
     plan.manualDone ||= [];
     const key=button.dataset.taskKey;
+    const taskItem=plan.weeks.flatMap(w=>w.sessions).find(t=>t.key===key);
+    if(!taskItem || taskItem.kind!=='review') return;
     const i=plan.manualDone.indexOf(key);
     if(i>=0)plan.manualDone.splice(i,1); else plan.manualDone.push(key);
     write(PLAN_KEY,plan);
@@ -351,7 +379,11 @@ function handleAction(button) {
   }
 }
 
-function apply(){ injectProgress(); injectToday(); }
+function apply(){
+  refreshAfterPlacement();
+  injectProgress();
+  injectToday();
+}
 
 document.addEventListener('click',e=>{
   const button=e.target.closest('[data-sp-action]');
@@ -364,4 +396,4 @@ window.addEventListener('ielts-productive-evidence-change',()=>setTimeout(apply,
 new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});
 setTimeout(apply,0);
 
-export { generatePlan, prioritySnapshot, phaseFor };
+export { generatePlan, prioritySnapshot, phaseFor, actualDone };
