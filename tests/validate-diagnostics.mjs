@@ -18,7 +18,7 @@ class MemoryStorage {
   removeItem(key){ this.map.delete(key); }
 }
 
-globalThis.window={
+Object.defineProperty(globalThis,'window',{configurable:true,writable:true,value:{
   localStorage:new MemoryStorage(),
   innerWidth:1280,
   innerHeight:800,
@@ -26,16 +26,16 @@ globalThis.window={
   SpeechSynthesisUtterance:function(){},
   MediaRecorder:function(){},
   URL:{createObjectURL(){return 'blob:test';}}
-};
-globalThis.navigator={
+}});
+Object.defineProperty(globalThis,'navigator',{configurable:true,value:{
   language:'en-US',
   mediaDevices:{getUserMedia(){}},
   clipboard:{writeText(){} }
-};
-globalThis.isSecureContext=true;
-globalThis.File=function(){};
-globalThis.FileReader=function(){};
-globalThis.Blob=globalThis.Blob || function(){};
+}});
+Object.defineProperty(globalThis,'isSecureContext',{configurable:true,writable:true,value:true});
+Object.defineProperty(globalThis,'File',{configurable:true,writable:true,value:function(){}});
+Object.defineProperty(globalThis,'FileReader',{configurable:true,writable:true,value:function(){}});
+if (typeof globalThis.Blob==='undefined') Object.defineProperty(globalThis,'Blob',{configurable:true,writable:true,value:function(){}});
 
 const { APP_VERSION, collectBackup } = await import('../data-portability-v1.js');
 const { runDiagnostics, reportText, STUDY_PLAN_SCHEMA_VERSION } = await import('../diagnostics-v1.js');
