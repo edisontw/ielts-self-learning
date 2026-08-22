@@ -104,7 +104,9 @@ write(CORE_KEY,evidenceCore);
 write(ADAPTIVE_KEY,evidenceAdaptive);
 const plan=generatePlan({weeks:8,daysPerWeek:4,minutesPerSession:30});
 assert(plan.priorities[0].skill==='reading','Weak MR01 Reading evidence should make Reading the highest Study Plan priority in this journey.');
-assert(plan.weeks.flatMap(w=>w.sessions).every(s=>s.kind!=='lab'||prerequisitesMet({...evidenceCore,completedLessons:[...evidenceCore.completedLessons,...plan.weeks.flatMap(x=>x.sessions).filter(t=>t.kind==='lesson').map(t=>t.sourceId)]},evidenceAdaptive,s.sourceId,LESSONS)),'Planned Labs must correspond to prerequisite work represented in the planned/core path.');
+const plannedContentIds=plan.weeks.flatMap(w=>w.sessions).filter(t=>t.kind==='lesson'||t.kind==='lab').map(t=>t.sourceId);
+const prerequisiteContext={...evidenceCore,completedLessons:[...new Set([...evidenceCore.completedLessons,...plannedContentIds])]};
+assert(plan.weeks.flatMap(w=>w.sessions).every(s=>s.kind!=='lab'||prerequisitesMet(prerequisiteContext,evidenceAdaptive,s.sourceId,LESSONS)),'Planned Labs must correspond to prerequisite work represented in the planned/core path.');
 
 // 5. Productive + AI feedback state survives local backup / restore.
 evidenceAdaptive.productiveEvidence={writing:[{id:'pe-w1',ts:Date.now(),skill:'writing',lessonId:'W05',attemptKind:'first',criteria:['task','position'],score:.4,wordCount:270}],speaking:[]};
