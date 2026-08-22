@@ -33,6 +33,13 @@ function ensureAdaptiveState(state, adaptive = readAdaptiveState()) {
       lastReviewedAt: null,
       lastRating: null
     };
+    const schedule = adaptive.reviewSchedule[error.id];
+    if ((state.fixedErrors || []).includes(error.id) && schedule.attempts === 0 && schedule.dueAt <= Date.now()) {
+      schedule.intervalDays = 3;
+      schedule.dueAt = Date.now() + 3 * DAY;
+      schedule.lastRating = 'corrected-in-retry';
+      schedule.mastered = true;
+    }
   }
   return adaptive;
 }
@@ -226,7 +233,7 @@ function injectAdaptiveUI() {
     const main = document.querySelector('#main');
     if (!main) return;
     const route = location.hash.replace(/^#\/?/, '') || 'today';
-    if (route === 'today' && !main.querySelector('[data-adaptive-root="today"]')) {
+    if (route === 'today' && state.placement && !main.querySelector('[data-adaptive-root="today"]')) {
       const focus = main.querySelector('.focus-card');
       if (focus) focus.insertAdjacentHTML('beforebegin', recommendationHTML(state));
       else main.querySelector('.page-head')?.insertAdjacentHTML('afterend', recommendationHTML(state));
