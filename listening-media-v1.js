@@ -76,7 +76,7 @@ function startProductionAudio(src, env) {
     audio.addEventListener?.('error', onError, { once:true });
     try {
       const promise = audio.play?.();
-      promise?.catch?.(onError);
+      if (promise && typeof promise.then === 'function') promise.then(onPlaying).catch(onError);
     } catch {
       onError();
     }
@@ -137,15 +137,18 @@ export function enhanceAudioElement(audio) {
   const script = fallbackScriptForSrc(src);
   if (!script) return;
   const fallback = fallbackControls(audio, script);
-  audio.addEventListener('canplay', () => {
-    audio.dataset.listeningMediaSource = 'production';
-    fallback.hidden = true;
-  });
-  audio.addEventListener('error', () => {
+  const showFallback = () => {
     audio.dataset.listeningMediaSource = 'synthetic-fallback';
     audio.style.display = 'none';
     fallback.hidden = false;
+  };
+  audio.addEventListener('canplay', () => {
+    audio.dataset.listeningMediaSource = 'production';
+    audio.style.display = '';
+    fallback.hidden = true;
   });
+  audio.addEventListener('error', showFallback);
+  if (audio.error) showFallback();
 }
 
 export function enhanceListeningAudio(root=document) {
