@@ -16,6 +16,8 @@ Implemented:
 - complete first 30-unit curriculum: Learning Better 4 / Reading 5 / Listening 5 / Writing 5 / Speaking 5 / Vocabulary & Grammar Repair 3 / IELTS Strategy 3
 - Question Type Lab expanded to **12 units**: Reading 6 + Listening 6
 - first Test Mode Mini Tests: **MR01 Reading 12 questions / 12 min** and **ML01 Listening 10 questions / 9 min**
+- adaptive **4 / 8 / 12 / 16-week Study Plan** with configurable study days and minutes per session
+- Study Plan uses Placement, observed performance, productive retry evidence, due review, Lab / Mini Test history and available time
 - Error Notebook + data-triggered Repair lessons + spaced Review Queue
 - lesson-derived Vocabulary Review with due scheduling
 - adaptive Today recommendation using weakness, review due, IELTS relevance, skill balance, difficulty and time fit
@@ -48,7 +50,7 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers Placement, curriculum registration, adaptive metadata, repair/review flow, Vocabulary Review, productive evidence, the 12 Question Type Labs, MR01 / ML01 Test Mode rules, script load order and mobile guardrails.
+Validation covers Placement, curriculum registration, adaptive metadata, repair/review flow, Vocabulary Review, productive evidence, the 12 Question Type Labs, MR01 / ML01 Test Mode rules, Study Plan inputs / phase logic / integration, script load order and mobile guardrails.
 
 ## Source of truth
 
@@ -202,6 +204,28 @@ Flow:
 
 Cards now unlock from core lessons, Repair lessons and Question Type Lab units.
 
+## Adaptive Study Plan V1
+
+See [`docs/study-plan-v1.md`](docs/study-plan-v1.md).
+
+The Progress page can generate a plan using:
+
+- **4 / 8 / 12 / 16 weeks**
+- **3 / 4 / 5 / 6 study days per week**
+- **20 / 30 / 45 / 60 minutes per session**
+
+Planning inputs include Placement, observed objective performance, Writing / Speaking productive retry evidence, saved skill-specific errors, due Error / Vocabulary review, completed core lessons, Question Type Labs and Mini Test history.
+
+The plan is divided into:
+
+`FOUNDATION → BUILD → TRANSFER → TEST & REVIEW`
+
+It preserves the product balance of roughly **60% English skill building / up to 40% explicit IELTS transfer**. Foundation weeks deliberately use less Test/Lab work. Short plans do not claim that every learner can complete all 30 core units.
+
+Today surfaces the next incomplete session from the current week. Progress shows the whole plan and allows explicit regeneration when available time or learner priorities change.
+
+Internal priority values are planning signals only and are **not IELTS scores or band estimates**.
+
 ## AI workflow
 
 The website does not call a paid LLM API.
@@ -216,15 +240,15 @@ Current Listening media can use browser `speechSynthesis` so the prototype remai
 
 ## Data policy
 
-Core profile, progress, errors, notes, drafts, transcripts, test answers and study history remain in browser storage. Adaptive review, Vocabulary Review, productive evidence, observed performance and Mini Test history are also local-only.
+Core profile, progress, errors, notes, drafts, transcripts, test answers and study history remain in browser storage. Adaptive review, Vocabulary Review, productive evidence, observed performance, Mini Test history and the generated Study Plan are also local-only.
 
 There is no account or backend in this prototype.
 
 ## Next implementation priorities
 
-1. build the **4 / 8 / 12 / 16-week Study Plan engine** using placement, observed performance, productive retry evidence, review due dates and available study time
-2. perform deployed desktop/mobile interaction QA for Lab, Mini Test timers, persistence and Error Notebook transfer
+1. perform deployed desktop/mobile interaction QA for Study Plan, Lab, Mini Test timers, persistence and Error Notebook transfer
+2. improve return-from-AI revision logging without importing an AI-generated score into the learner profile
 3. add a second Reading and Listening Mini Test after MR01 / ML01 timing and difficulty are reviewed
-4. improve return-from-AI revision logging without importing an AI-generated score into the learner profile
+4. refine Study Plan rebalancing from real usage patterns after deployed interaction QA
 5. replace prototype Listening speech with production-quality audio before public release
 6. only after the content and learner-data model stabilise, evaluate account/cloud sync or PWA work
