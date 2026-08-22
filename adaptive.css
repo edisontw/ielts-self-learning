@@ -1,0 +1,24 @@
+.adaptive-card { margin-bottom: 18px; border-style: solid; }
+.adaptive-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.adaptive-top h2 { margin-top: 6px; }
+.score-badge { min-width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; font-weight: 750; background: var(--surface-soft, rgba(90,110,150,.10)); border: 1px solid var(--border, rgba(120,130,150,.25)); }
+.adaptive-breakdown { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.adaptive-breakdown span { padding: 6px 9px; border-radius: 999px; font-size: 12px; background: var(--surface-soft, rgba(90,110,150,.08)); border: 1px solid var(--border, rgba(120,130,150,.20)); }
+.adaptive-breakdown .penalty { opacity: .72; }
+.review-stack { display: grid; gap: 14px; margin-top: 16px; }
+.review-item { padding: 16px; border: 1px solid var(--border, rgba(120,130,150,.25)); border-radius: 14px; display: grid; gap: 12px; }
+.recall-box { padding: 12px; border-radius: 10px; background: var(--surface-soft, rgba(90,110,150,.07)); font-size: 14px; }
+.review-answer { padding-top: 4px; }
+.rating-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+.scheduled-reviews { margin-top: 16px; }
+.scheduled-reviews summary { cursor: pointer; font-weight: 650; }
+.scheduled-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border, rgba(120,130,150,.16)); }
+.repair-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-top: 16px; }
+.repair-card { padding: 16px; border: 1px solid var(--border, rgba(120,130,150,.25)); border-radius: 14px; display: flex; flex-direction: column; gap: 12px; }
+.repair-card .btn { margin-top: auto; }
+.adaptive-modal-backdrop { position: fixed; inset: 0; z-index: 90; background: rgba(15,20,30,.58); display: grid; place-items: center; padding: 20px; }
+.adaptive-modal { width: min(820px,100%); max-height: min(860px,92vh); overflow: auto; background: var(--surface, #fff); color: var(--text, #18202b); border-radius: 18px; padding: 24px; box-shadow: 0 24px 80px rgba(0,0,0,.28); }
+.repair-learn { margin: 18px 0; }
+.adaptive-toast { position: fixed; right: 20px; bottom: 82px; z-index: 120; padding: 11px 14px; border-radius: 10px; background: #202936; color: #fff; box-shadow: 0 8px 28px rgba(0,0,0,.2); }
+@media (max-width: 880px) { .repair-grid { grid-template-columns: 1fr; } .adaptive-top { align-items: flex-start; } }
+@media (max-width: 620px) { .adaptive-modal-backdrop { padding: 0; align-items: end; } .adaptive-modal { width: 100%; max-height: 92vh; border-radius: 18px 18px 0 0; padding: 18px; } .scheduled-row { flex-direction: column; gap: 3px; } }
