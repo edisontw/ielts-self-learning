@@ -13,13 +13,13 @@ Implemented:
 - responsive Today / Learn / IELTS / Improve / Progress shell
 - Quick Placement V1: 24 questions across Vocabulary, Grammar, Reading and Listening
 - placement scoring, confidence, uneven-profile guardrail and recommended difficulty
-- five complete V1.2 lessons: LB01, R01, L01, W01, S01
-- interactive checks with answer explanations
+- complete first 30-unit curriculum: Learning Better 4 / Reading 5 / Listening 5 / Writing 5 / Speaking 5 / Vocabulary & Grammar Repair 3 / IELTS Strategy 3
+- interactive checks with answer explanations and lesson-level error tags
 - Error Notebook stored locally
 - Review Queue with spaced-review scheduling
 - adaptive Today recommendation using V1.1 weighted factors
 - three data-triggered repair lessons: VG01, VG02, VG03
-- VG01–VG03 now use standard `#/lesson/<id>` routes and also appear in Learn
+- VG01–VG03 use standard `#/lesson/<id>` routes and also appear in Learn
 - lesson-based Vocabulary Review cards with due scheduling
 - observed skill-performance profile from checked lesson/repair answers
 - placement-to-performance weighting: real answers gain influence as evidence grows
@@ -27,10 +27,12 @@ Implemented:
 - Writing workspace with word count and portable AI prompt builder
 - Speaking recorder where `MediaRecorder` is available, with transcript fallback
 - Prompt Library preview/copy flow
+- IELTS Strategy lessons integrated into the IELTS page
+- 30-unit curriculum completion count integrated into Progress
 - light/dark theme
 - English-first interface with optional Traditional Chinese support notes
 - runtime synthetic browser voice fallback for prototype Listening audio
-- dependency-free content/runtime validation through `npm test`
+- dependency-free content/runtime/curriculum validation through `npm test`
 - GitHub Actions validation workflow
 - mobile QA guardrails for safe-area spacing, tap targets, narrow layouts and workspace stacking
 
@@ -58,13 +60,17 @@ Validation checks include:
 
 - Placement = 4 sections / 24 unique questions
 - every answer appears in its options
-- five core adaptive lesson metadata objects
+- adaptive metadata and lesson graph registration
+- full first-curriculum distribution = 30 unique units
+- each new curriculum lesson has identity, classification, level, objective, Chinese scaffolding and at least seven lesson stages
+- checked lesson questions have unique IDs, valid answers, rationales and error tags
 - VG01–VG03 repair objects and standard lesson-route integration
 - Review Queue ratings
-- lesson-based Vocabulary Review seed objects and scheduling ratings
+- lesson-derived Vocabulary Review objects and scheduling ratings
 - positive Today recommendation weights total 100%
 - observed skill-performance runtime is mounted
 - runtime avoids redundant localStorage writes when performance has not changed
+- IELTS Strategy page integration and 30-unit Progress UI
 - adaptive/runtime JS/CSS are loaded by `index.html`
 - mobile tap-target and safe-area guardrails
 
@@ -92,25 +98,62 @@ Key constraints:
 - error → explanation → repair → retry → review is part of the learning loop
 - user data is local-first in V1
 
-## Prototype content
+## First 30-unit curriculum
 
-### Five complete lessons
+### Learning Better — 4
 
 - `LB01` Practice Is Not the Same as Testing
-- `R01` Find the Main Idea Without Translating Everything
-- `L01` Listen for Meaning, Not Individual Words
-- `W01` Answer the Question Before You Try to Sound Advanced
-- `S01` Give More Than a One-Sentence Answer
+- `LB02` Stop Trying to Understand Every Word
+- `LB03` Mistakes Are Data
+- `LB04` How to Use AI Without Letting AI Do the Learning
 
-### Repair lessons
+### Reading — 5
+
+- `R01` Find the Main Idea Without Translating Everything
+- `R02` Read for Structure, Not Just Words
+- `R03` Paraphrases: The Language IELTS Uses to Hide Answers
+- `R04` True, False or Not Given?
+- `R05` Matching Headings Without Reading Every Line
+
+### Listening — 5
+
+- `L01` Listen for Meaning, Not Individual Words
+- `L02` Why You Hear the Word but Still Miss the Answer
+- `L03` Recognize Paraphrases While Listening
+- `L04` Don't Fall for the Distractor
+- `L05` Predict Before You Listen
+
+### Writing — 5
+
+- `W01` Answer the Question Before You Try to Sound Advanced
+- `W02` One Main Idea Is Not Enough — Develop It
+- `W03` Build a Strong Academic Paragraph
+- `W04` Task 2: Build a Clear Position in Five Minutes
+- `W05` Task 2 Writing Workspace: Opinion Essay
+
+### Speaking — 5
+
+- `S01` Give More Than a One-Sentence Answer
+- `S02` Fluency Does Not Mean Speaking Fast
+- `S03` Stop Restarting Your Sentences
+- `S04` Speaking Part 2: Build a Two-Minute Answer
+- `S05` Speaking Part 3: Explain, Compare and Speculate
+
+### Vocabulary / Grammar Repair — 3
 
 - `VG01` Learn Collocations, Not Isolated Words
 - `VG02` Articles in Academic Writing
 - `VG03` Complex Sentences Without Losing Control
 
-Repair ranking uses saved error tags and Vocabulary/Grammar placement results. Repair lessons no longer depend on a separate modal-only learning experience; they use normal lesson URLs and page structure.
+### IELTS Strategy — 3
 
-### Quick Placement
+- `I01` Understand IELTS Academic Before You Start Practising
+- `I02` How to Move from Band 6 Toward Band 7
+- `I03` How to Review an IELTS Practice Test
+
+Repair ranking uses saved error tags and Vocabulary/Grammar placement results. Repair lessons use normal lesson URLs and page structure. All non-repair curriculum units register adaptive metadata so the recommendation layer can use them as candidates.
+
+## Quick Placement
 
 `content/placement/quick-placement-v1.json`
 
@@ -176,15 +219,18 @@ Successful recall increases the next interval. Review metadata uses `ielts-adapt
 
 Vocabulary cards are lesson-derived rather than a generic “IELTS 5000 words” list.
 
-The initial seed includes chunks such as:
+The growing seed now includes lesson-derived language from Reading, Listening, Writing, Speaking, Learning Better and IELTS Strategy, including chunks such as:
 
 - `play a crucial role in`
 - `pose a challenge`
-- `a substantial increase in`
-- `raise public awareness`
 - `central claim`
-- `supporting detail`
-- `distractor`
+- `insufficient evidence`
+- `final decision`
+- `lead to`
+- `maintain a clear position`
+- `recurring error`
+- `qualified claim`
+- `under time pressure`
 
 Cards unlock after their source lesson or repair lesson is completed.
 
@@ -210,6 +256,8 @@ The website does not call a paid LLM API.
 
 Prompt templates cover Writing Task 1, Writing Task 2, Speaking transcript feedback, Grammar, Vocabulary and Error Analysis.
 
+`LB04`, `W05`, `S04` and `S05` explicitly teach and use the attempt → feedback → rewrite/retry loop so AI remains a coach rather than a replacement for the learner's work.
+
 ## Listening prototype note
 
 The V1.2 content pack defines prototype synthetic audio. The current repository uses a browser `speechSynthesis` fallback so the first implementation remains fully static and has no binary-audio deployment dependency.
@@ -231,9 +279,9 @@ These are implementation guardrails, not a substitute for final device visual QA
 
 ## Next implementation priorities
 
-1. perform live-device / deployed-site visual QA when a public preview is available
-2. expand the full lesson registry beyond the current 5 core + 3 repair lessons
-3. build the first 30-unit curriculum in controlled batches, starting with R02–R05 and L02–L05
-4. add richer productive-skill evidence from Writing/Speaking retries instead of relying only on objective checked questions
-5. replace prototype Listening speech with production-quality audio before public release
-6. only after the content model stabilises, evaluate account/cloud sync or PWA work
+1. add richer productive-skill evidence from Writing revisions and Speaking retries instead of relying mainly on objective checked questions
+2. perform live-device / deployed-site visual QA when a public preview is available
+3. begin Question Type Lab / Mini Test expansion while preserving Practice Mode vs Test Mode separation
+4. replace prototype Listening speech with production-quality audio before public release
+5. improve study-plan logic so 4 / 8 / 12 / 16-week plans can consume the completed 30-unit curriculum
+6. only after the content and learner-data model stabilise, evaluate account/cloud sync or PWA work
