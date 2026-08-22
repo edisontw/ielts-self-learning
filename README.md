@@ -25,6 +25,7 @@ Implemented:
 - observed skill-performance evidence from checked lesson, repair, Lab and submitted Mini Test questions
 - Writing / Speaking productive-skill evidence with first-attempt vs revision/retry tracking
 - AI feedback return logging: save 2–3 external-LLM revision priorities and connect them to the next retry without importing AI band scores
+- local learner-data **Export / Import / Reset** using a versioned, allow-listed JSON backup format
 - productive evidence remains separate from objective-question accuracy and never claims an IELTS band
 - Writing workspace with word count and portable AI prompt builder
 - Speaking recorder where `MediaRecorder` is available, with transcript fallback
@@ -52,7 +53,7 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers Placement, curriculum registration, adaptive metadata, repair/review flow, Vocabulary Review, productive evidence, AI feedback return logging, the 12 Question Type Labs, all four Mini Test forms, cross-form recurring error patterns, Study Plan inputs / phase logic / integration, script load order and mobile guardrails.
+Validation covers Placement, curriculum registration, adaptive metadata, repair/review flow, Vocabulary Review, productive evidence, AI feedback return logging, the 12 Question Type Labs, all four Mini Test forms, cross-form recurring error patterns, Study Plan inputs / phase logic / integration, local-data backup/import/reset rules, script load order and mobile guardrails.
 
 ## Source of truth
 
@@ -252,17 +253,29 @@ External AI band scores are not imported into the learner profile. AI feedback r
 
 Current Listening media can use browser `speechSynthesis` so the prototype remains static and dependency-free. Before public production release, replace this with high-quality recorded or licensed English audio while preserving transcripts, question timing, answer logic and accessibility.
 
+## Local Data Portability V1
+
+See [`docs/local-data-portability-v1.md`](docs/local-data-portability-v1.md).
+
+The Progress page provides:
+
+`EXPORT BACKUP → IMPORT BACKUP → RESET LEARNER DATA`
+
+Export creates a local JSON file containing the known IELTS learner-data keys plus the Light/Dark preference. Import validates the format, schema, allow-listed keys and broad data shapes before asking the learner to replace current browser data.
+
+Reset removes only IELTS learner-data keys and intentionally preserves the Light/Dark preference. The implementation does not call `localStorage.clear()` and does not upload backup files to a server.
+
 ## Data policy
 
 Core profile, progress, errors, notes, drafts, transcripts, test answers and study history remain in browser storage. Adaptive review, Vocabulary Review, productive evidence, AI feedback returns, observed performance, Mini Test history / error-tag trends and the generated Study Plan are also local-only.
 
-There is no account or backend in this prototype.
+These learner-data stores can now be exported and restored through a versioned JSON backup. There is still no account or backend in this prototype.
 
 ## Next implementation priorities
 
-1. perform deployed desktop/mobile interaction QA for Study Plan, Question Type Lab, all four Mini Test forms, AI feedback return, persistence and Error Notebook transfer
+1. perform deployed desktop/mobile interaction QA for Study Plan, Question Type Lab, all four Mini Test forms, AI feedback return, backup/import/reset, persistence and Error Notebook transfer
 2. review MR02 / ML02 timing, distractor difficulty and recurring-error usefulness with real test attempts
 3. refine Study Plan rebalancing from actual multi-test usage patterns without silently rewriting the learner's calendar
 4. replace prototype Listening speech with production-quality audio before public release
-5. add export / reset controls for local learner data before broader public testing
+5. add lightweight in-app diagnostics for data/schema version and release troubleshooting before broader testing
 6. only after the content and learner-data model stabilise, evaluate account/cloud sync or PWA work
