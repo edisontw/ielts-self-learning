@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import '../question-type-lab-v1.js';
+import '../question-type-lab-v2.js';
 import '../mini-test-data-v2.js';
 
 const here=path.dirname(fileURLToPath(import.meta.url));
