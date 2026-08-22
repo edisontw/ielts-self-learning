@@ -19,6 +19,10 @@ Implemented:
 - Review Queue with spaced-review scheduling
 - adaptive Today recommendation using V1.1 weighted factors
 - three data-triggered repair lessons: VG01, VG02, VG03
+- VG01–VG03 now use standard `#/lesson/<id>` routes and also appear in Learn
+- lesson-based Vocabulary Review cards with due scheduling
+- observed skill-performance profile from checked lesson/repair answers
+- placement-to-performance weighting: real answers gain influence as evidence grows
 - lesson completion, notes and study history
 - Writing workspace with word count and portable AI prompt builder
 - Speaking recorder where `MediaRecorder` is available, with transcript fallback
@@ -26,8 +30,9 @@ Implemented:
 - light/dark theme
 - English-first interface with optional Traditional Chinese support notes
 - runtime synthetic browser voice fallback for prototype Listening audio
-- dependency-free content validation through `npm test`
+- dependency-free content/runtime validation through `npm test`
 - GitHub Actions validation workflow
+- mobile QA guardrails for safe-area spacing, tap targets, narrow layouts and workspace stacking
 
 ## Run locally
 
@@ -49,15 +54,19 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation currently checks:
+Validation checks include:
 
 - Placement = 4 sections / 24 unique questions
 - every answer appears in its options
 - five core adaptive lesson metadata objects
-- VG01–VG03 repair objects
+- VG01–VG03 repair objects and standard lesson-route integration
 - Review Queue ratings
+- lesson-based Vocabulary Review seed objects and scheduling ratings
 - positive Today recommendation weights total 100%
-- adaptive JS/CSS are loaded by `index.html`
+- observed skill-performance runtime is mounted
+- runtime avoids redundant localStorage writes when performance has not changed
+- adaptive/runtime JS/CSS are loaded by `index.html`
+- mobile tap-target and safe-area guardrails
 
 GitHub Actions runs the same validation on pushes to `main` and pull requests.
 
@@ -99,7 +108,7 @@ Key constraints:
 - `VG02` Articles in Academic Writing
 - `VG03` Complex Sentences Without Losing Control
 
-Repair ranking uses saved error tags and Vocabulary/Grammar placement results.
+Repair ranking uses saved error tags and Vocabulary/Grammar placement results. Repair lessons no longer depend on a separate modal-only learning experience; they use normal lesson URLs and page structure.
 
 ### Quick Placement
 
@@ -138,7 +147,19 @@ V1.1 positive factors are implemented as:
 
 Recent repetition applies a negative penalty.
 
-If an Error Notebook item is due for review, Review Queue takes priority over new material.
+If an Error Notebook or Vocabulary Review item is due, retrieval review takes priority over new material.
+
+### Placement → real performance
+
+Placement remains the first signal. Checked lesson answers are then aggregated by skill.
+
+Observed performance starts with a low evidence weight and receives more influence as the learner accumulates answers. Current prototype thresholds are:
+
+- fewer than 4 checked answers → low evidence weight
+- 4–7 checked answers → emerging evidence
+- 8+ checked answers → moderate evidence
+
+This prevents one early mistake from radically changing the learner profile while still allowing the system to move beyond the initial Placement result.
 
 ## Review Queue
 
@@ -149,13 +170,35 @@ Saved errors automatically receive a schedule.
 - Good → ≥3 days
 - Easy → ≥7 days
 
-Successful recall increases the next interval. Review metadata uses a separate browser key, `ielts-adaptive-v1`, to prevent the original app state from overwriting scheduling data.
+Successful recall increases the next interval. Review metadata uses `ielts-adaptive-v1`, separate from the original app state, so the original app does not overwrite scheduling data.
+
+## Vocabulary Review
+
+Vocabulary cards are lesson-derived rather than a generic “IELTS 5000 words” list.
+
+The initial seed includes chunks such as:
+
+- `play a crucial role in`
+- `pose a challenge`
+- `a substantial increase in`
+- `raise public awareness`
+- `central claim`
+- `supporting detail`
+- `distractor`
+
+Cards unlock after their source lesson or repair lesson is completed.
+
+Flow:
+
+`CONTEXT → CHOOSE/RECALL → FEEDBACK → COLLOCATION → RATE RECALL → NEXT REVIEW`
+
+Vocabulary uses the same Again / Hard / Good / Easy scheduling concept as Error Review.
 
 ## Data policy
 
 Core V1 data remains in browser storage only: profile, placement result, progress, errors, notes, writing drafts, Speaking transcripts and study history.
 
-Adaptive review/repair metadata is also local-only and stored separately.
+Adaptive review, repair, Vocabulary Review, observed skill performance and adaptive learning history are also local-only.
 
 There is no account or backend in this prototype.
 
@@ -173,11 +216,24 @@ The V1.2 content pack defines prototype synthetic audio. The current repository 
 
 Before public production release, replace this with higher-quality recorded or licensed English speech while preserving transcripts, question timing, answer logic and accessibility text.
 
+## Mobile / responsive guardrails
+
+The current extension layer adds explicit narrow-screen safeguards:
+
+- primary controls keep at least 44 px tap height
+- bottom navigation respects `safe-area-inset-bottom`
+- writing/workspace layouts collapse to one column
+- error answers and observed-profile rows stack on narrow phones
+- lesson cards and reading passages reduce padding rather than shrinking text excessively
+- sticky lesson progress accounts for the mobile top bar
+
+These are implementation guardrails, not a substitute for final device visual QA.
+
 ## Next implementation priorities
 
-1. perform full desktop/mobile interaction QA, including persistence and microphone fallbacks
-2. integrate repair lessons into the generic lesson renderer instead of the current adaptive modal layer
-3. add real Vocabulary Review cards and due scheduling
-4. add stronger skill-performance signals from completed lessons, not Placement alone
-5. expand from 5 complete lessons toward the first 30-unit curriculum map
-6. replace prototype Listening speech with production-quality audio before public release
+1. perform live-device / deployed-site visual QA when a public preview is available
+2. expand the full lesson registry beyond the current 5 core + 3 repair lessons
+3. build the first 30-unit curriculum in controlled batches, starting with R02–R05 and L02–L05
+4. add richer productive-skill evidence from Writing/Speaking retries instead of relying only on objective checked questions
+5. replace prototype Listening speech with production-quality audio before public release
+6. only after the content model stabilises, evaluate account/cloud sync or PWA work
