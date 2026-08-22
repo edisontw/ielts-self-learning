@@ -14,6 +14,7 @@ Implemented:
 - Quick Placement V1: 24 questions across Vocabulary, Grammar, Reading and Listening
 - placement scoring, confidence, uneven-profile guardrail and recommended difficulty
 - complete first 30-unit curriculum: Learning Better 4 / Reading 5 / Listening 5 / Writing 5 / Speaking 5 / Vocabulary & Grammar Repair 3 / IELTS Strategy 3
+- first Question Type Lab batch: Reading TFNG, Reading Matching Headings, Listening Multiple Choice, Listening Form/Notes Completion
 - interactive checks with answer explanations and lesson-level error tags
 - Error Notebook stored locally
 - Review Queue with spaced-review scheduling
@@ -22,12 +23,16 @@ Implemented:
 - VG01–VG03 use standard `#/lesson/<id>` routes and also appear in Learn
 - lesson-based Vocabulary Review cards with due scheduling
 - observed skill-performance profile from checked lesson/repair answers
+- Writing / Speaking productive-skill evidence with first-attempt vs revision/retry tracking
+- productive evidence remains separate from objective-question accuracy and never claims an IELTS band
+- productive retry priority can surface on Today and productive evidence appears in Progress
 - placement-to-performance weighting: real answers gain influence as evidence grows
 - lesson completion, notes and study history
 - Writing workspace with word count and portable AI prompt builder
 - Speaking recorder where `MediaRecorder` is available, with transcript fallback
 - Prompt Library preview/copy flow
 - IELTS Strategy lessons integrated into the IELTS page
+- Question Type Lab has a dedicated IELTS-page index and remains separate from the 30-unit core completion count
 - 30-unit curriculum completion count integrated into Progress
 - light/dark theme
 - English-first interface with optional Traditional Chinese support notes
@@ -69,8 +74,11 @@ Validation checks include:
 - lesson-derived Vocabulary Review objects and scheduling ratings
 - positive Today recommendation weights total 100%
 - observed skill-performance runtime is mounted
-- runtime avoids redundant localStorage writes when performance has not changed
-- IELTS Strategy page integration and 30-unit Progress UI
+- Writing / Speaking productive evidence stores attempt type and retry process signals
+- productive evidence is explicitly labelled as process evidence rather than an IELTS score
+- Question Type Lab V1 = QR01 / QR02 / QL01 / QL02
+- Question Type Lab checked items have answers, rationales, error tags and repair links
+- IELTS Strategy / Question Type Lab page integration and 30-unit Progress UI
 - adaptive/runtime JS/CSS are loaded by `index.html`
 - mobile tap-target and safe-area guardrails
 
@@ -153,6 +161,19 @@ Key constraints:
 
 Repair ranking uses saved error tags and Vocabulary/Grammar placement results. Repair lessons use normal lesson URLs and page structure. All non-repair curriculum units register adaptive metadata so the recommendation layer can use them as candidates.
 
+## Question Type Lab V1
+
+Question Type Lab is intentionally separate from the 30-unit core curriculum. It trains one exam-specific decision at a time while reusing the normal lesson renderer, Error Notebook, Repair, Review Queue and skill-performance evidence.
+
+Initial labs:
+
+- `QR01` True / False / Not Given — evidence and scope
+- `QR02` Matching Headings — paragraph purpose and trap control
+- `QL01` Listening Multiple Choice — distractor / final-decision tracking
+- `QL02` Form & Notes Completion — answer-type prediction, paraphrase, spelling/number/word-limit control
+
+Lab mistakes use the same error tags and can point back to R04/R05/L03/L04/L05 repair content. Labs are hidden from the core Learn index and surfaced under IELTS → Question Type Lab.
+
 ## Quick Placement
 
 `content/placement/quick-placement-v1.json`
@@ -204,6 +225,20 @@ Observed performance starts with a low evidence weight and receives more influen
 
 This prevents one early mistake from radically changing the learner profile while still allowing the system to move beyond the initial Placement result.
 
+### Writing / Speaking productive evidence
+
+Writing and Speaking cannot be represented honestly by multiple-choice accuracy alone.
+
+The productive evidence layer therefore stores a separate local signal:
+
+`FIRST ATTEMPT → SELF-CHECK → FEEDBACK → REVISION / RETRY → SELF-CHECK`
+
+Writing process criteria include task fulfilment, position/purpose, idea development, organization and recurring language checks.
+
+Speaking process criteria include direct response, answer development, continuity after small mistakes, unnecessary repetition and natural spoken language.
+
+The system stores attempt type, criteria completed, word count and retry change. This can create a Today priority such as “complete a feedback → retry cycle”, but it is never presented as an official or estimated IELTS band.
+
 ## Review Queue
 
 Saved errors automatically receive a schedule.
@@ -219,13 +254,16 @@ Successful recall increases the next interval. Review metadata uses `ielts-adapt
 
 Vocabulary cards are lesson-derived rather than a generic “IELTS 5000 words” list.
 
-The growing seed now includes lesson-derived language from Reading, Listening, Writing, Speaking, Learning Better and IELTS Strategy, including chunks such as:
+The growing seed includes language from core lessons and Question Type Lab, including:
 
 - `play a crucial role in`
 - `pose a challenge`
 - `central claim`
 - `insufficient evidence`
+- `paragraph purpose`
 - `final decision`
+- `final status`
+- `word limit`
 - `lead to`
 - `maintain a clear position`
 - `recurring error`
@@ -244,7 +282,7 @@ Vocabulary uses the same Again / Hard / Good / Easy scheduling concept as Error 
 
 Core V1 data remains in browser storage only: profile, placement result, progress, errors, notes, writing drafts, Speaking transcripts and study history.
 
-Adaptive review, repair, Vocabulary Review, observed skill performance and adaptive learning history are also local-only.
+Adaptive review, repair, Vocabulary Review, observed skill performance, productive evidence and adaptive learning history are also local-only.
 
 There is no account or backend in this prototype.
 
@@ -279,9 +317,9 @@ These are implementation guardrails, not a substitute for final device visual QA
 
 ## Next implementation priorities
 
-1. add richer productive-skill evidence from Writing revisions and Speaking retries instead of relying mainly on objective checked questions
-2. perform live-device / deployed-site visual QA when a public preview is available
-3. begin Question Type Lab / Mini Test expansion while preserving Practice Mode vs Test Mode separation
-4. replace prototype Listening speech with production-quality audio before public release
-5. improve study-plan logic so 4 / 8 / 12 / 16-week plans can consume the completed 30-unit curriculum
+1. perform live-device / deployed-site interaction QA, especially productive-evidence persistence and Question Type Lab separation
+2. expand Question Type Lab toward the V1.1 12–16-unit target and add the first Reading / Listening Mini Tests
+3. build 4 / 8 / 12 / 16-week Study Plan logic using placement, real performance, productive retry evidence, review due dates and available study time
+4. improve return-from-AI workflow so learners can record revision priorities without copying an AI score into the profile
+5. replace prototype Listening speech with production-quality audio before public release
 6. only after the content and learner-data model stabilise, evaluate account/cloud sync or PWA work
