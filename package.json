@@ -1,10 +1,10 @@
 {
   "name": "ielts-self-learning",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --check curriculum-batch-01.js && node --check curriculum-batch-02.js && node --check curriculum-ui-v1.js && node --check question-type-lab-v1.js && node --check question-type-lab-ui.js && node --check productive-evidence-v1.js && node --check learning-runtime-v3.js && node --check learning-extension-data.js && node --check learn-repair-cards.js && node tests/validate-content.mjs && node tests/validate-learning-runtime.mjs && node tests/validate-curriculum-batch-01.mjs && node tests/validate-curriculum-v1.mjs && node tests/validate-next-stage.mjs"
+    "test": "node --check curriculum-batch-01.js && node --check curriculum-batch-02.js && node --check curriculum-ui-v1.js && node --check question-type-lab-v1.js && node --check question-type-lab-v2.js && node --check question-type-lab-ui.js && node --check mini-test-data-v1.js && node --check mini-test-runtime-v1.js && node --check productive-evidence-v1.js && node --check learning-runtime-v3.js && node --check learning-extension-data.js && node --check learn-repair-cards.js && node tests/validate-content.mjs && node tests/validate-learning-runtime.mjs && node tests/validate-curriculum-batch-01.mjs && node tests/validate-curriculum-v1.mjs && node tests/validate-next-stage.mjs && node tests/validate-labs-mini-tests.mjs"
   },
   "engines": {
     "node": ">=20"
