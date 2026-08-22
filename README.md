@@ -19,20 +19,22 @@ Implemented:
 - cross-form Mini Test trend analysis that looks for recurring missed error tags across two different forms
 - adaptive **4 / 8 / 12 / 16-week Study Plan** with configurable study days and minutes per session
 - Study Plan uses Placement, observed performance, productive retry evidence, due review, Lab / Mini Test history and available time
+- prerequisite-safe Adaptive Today recommendations across the learner journey
 - Error Notebook + data-triggered Repair lessons + spaced Review Queue
 - lesson-derived Vocabulary Review with due scheduling
-- adaptive Today recommendation using weakness, review due, IELTS relevance, skill balance, difficulty and time fit
 - observed skill-performance evidence from checked lesson, repair, Lab and submitted Mini Test questions
 - Writing / Speaking productive-skill evidence with first-attempt vs revision/retry tracking
 - AI feedback return logging: save 2–3 external-LLM revision priorities and connect them to the next retry without importing AI band scores
 - local learner-data **Export / Import / Reset** using a versioned, allow-listed JSON backup format
+- read-only in-app Diagnostics / Troubleshooting with privacy-safe copyable reports
+- production-first Listening media layer: real audio assets are preferred; browser `speechSynthesis` is fallback only
+- full learner-journey state regression from Placement through Study Plan, Mini Test, productive evidence, backup/restore and Diagnostics
 - productive evidence remains separate from objective-question accuracy and never claims an IELTS band
 - Writing workspace with word count and portable AI prompt builder
 - Speaking recorder where `MediaRecorder` is available, with transcript fallback
 - IELTS Strategy, Question Type Lab and Mini Test sections on the IELTS page
 - 30-unit core completion remains separate from Lab / Mini Test completion
 - English-first interface with optional Traditional Chinese scaffolding
-- browser `speechSynthesis` fallback for prototype Listening media
 - dependency-free validation through `npm test` and GitHub Actions
 
 ## Run locally
@@ -53,7 +55,7 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers Placement, curriculum registration, adaptive metadata, repair/review flow, Vocabulary Review, productive evidence, AI feedback return logging, the 12 Question Type Labs, all four Mini Test forms, cross-form recurring error patterns, Study Plan inputs / phase logic / integration, local-data backup/import/reset rules, script load order and mobile guardrails.
+Validation covers Placement, curriculum registration, adaptive metadata, prerequisite guardrails, repair/review flow, Vocabulary Review, productive evidence, AI feedback return logging, the 12 Question Type Labs, all four Mini Test forms, cross-form recurring error patterns, Study Plan integration, local-data backup/import/reset, Diagnostics, the full learner-journey state path, production-first Listening media, script load order and mobile guardrails.
 
 ## Source of truth
 
@@ -149,7 +151,7 @@ Both use new, self-contained passages and mixed Reading decisions. Submitted ite
 - `ML01` Listening Mini Test 01 — 10 questions / 9 minutes
 - `ML02` Listening Mini Test 02 — 10 questions / 9 minutes
 
-Both use one prototype browser-speech playback; the transcript remains hidden until submission. Submitted items feed existing Listening performance evidence.
+Both use one successful playback per attempt. The runtime prefers the production MP3 path and falls back to browser speech only when the production file is unavailable. The transcript remains hidden until submission. Submitted items feed existing Listening performance evidence.
 
 Test Mode rules:
 
@@ -179,6 +181,8 @@ Positive recommendation factors:
 | Available-time match | 10% |
 
 Recent repetition applies a negative penalty. Due Error Notebook or Vocabulary Review retrieval takes priority over new material.
+
+Adaptive Today now filters new-material recommendations through actual lesson prerequisites. Locked Question Type Labs and later core lessons are not offered early, and already completed lessons are not treated as new work.
 
 Checked lesson, repair, Lab and submitted Mini Test answers update observed skill performance as evidence accumulates.
 
@@ -249,9 +253,19 @@ Returned AI feedback is stored as coaching priorities linked to a specific Writi
 
 External AI band scores are not imported into the learner profile. AI feedback remains coaching input, not examiner scoring.
 
-## Listening prototype note
+## Production-first Listening media
 
-Current Listening media can use browser `speechSynthesis` so the prototype remains static and dependency-free. Before public production release, replace this with high-quality recorded or licensed English audio while preserving transcripts, question timing, answer logic and accessibility.
+See [`docs/listening-media-v1.md`](docs/listening-media-v1.md) and [`media/audio/README.md`](media/audio/README.md).
+
+Listening now follows:
+
+`PRODUCTION MP3 → if unavailable, BROWSER VOICE FALLBACK`
+
+Normal lesson and Placement `<audio>` controls use their existing production paths. A browser-voice button appears only after a production file fails to load; it is no longer shown alongside working production audio.
+
+For ML01 / ML02 Test Mode, the production-first layer preserves one successful playback per attempt. If the MP3 fails, browser voice may be used. If both sources fail, the learner is not charged a playback attempt.
+
+The repository currently defines the production asset contract but does **not** claim that all production-quality recordings are already present. Audio provenance and licence information must be recorded before public release.
 
 ## Local Data Portability V1
 
@@ -265,17 +279,23 @@ Export creates a local JSON file containing the known IELTS learner-data keys pl
 
 Reset removes only IELTS learner-data keys and intentionally preserves the Light/Dark preference. The implementation does not call `localStorage.clear()` and does not upload backup files to a server.
 
+## Diagnostics / troubleshooting
+
+See [`docs/diagnostics-v1.md`](docs/diagnostics-v1.md).
+
+Progress contains a read-only diagnostic panel for app/schema versions, browser capabilities, local-data counts and stale/malformed references. The copyable report deliberately excludes essay text, transcripts, selected-answer text and AI feedback content.
+
 ## Data policy
 
 Core profile, progress, errors, notes, drafts, transcripts, test answers and study history remain in browser storage. Adaptive review, Vocabulary Review, productive evidence, AI feedback returns, observed performance, Mini Test history / error-tag trends and the generated Study Plan are also local-only.
 
-These learner-data stores can now be exported and restored through a versioned JSON backup. There is still no account or backend in this prototype.
+These learner-data stores can be exported and restored through a versioned JSON backup. There is still no account or backend in this prototype.
 
 ## Next implementation priorities
 
-1. perform deployed desktop/mobile interaction QA for Study Plan, Question Type Lab, all four Mini Test forms, AI feedback return, backup/import/reset, persistence and Error Notebook transfer
-2. review MR02 / ML02 timing, distractor difficulty and recurring-error usefulness with real test attempts
-3. refine Study Plan rebalancing from actual multi-test usage patterns without silently rewriting the learner's calendar
-4. replace prototype Listening speech with production-quality audio before public release
-5. add lightweight in-app diagnostics for data/schema version and release troubleshooting before broader testing
-6. only after the content and learner-data model stabilise, evaluate account/cloud sync or PWA work
+1. create and QA the actual production audio for `ML01` and `ML02`, including transcript alignment, natural pacing, distractor timing and mobile playback
+2. create and QA production audio for Placement and L01–L05
+3. perform direct deployed desktop/mobile interaction QA for the full learner journey, including real audio, microphone and file import/export
+4. review MR02 / ML02 timing, distractor difficulty and recurring-error usefulness with real learner attempts
+5. refine Study Plan rebalancing from actual multi-test usage patterns without silently rewriting the learner's calendar
+6. only after the content, media and learner-data model stabilise, evaluate account/cloud sync or PWA work
