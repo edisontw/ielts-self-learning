@@ -1,0 +1,338 @@
+{
+  "version": 1,
+  "purpose": "Production preparation specification for the two Listening Mini Test recordings. Spoken wording must remain aligned with mini-test-data-v1.js and mini-test-data-v2.js.",
+  "global": {
+    "format": "mp3",
+    "sampleRateHz": [44100, 48000],
+    "recommendedBitrateKbps": [96, 128, 160],
+    "channels": "mono or stereo; speech must remain centered and clear",
+    "normalization": "Use consistent speech loudness across ML01 and ML02; avoid aggressive compression or clipping.",
+    "background": "No music. Room tone may be extremely subtle but must not mask consonants, numbers, corrections, or direction words.",
+    "delivery": "Natural adult conversation at normal IELTS-like listening pace. Do not use slow teaching speech. Preserve false leads, corrections, contrasts, and final decisions.",
+    "wordingRule": "Do not add, delete, reorder, paraphrase, or summarize spoken content. Speaker labels are not spoken.",
+    "pauseRule": "Use short conversational turn gaps, normally 180–450 ms. Longer pauses may mark a genuine topic transition but should normally remain below 700 ms.",
+    "testModeRule": "Each Mini Test is one continuous recording with no chapter markers or sentence-level controls."
+  },
+  "tests": {
+    "ML01": {
+      "title": "Listening Mini Test 01 — Research Skills Workshops",
+      "outputPath": "media/audio/mini-tests/ml01-research-skills-workshops.mp3",
+      "sourceFile": "mini-test-data-v1.js",
+      "sourceField": "MINI_TESTS[id=ML01].script",
+      "approxWordCount": 272,
+      "targetPaceWpm": [138, 148],
+      "targetDurationSeconds": [112, 124],
+      "voices": {
+        "Advisor": {
+          "role": "university academic-skills advisor",
+          "profile": "adult, calm, clear, professional; neutral British or broadly international English",
+          "delivery": "helpful and matter-of-fact; normal connected speech; do not over-emphasize answer words"
+        },
+        "Student": {
+          "role": "Maya, postgraduate student",
+          "profile": "young adult, natural conversational voice clearly distinct from Advisor",
+          "delivery": "engaged and slightly tentative when reconsidering choices; natural contractions"
+        }
+      },
+      "criticalTiming": [
+        {
+          "questionIds": ["ML01-Q1", "ML01-Q2"],
+          "cue": "The first option is mentioned before the final choice.",
+          "spokenEvidence": "I thought I needed the Monday one ... Evaluating evidence is probably my biggest problem now, so Wednesday sounds more useful.",
+          "direction": "Read Monday naturally as a genuine earlier plan, then use only a mild contrast on 'but' and a natural finality on 'Wednesday sounds more useful'. Do not pause before the answer phrase."
+        },
+        {
+          "questionIds": ["ML01-Q3"],
+          "cue": "Current room follows an explicit old-location distractor.",
+          "spokenEvidence": "Training Room B. It used to be in Room A, so make sure you follow the updated timetable.",
+          "direction": "Room B is current information. Room A must remain equally audible and plausible as old information; do not caricature the correction."
+        },
+        {
+          "questionIds": ["ML01-Q4", "ML01-Q5"],
+          "cue": "Wednesday and Friday have opposite laptop requirements.",
+          "spokenEvidence": "Not for the Wednesday session. Computers are provided. For Friday's reference-management workshop, though, participants should bring a laptop ...",
+          "direction": "Keep 'Not for Wednesday' clear, then make 'though' a natural contrast marker. Avoid exaggerated stress on Friday or laptop."
+        },
+        {
+          "questionIds": ["ML01-Q6"],
+          "cue": "Old £10 fee must not sound like the current fee.",
+          "spokenEvidence": "The workshops themselves are free. We used to charge ten pounds for external participants, but that fee was removed this year.",
+          "direction": "Use normal sentence stress on 'free', 'used to', and 'removed this year'. The £10 distractor must remain fully intelligible."
+        },
+        {
+          "questionIds": ["ML01-Q7"],
+          "cue": "Registration requirement is explained by room capacity.",
+          "spokenEvidence": "You do need to register online because Training Room B only has twenty-four seats.",
+          "direction": "Keep 'because' and 'twenty-four seats' clear without slowing the sentence unnaturally."
+        },
+        {
+          "questionIds": ["ML01-Q8", "ML01-Q9"],
+          "cue": "The required article and the especially useful type of article occur in adjacent sentences.",
+          "spokenEvidence": "Bring one journal article related to your dissertation ... an article you're uncertain about is useful ...",
+          "direction": "Keep 'one journal article' clear. For the uncertainty point, sound explanatory rather than corrective."
+        },
+        {
+          "questionIds": ["ML01-Q10"],
+          "cue": "A repeat session is offered with an explicit warning not to book both.",
+          "spokenEvidence": "There's a repeat session the following Tuesday morning. Don't book both. The Tuesday class covers exactly the same material.",
+          "direction": "Use a short natural pause after 'Tuesday morning'. 'Don't book both' should be clear and firm, not shouted."
+        }
+      ],
+      "segments": [
+        {
+          "speaker": "Advisor",
+          "text": "Hi, Maya. You asked about the research skills workshops for your dissertation project. There are three sessions next week. The first, on Monday, is about finding academic sources. The Wednesday session covers evaluating evidence, and Friday focuses on reference-management software.",
+          "pauseAfterMs": 280,
+          "delivery": "friendly opening; neutral list rhythm across Monday, Wednesday, Friday"
+        },
+        {
+          "speaker": "Student",
+          "text": "I thought I needed the Monday one, but I've already met the subject librarian and she showed me the databases. Evaluating evidence is probably my biggest problem now, so Wednesday sounds more useful.",
+          "pauseAfterMs": 300,
+          "delivery": "genuine reconsideration; mild contrast on but; settle naturally on Wednesday"
+        },
+        {
+          "speaker": "Advisor",
+          "text": "I agree. That session starts at two o'clock in Training Room B. It used to be in Room A, so make sure you follow the updated timetable.",
+          "pauseAfterMs": 260,
+          "delivery": "matter-of-fact correction; Room A remains clearly audible as old information"
+        },
+        {
+          "speaker": "Student",
+          "text": "Do I need to bring my laptop?",
+          "pauseAfterMs": 180,
+          "delivery": "short practical question"
+        },
+        {
+          "speaker": "Advisor",
+          "text": "Not for the Wednesday session. Computers are provided. For Friday's reference-management workshop, though, participants should bring a laptop because they install the software during the class.",
+          "pauseAfterMs": 260,
+          "delivery": "clear contrast between Wednesday and Friday; natural stress on though"
+        },
+        {
+          "speaker": "Student",
+          "text": "I may do Friday as well. Is there a fee?",
+          "pauseAfterMs": 190,
+          "delivery": "interested, concise"
+        },
+        {
+          "speaker": "Advisor",
+          "text": "The workshops themselves are free. We used to charge ten pounds for external participants, but that fee was removed this year. You do need to register online because Training Room B only has twenty-four seats.",
+          "pauseAfterMs": 300,
+          "delivery": "free is current; ten pounds is old but fully intelligible; causal explanation remains fluent"
+        },
+        {
+          "speaker": "Student",
+          "text": "What should I prepare before Wednesday?",
+          "pauseAfterMs": 180,
+          "delivery": "neutral request"
+        },
+        {
+          "speaker": "Advisor",
+          "text": "Bring one journal article related to your dissertation. It doesn't have to be the best article you've found. In fact, an article you're uncertain about is useful because you'll practise judging the strength of its evidence.",
+          "pauseAfterMs": 280,
+          "delivery": "explanatory; one article requirement clear; no over-emphasis on uncertain"
+        },
+        {
+          "speaker": "Student",
+          "text": "That makes sense. And if Wednesday is full?",
+          "pauseAfterMs": 180,
+          "delivery": "brief acknowledgment followed by contingency question"
+        },
+        {
+          "speaker": "Advisor",
+          "text": "There's a repeat session the following Tuesday morning. Don't book both. The Tuesday class covers exactly the same material.",
+          "pauseAfterMs": 260,
+          "delivery": "clear contingency; firm but normal warning on don't book both"
+        },
+        {
+          "speaker": "Student",
+          "text": "Great. I'll register for Wednesday first, and Friday if there are still places.",
+          "pauseAfterMs": 0,
+          "delivery": "final decision; natural closure"
+        }
+      ]
+    },
+    "ML02": {
+      "title": "Listening Mini Test 02 — Community Photography Walk",
+      "outputPath": "media/audio/mini-tests/ml02-community-photography-walk.mp3",
+      "sourceFile": "mini-test-data-v2.js",
+      "sourceField": "MINI_TESTS_V2[id=ML02].script",
+      "approxWordCount": 345,
+      "targetPaceWpm": [140, 150],
+      "targetDurationSeconds": [138, 153],
+      "voices": {
+        "Coordinator": {
+          "role": "community event coordinator",
+          "profile": "adult, clear and efficient; neutral British or broadly international English",
+          "delivery": "friendly but practical; directions and numbers must remain natural, not dictated"
+        },
+        "Participant": {
+          "role": "adult event participant",
+          "profile": "adult voice clearly distinct from Coordinator",
+          "delivery": "curious, conversational, occasionally checking conflicting information"
+        }
+      },
+      "criticalTiming": [
+        {
+          "questionIds": ["ML02-Q1", "ML02-Q2"],
+          "cue": "Old start time appears before current time and arrival time.",
+          "spokenEvidence": "the poster saying it starts at nine thirty, but the website says ten ... The website is correct ... Please arrive about fifteen minutes early",
+          "direction": "Keep 9:30, 10:00, and fifteen minutes all clear and distinct. The old 9:30 must sound plausible before the coordinator confirms 10:00."
+        },
+        {
+          "questionIds": ["ML02-Q3", "ML02-Q4"],
+          "cue": "Gallery entrance is rejected before the fountain location; route sequence follows.",
+          "spokenEvidence": "At the gallery entrance? Not this time ... Meet beside the fountain in Market Square ... pass the library ... turn right immediately after the pharmacy.",
+          "direction": "Do not weaken 'gallery entrance'. Use natural negative correction on 'Not this time'. Direction sequence should flow continuously rather than being read like a list."
+        },
+        {
+          "questionIds": ["ML02-Q5"],
+          "cue": "Original duration precedes revised duration and reason.",
+          "spokenEvidence": "About two and a half hours. We originally planned three hours, but we removed the riverside section because construction has narrowed the path.",
+          "direction": "Both durations must be audible. The causal clause after 'but' carries the answer to why the walk is shorter."
+        },
+        {
+          "questionIds": ["ML02-Q6"],
+          "cue": "Expensive camera is explicitly rejected.",
+          "spokenEvidence": "No. A phone is fine ... don't buy anything especially for the event.",
+          "direction": "Use a normal reassuring tone. Do not over-stress phone."
+        },
+        {
+          "questionIds": ["ML02-Q7"],
+          "cue": "Standard fee precedes student discount.",
+          "spokenEvidence": "it's twelve pounds ... Students pay eight pounds if they show a valid student card",
+          "direction": "Keep £12 and £8 equally clear. Slightly separate the two clauses naturally so the discount relationship is intelligible."
+        },
+        {
+          "questionIds": ["ML02-Q8"],
+          "cue": "Online and card are accepted; cash is explicitly rejected.",
+          "spokenEvidence": "Online payment guarantees your place ... we also accept card payment ... We can't take cash.",
+          "direction": "The three payment modes must remain distinct. Use a short natural pause before the final cash restriction."
+        },
+        {
+          "questionIds": ["ML02-Q9"],
+          "cue": "Light rain does not cancel; severe weather changes the format.",
+          "spokenEvidence": "Light rain won't cancel ... If there's severe weather, we'll email everyone by eight o'clock ... and run an indoor photography session",
+          "direction": "Keep the weather conditions contrastive but natural. 'Eight o'clock' is supporting detail, not the target answer."
+        },
+        {
+          "questionIds": ["ML02-Q10"],
+          "cue": "Final decision appears in the last turn.",
+          "spokenEvidence": "Okay. I'll book online tonight.",
+          "direction": "Natural closure with clear finality; no added outro after this sentence."
+        }
+      ],
+      "segments": [
+        {
+          "speaker": "Coordinator",
+          "text": "Good morning. You're calling about the Saturday community photography walk, right?",
+          "pauseAfterMs": 220,
+          "delivery": "friendly confirmation"
+        },
+        {
+          "speaker": "Participant",
+          "text": "Yes. I saw the poster saying it starts at nine thirty, but the website says ten.",
+          "pauseAfterMs": 210,
+          "delivery": "genuine uncertainty; both times equally clear"
+        },
+        {
+          "speaker": "Coordinator",
+          "text": "The website is correct. We moved the start to ten because the gallery opens later on Saturdays. Please arrive about fifteen minutes early for registration.",
+          "pauseAfterMs": 280,
+          "delivery": "clear correction without slow teaching cadence"
+        },
+        {
+          "speaker": "Participant",
+          "text": "Where exactly do we meet? At the gallery entrance?",
+          "pauseAfterMs": 180,
+          "delivery": "plausible guess, not a throwaway distractor"
+        },
+        {
+          "speaker": "Coordinator",
+          "text": "Not this time. The main entrance is being repaired. Meet beside the fountain in Market Square. From the railway station, walk straight along King Street, pass the library on your left, and turn right immediately after the pharmacy. The fountain is in the middle of the square.",
+          "pauseAfterMs": 320,
+          "delivery": "natural correction followed by continuous route directions"
+        },
+        {
+          "speaker": "Participant",
+          "text": "Great. And how long is the walk?",
+          "pauseAfterMs": 170,
+          "delivery": "brief transition"
+        },
+        {
+          "speaker": "Coordinator",
+          "text": "About two and a half hours. We originally planned three hours, but we removed the riverside section because construction has narrowed the path.",
+          "pauseAfterMs": 250,
+          "delivery": "current duration first; old duration remains clearly audible; causal contrast natural"
+        },
+        {
+          "speaker": "Participant",
+          "text": "Do I need an expensive camera?",
+          "pauseAfterMs": 170,
+          "delivery": "practical question"
+        },
+        {
+          "speaker": "Coordinator",
+          "text": "No. A phone is fine. The tutor will focus on composition and light rather than equipment. If you have a camera, bring it, but don't buy anything especially for the event.",
+          "pauseAfterMs": 250,
+          "delivery": "reassuring and conversational"
+        },
+        {
+          "speaker": "Participant",
+          "text": "The poster also mentioned a small fee.",
+          "pauseAfterMs": 170,
+          "delivery": "neutral prompt"
+        },
+        {
+          "speaker": "Coordinator",
+          "text": "Yes, it's twelve pounds. That includes entry to the gallery at the end. Students pay eight pounds if they show a valid student card when they register.",
+          "pauseAfterMs": 260,
+          "delivery": "make standard fee and student discount both clear"
+        },
+        {
+          "speaker": "Participant",
+          "text": "Should I pay online?",
+          "pauseAfterMs": 170,
+          "delivery": "short question"
+        },
+        {
+          "speaker": "Coordinator",
+          "text": "You can, but you don't have to. Online payment guarantees your place. If spaces remain, we also accept card payment on Saturday morning. We can't take cash.",
+          "pauseAfterMs": 280,
+          "delivery": "three payment conditions distinct; short pause before cash restriction"
+        },
+        {
+          "speaker": "Participant",
+          "text": "What happens if it rains?",
+          "pauseAfterMs": 170,
+          "delivery": "neutral contingency question"
+        },
+        {
+          "speaker": "Coordinator",
+          "text": "Light rain won't cancel the walk, so bring a waterproof jacket. If there's severe weather, we'll email everyone by eight o'clock that morning and run an indoor photography session in the gallery instead.",
+          "pauseAfterMs": 280,
+          "delivery": "clear contrast between light rain and severe weather; keep eight o'clock fluent"
+        },
+        {
+          "speaker": "Participant",
+          "text": "I'm mainly interested in photographing people. Is that covered?",
+          "pauseAfterMs": 180,
+          "delivery": "interested and conversational"
+        },
+        {
+          "speaker": "Coordinator",
+          "text": "The first activity is architecture around Market Square. Then we practise street scenes, including people in public spaces, and the final exercise is inside the gallery. Just remember that close-up portraits of strangers require permission.",
+          "pauseAfterMs": 270,
+          "delivery": "natural sequence; avoid artificial list cadence"
+        },
+        {
+          "speaker": "Participant",
+          "text": "Okay. I'll book online tonight.",
+          "pauseAfterMs": 0,
+          "delivery": "clear final decision and natural close"
+        }
+      ]
+    }
+  }
+}
