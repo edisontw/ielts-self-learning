@@ -9,7 +9,7 @@ import { CURRICULUM_BATCH_01, BATCH_01_META, BATCH_01_VOCABULARY } from '../curr
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const audioFallback = fs.readFileSync(path.join(root, 'audio-fallback.js'), 'utf8');
+const listeningMedia = fs.readFileSync(path.join(root, 'listening-media-v1.js'), 'utf8');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
 const requiredIds = ['R02','R03','R04','R05','L02','L03','L04','L05','W02','W03'];
@@ -56,14 +56,16 @@ const lessonScriptIndex = index.indexOf('./curriculum-batch-01.js');
 const appScriptIndex = index.indexOf('./app.js');
 assert(lessonScriptIndex >= 0, 'index.html must load curriculum-batch-01.js.');
 assert(appScriptIndex >= 0 && lessonScriptIndex < appScriptIndex, 'Curriculum registration must load before app.js.');
-assert(index.includes('./audio-fallback.js'), 'index.html must load browser audio fallback.');
+assert(index.includes('./listening-media-v1.js'), 'index.html must load the production-first Listening media layer.');
+assert(!index.includes('./audio-fallback.js'), 'Legacy audio-fallback.js must not be loaded.');
 for (const audio of ['l02-connected-speech.mp3','l03-listening-paraphrase.mp3','l04-distractors.mp3','l05-predict.mp3']) {
-  assert(audioFallback.includes(audio), `Audio fallback must contain ${audio}.`);
+  assert(listeningMedia.includes(audio), `Listening media fallback registry must contain ${audio}.`);
 }
+assert(listeningMedia.includes("data-listening-media-policy = 'production-first'") || listeningMedia.includes("dataset.listeningMediaPolicy = 'production-first'"), 'Listening media must keep the production-first policy marker.');
 
 console.log('✓ Curriculum Batch 01: R02–R05 / L02–L05 complete');
 console.log('✓ Continuation step: W02–W03 complete');
 console.log(`✓ ${questionIds.length} checked lesson questions have unique IDs, answers, rationales, and error tags`);
 console.log(`✓ ${BATCH_01_VOCABULARY.length} lesson-derived Vocabulary Review items registered`);
 console.log('✓ Adaptive metadata and lesson graph links registered');
-console.log('✓ Listening browser-voice fallback loaded for L02–L05');
+console.log('✓ Production-first Listening media + browser-voice fallback registered for L02–L05');
