@@ -15,7 +15,8 @@ Implemented:
 - placement scoring, confidence, uneven-profile guardrail and recommended difficulty
 - complete first 30-unit curriculum: Learning Better 4 / Reading 5 / Listening 5 / Writing 5 / Speaking 5 / Vocabulary & Grammar Repair 3 / IELTS Strategy 3
 - Question Type Lab expanded to **12 units**: Reading 6 + Listening 6
-- first Test Mode Mini Tests: **MR01 Reading 12 questions / 12 min** and **ML01 Listening 10 questions / 9 min**
+- four Test Mode Mini Tests: **MR01 + MR02 Reading, 12 questions / 12 min each; ML01 + ML02 Listening, 10 questions / 9 min each**
+- cross-form Mini Test trend analysis that looks for recurring missed error tags across two different forms
 - adaptive **4 / 8 / 12 / 16-week Study Plan** with configurable study days and minutes per session
 - Study Plan uses Placement, observed performance, productive retry evidence, due review, Lab / Mini Test history and available time
 - Error Notebook + data-triggered Repair lessons + spaced Review Queue
@@ -23,6 +24,7 @@ Implemented:
 - adaptive Today recommendation using weakness, review due, IELTS relevance, skill balance, difficulty and time fit
 - observed skill-performance evidence from checked lesson, repair, Lab and submitted Mini Test questions
 - Writing / Speaking productive-skill evidence with first-attempt vs revision/retry tracking
+- AI feedback return logging: save 2–3 external-LLM revision priorities and connect them to the next retry without importing AI band scores
 - productive evidence remains separate from objective-question accuracy and never claims an IELTS band
 - Writing workspace with word count and portable AI prompt builder
 - Speaking recorder where `MediaRecorder` is available, with transcript fallback
@@ -50,7 +52,7 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers Placement, curriculum registration, adaptive metadata, repair/review flow, Vocabulary Review, productive evidence, the 12 Question Type Labs, MR01 / ML01 Test Mode rules, Study Plan inputs / phase logic / integration, script load order and mobile guardrails.
+Validation covers Placement, curriculum registration, adaptive metadata, repair/review flow, Vocabulary Review, productive evidence, AI feedback return logging, the 12 Question Type Labs, all four Mini Test forms, cross-form recurring error patterns, Study Plan inputs / phase logic / integration, script load order and mobile guardrails.
 
 ## Source of truth
 
@@ -130,31 +132,37 @@ Question Type Lab trains one exam decision at a time in Practice Mode while reus
 
 Labs are hidden from the core Learn index and surfaced under **IELTS → Question Type Lab**.
 
-## Mini Test V1 — Test Mode
+## Mini Tests — Test Mode
 
-See [`docs/question-type-lab-mini-test-v1.md`](docs/question-type-lab-mini-test-v1.md).
+See [`docs/question-type-lab-mini-test-v1.md`](docs/question-type-lab-mini-test-v1.md) and [`docs/mini-test-v2.md`](docs/mini-test-v2.md).
 
-### `MR01` Reading Mini Test 01
+### Reading
 
-- 12 questions
-- 12-minute timer
-- mixed Reading question types
-- no hints / answer checking before submission
-- submitted items feed existing Reading performance evidence
+- `MR01` Reading Mini Test 01 — 12 questions / 12 minutes
+- `MR02` Reading Mini Test 02 — 12 questions / 12 minutes
 
-### `ML01` Listening Mini Test 01
+Both use new, self-contained passages and mixed Reading decisions. Submitted items feed existing Reading performance evidence.
 
-- 10 questions
-- 9-minute timer
-- one prototype browser-speech playback
-- transcript hidden until submission
-- submitted items feed existing Listening performance evidence
+### Listening
+
+- `ML01` Listening Mini Test 01 — 10 questions / 9 minutes
+- `ML02` Listening Mini Test 02 — 10 questions / 9 minutes
+
+Both use one prototype browser-speech playback; the transcript remains hidden until submission. Submitted items feed existing Listening performance evidence.
 
 Test Mode rules:
 
-`TIMED → ONE ATTEMPT → NO HINTS → SUBMIT → ITEM REVIEW → ERROR NOTEBOOK → REPAIR`
+`TIMED → ONE SUBMISSION → NO HINTS → SUBMIT → ITEM REVIEW → ERROR NOTEBOOK → REPAIR`
 
 Mini Test scores are diagnostic raw scores only and are **not IELTS band estimates**.
+
+### Cross-form transfer evidence
+
+The two Reading forms and two Listening forms intentionally share several error-tag dimensions. New submissions are annotated with missed error-tag counts, and the IELTS page compares the two most recent **different** forms for that skill.
+
+A repeated tag across MR01 + MR02 or ML01 + ML02 is stronger transfer evidence than one isolated miss or two attempts on the same form.
+
+This trend can prompt the learner to review and explicitly rebalance the Study Plan. A test result does not silently rewrite the calendar.
 
 ## Adaptive Today
 
@@ -224,15 +232,21 @@ It preserves the product balance of roughly **60% English skill building / up to
 
 Today surfaces the next incomplete session from the current week. Progress shows the whole plan and allows explicit regeneration when available time or learner priorities change.
 
+MR02 / ML02 answers enter the same observed-performance path as MR01 / ML01, so a second test form can change Reading / Listening priority the next time the learner explicitly rebalances the plan.
+
 Internal priority values are planning signals only and are **not IELTS scores or band estimates**.
 
 ## AI workflow
 
+See [`docs/ai-feedback-return-v1.md`](docs/ai-feedback-return-v1.md).
+
 The website does not call a paid LLM API.
 
-`MY ANSWER → BUILD PROMPT → COPY → EXTERNAL LLM → FEEDBACK → RETURN → REWRITE / RETRY`
+`MY ANSWER → SAVE EVIDENCE → BUILD PROMPT → COPY → EXTERNAL LLM → RETURN 2–3 PRIORITIES → REWRITE / RETRY → SAVE EVIDENCE → COMPARE`
 
-AI feedback is coaching input, not examiner scoring.
+Returned AI feedback is stored as coaching priorities linked to a specific Writing / Speaking attempt. The next retry can be compared using the website's own process self-check and word count.
+
+External AI band scores are not imported into the learner profile. AI feedback remains coaching input, not examiner scoring.
 
 ## Listening prototype note
 
@@ -240,15 +254,15 @@ Current Listening media can use browser `speechSynthesis` so the prototype remai
 
 ## Data policy
 
-Core profile, progress, errors, notes, drafts, transcripts, test answers and study history remain in browser storage. Adaptive review, Vocabulary Review, productive evidence, observed performance, Mini Test history and the generated Study Plan are also local-only.
+Core profile, progress, errors, notes, drafts, transcripts, test answers and study history remain in browser storage. Adaptive review, Vocabulary Review, productive evidence, AI feedback returns, observed performance, Mini Test history / error-tag trends and the generated Study Plan are also local-only.
 
 There is no account or backend in this prototype.
 
 ## Next implementation priorities
 
-1. perform deployed desktop/mobile interaction QA for Study Plan, Lab, Mini Test timers, persistence and Error Notebook transfer
-2. improve return-from-AI revision logging without importing an AI-generated score into the learner profile
-3. add a second Reading and Listening Mini Test after MR01 / ML01 timing and difficulty are reviewed
-4. refine Study Plan rebalancing from real usage patterns after deployed interaction QA
-5. replace prototype Listening speech with production-quality audio before public release
+1. perform deployed desktop/mobile interaction QA for Study Plan, Question Type Lab, all four Mini Test forms, AI feedback return, persistence and Error Notebook transfer
+2. review MR02 / ML02 timing, distractor difficulty and recurring-error usefulness with real test attempts
+3. refine Study Plan rebalancing from actual multi-test usage patterns without silently rewriting the learner's calendar
+4. replace prototype Listening speech with production-quality audio before public release
+5. add export / reset controls for local learner data before broader public testing
 6. only after the content and learner-data model stabilise, evaluate account/cloud sync or PWA work
