@@ -1,10 +1,10 @@
 {
   "name": "ielts-self-learning",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --check learning-runtime-v3.js && node --check learning-extension-data.js && node --check learn-repair-cards.js && node tests/validate-content.mjs && node tests/validate-learning-runtime.mjs"
+    "test": "node --check curriculum-batch-01.js && node --check learning-runtime-v3.js && node --check learning-extension-data.js && node --check learn-repair-cards.js && node tests/validate-content.mjs && node tests/validate-learning-runtime.mjs && node tests/validate-curriculum-batch-01.mjs"
   },
   "engines": {
     "node": ">=20"
