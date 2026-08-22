@@ -4,10 +4,12 @@ const CORE_KEY='ielts-self-learning-v1';
 const ADAPTIVE_KEY='ielts-adaptive-v1';
 let session=null;
 let timerId=null;
-const esc=(v='')=>String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+const esc=(v='')=>String(v).replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[c]));
 const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}};
 const write=(key,value)=>localStorage.setItem(key,JSON.stringify(value));
 const testById=id=>MINI_TESTS.find(t=>t.id===id);
+const canSpeak=()=>('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
+const stopSpeech=()=>{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); };
 
 function removeMiniTestsFromLearn(){
   if(!location.hash.includes('/learn')) return;
@@ -79,7 +81,7 @@ function playerHTML(){
   const t=session.test;
   const answered=Object.keys(session.answers).length;
   const content=t.skill==='reading'?`<section class="card"><div class="eyebrow">Reading passage</div><h2 style="margin:7px 0 14px">${esc(t.passageTitle)}</h2><div class="reading-passage">${t.passage.split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('')}</div></section>`:`<section class="card"><div class="eyebrow">Listening recording</div><h2 style="margin:7px 0">One prototype playback</h2><p class="muted">The transcript stays hidden until submission. Browser speech synthesis is prototype audio, not production IELTS audio.</p><button class="btn ${session.played?'soft':'primary'}" data-mini-action="play-audio" ${session.played?'disabled':''}>${session.played?'Recording played':'Play recording once'}</button></section>`;
-  return `<section data-mini-test-player="true"><div class="page-head"><div><button class="btn ghost small-btn" data-mini-action="exit">← Exit test</button><div class="eyebrow" style="margin-top:18px">Test Mode · ${esc(t.skill)}</div><h1>${esc(t.title)}</h1><p class="lede">No hints, transcript, answer checking, or rationale until you submit.</p></div><div class="card" style="min-width:180px"><div class="small muted">Time remaining</div><div style="font-size:30px;font-weight:800" data-mini-timer>${formatTime(remaining())}</div><div class="small muted" data-mini-answered>${answered}/${t.questions.length} answered</div></div></div>${content}<section style="margin-top:18px"><div class="stack">${t.questions.map(questionHTML).join('')}</div></section><div class="card" style="margin-top:18px"><div class="cluster" style="justify-content:space-between"><div><strong>Submit once</strong><div class="small muted">Unanswered items count as incorrect. Feedback appears only after submission.</div></div><button class="btn primary" data-mini-action="submit">Submit Mini Test</button></div></div></section>`;
+  return `<section data-mini-test-player="true"><div class="page-head"><div><button class="btn ghost small-btn" data-mini-action="exit">← Exit test</button><div class="eyebrow" style="margin-top:18px">Test Mode · ${esc(t.skill)}</div><h1>${esc(t.title)}</h1><p class="lede">No hints, transcript, answer checking, or rationale until you submit.</p></div><div class="card" style="min-width:180px"><div class="small muted">Time remaining</div><div style="font-size:30px;font-weight:800" data-mini-timer aria-live="polite">${formatTime(remaining())}</div><div class="small muted" data-mini-answered>${answered}/${t.questions.length} answered</div></div></div>${content}<section style="margin-top:18px"><div class="stack">${t.questions.map(questionHTML).join('')}</div></section><div class="card" style="margin-top:18px"><div class="cluster" style="justify-content:space-between"><div><strong>Submit once</strong><div class="small muted">Unanswered items count as incorrect. Feedback appears only after submission.</div></div><button class="btn primary" data-mini-action="submit">Submit Mini Test</button></div></div></section>`;
 }
 
 function startTest(id){
@@ -105,13 +107,13 @@ function selectOption(button){
 
 function playAudio(){
   if(!session||session.submitted||session.test.skill!=='listening'||session.played)return;
-  if(!('speechSynthesis'in window)){ alert('Browser speech synthesis is unavailable. This prototype Listening Mini Test cannot play on this browser.'); return; }
+  if(!canSpeak()){ alert('Browser speech synthesis is unavailable. This prototype Listening Mini Test cannot play on this browser.'); return; }
   session.played=true;
   const btn=document.querySelector('[data-mini-action="play-audio"]'); if(btn){btn.disabled=true;btn.textContent='Recording played';btn.classList.remove('primary');btn.classList.add('soft');}
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(session.test.script.replace(/\n+/g,' '));
+  stopSpeech();
+  const u=new window.SpeechSynthesisUtterance(session.test.script.replace(/\n+/g,' '));
   u.lang='en-US'; u.rate=1; u.pitch=1;
-  speechSynthesis.speak(u);
+  window.speechSynthesis.speak(u);
 }
 
 function persistSubmission(result){
@@ -137,7 +139,7 @@ function resultHTML(result){
 
 function submitTest(timedOut=false){
   if(!session||session.submitted)return;
-  session.submitted=true; clearInterval(timerId); speechSynthesis?.cancel?.();
+  session.submitted=true; clearInterval(timerId); stopSpeech();
   const correct=session.test.questions.filter(item=>session.answers[item.id]===item.answer).length;
   const unanswered=session.test.questions.filter(item=>!session.answers[item.id]).length;
   const result={id:`mt-${Date.now()}-${session.test.id}`,ts:Date.now(),testId:session.test.id,skill:session.test.skill,correct,total:session.test.questions.length,unanswered,durationSeconds:Math.min(session.test.timeLimitSeconds,Math.floor((Date.now()-session.startedAt)/1000)),timedOut};
@@ -162,7 +164,7 @@ function saveErrors(button){
 }
 
 function exitTest(){
-  clearInterval(timerId); if('speechSynthesis'in window)speechSynthesis.cancel();
+  clearInterval(timerId); stopSpeech();
   document.querySelector('[data-mini-test-player]')?.remove(); session=null; setMainHidden(false); injectIndex(); window.scrollTo({top:0,behavior:'smooth'});
 }
 
