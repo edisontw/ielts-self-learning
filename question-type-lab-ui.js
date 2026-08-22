@@ -4,6 +4,15 @@ const CORE_KEY = 'ielts-self-learning-v1';
 const esc = (value='') => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
 const readCore = () => { try { return JSON.parse(localStorage.getItem(CORE_KEY) || '{}'); } catch { return {}; } };
 
+function removeLabsFromCoreLearn() {
+  if (!location.hash.includes('/learn')) return;
+  const titles = new Set(QUESTION_TYPE_LABS.map(l => l.title));
+  document.querySelectorAll('#main .lesson-card').forEach(card => {
+    const title = card.querySelector('h3')?.textContent?.trim();
+    if (titles.has(title)) card.remove();
+  });
+}
+
 function injectLab() {
   if (!location.hash.includes('/ielts') || document.querySelector('[data-question-type-lab-index]')) return;
   const main = document.querySelector('#main');
@@ -19,13 +28,16 @@ function injectLab() {
   const section = document.createElement('section');
   section.dataset.questionTypeLabIndex = 'true';
   section.style.marginTop = '24px';
-  section.innerHTML = `<div class="page-head" style="margin-bottom:14px"><div><div class="eyebrow">Question Type Lab · V1</div><h2>Train one exam decision at a time.</h2><p class="muted">These labs are separate from the 30-unit core curriculum. They reuse the same Error → Repair → Retry → Review system.</p></div><div><span class="chip primary">${done}/${QUESTION_TYPE_LABS.length} complete</span></div></div><div class="grid two">${cards}</div>`;
+  section.innerHTML = `<div class="page-head" style="margin-bottom:14px"><div><div class="eyebrow">Question Type Lab · V1</div><h2>Train one exam decision at a time.</h2><p class="muted">These labs are separate from the 30-unit core curriculum. Their checked answers still contribute Reading/Listening evidence and their errors enter the same Repair / Review loop.</p></div><div><span class="chip primary">${done}/${QUESTION_TYPE_LABS.length} complete</span></div></div><div class="grid two">${cards}</div>`;
   const strategy = document.querySelector('[data-ielts-strategy-index]');
   if (strategy) strategy.insertAdjacentElement('afterend', section);
   else main.appendChild(section);
 }
 
-function apply(){ injectLab(); }
+function apply(){
+  removeLabsFromCoreLearn();
+  injectLab();
+}
 window.addEventListener('hashchange', () => setTimeout(apply, 0));
 document.addEventListener('click', () => setTimeout(apply, 80));
 new MutationObserver(apply).observe(document.documentElement, { childList:true, subtree:true });
