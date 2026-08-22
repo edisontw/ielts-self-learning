@@ -1,6 +1,7 @@
 import { CORE_LESSON_META, REPAIR_LESSONS, RECOMMENDATION_WEIGHTS, REVIEW_RATINGS } from './adaptive-data.js';
 
 const STORAGE_KEY = 'ielts-self-learning-v1';
+const ADAPTIVE_STORAGE_KEY = 'ielts-adaptive-v1';
 const DAY = 86400000;
 let applying = false;
 let repairModal = null;
@@ -10,22 +11,22 @@ function readState() {
   catch { return {}; }
 }
 
-function writeState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+function readAdaptiveState() {
+  try { return JSON.parse(localStorage.getItem(ADAPTIVE_STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function writeAdaptiveState(adaptive) {
+  localStorage.setItem(ADAPTIVE_STORAGE_KEY, JSON.stringify(adaptive));
   window.dispatchEvent(new CustomEvent('ielts-adaptive-state-change'));
 }
 
-function ensureAdaptiveState(state) {
-  state.errors ||= [];
-  state.fixedErrors ||= [];
-  state.completedLessons ||= [];
-  state.studyHistory ||= [];
-  state.profile ||= {};
-  state.study ||= { preferredMinutes: 20 };
-  state.reviewSchedule ||= {};
-  state.repairProgress ||= {};
-  for (const error of state.errors) {
-    state.reviewSchedule[error.id] ||= {
+function ensureAdaptiveState(state, adaptive = readAdaptiveState()) {
+  adaptive.reviewSchedule ||= {};
+  adaptive.repairProgress ||= {};
+  adaptive.reviewHistory ||= [];
+  for (const error of state.errors || []) {
+    adaptive.reviewSchedule[error.id] ||= {
       dueAt: error.ts || Date.now(),
       intervalDays: 0,
       attempts: 0,
@@ -33,7 +34,7 @@ function ensureAdaptiveState(state) {
       lastRating: null
     };
   }
-  return state;
+  return adaptive;
 }
 
 function skillForLesson(id) {
@@ -53,11 +54,10 @@ function sectionWeakness(state, skill) {
   return 0.35;
 }
 
-function dueReviewItems(state) {
+function dueReviewItems(state, adaptive = ensureAdaptiveState(state)) {
   const now = Date.now();
-  return state.errors
-    .filter(error => !state.fixedErrors.includes(error.id) || (state.reviewSchedule?.[error.id]?.dueAt || 0) <= now)
-    .map(error => ({ error, schedule: state.reviewSchedule?.[error.id] || { dueAt: error.ts || now, intervalDays: 0, attempts: 0 } }))
+  return (state.errors || [])
+    .map(error => ({ error, schedule: adaptive.reviewSchedule?.[error.id] || { dueAt: error.ts || now, intervalDays: 0, attempts: 0 } }))
     .filter(item => item.schedule.dueAt <= now)
     .sort((a, b) => a.schedule.dueAt - b.schedule.dueAt);
 }
@@ -142,9 +142,9 @@ function recommendationHTML(state) {
   </section>`;
 }
 
-function reviewQueueHTML(state) {
-  const due = dueReviewItems(state);
-  const scheduled = state.errors.filter(e => !due.some(d => d.error.id === e.id)).map(error => ({ error, schedule: state.reviewSchedule?.[error.id] })).filter(x => x.schedule).sort((a,b)=>a.schedule.dueAt-b.schedule.dueAt);
+function reviewQueueHTML(state, adaptive) {
+  const due = dueReviewItems(state, adaptive);
+  const scheduled = (state.errors || []).filter(e => !due.some(d => d.error.id === e.id)).map(error => ({ error, schedule: adaptive.reviewSchedule?.[error.id] })).filter(x => x.schedule).sort((a,b)=>a.schedule.dueAt-b.schedule.dueAt);
   return `<section class="card adaptive-card" data-adaptive-root="review">
     <div class="adaptive-top"><div><div class="eyebrow">Review Queue</div><h2>${due.length ? `${due.length} due now` : 'You are caught up'}</h2></div><span class="chip ${due.length ? 'warning' : 'success'}">Spaced review V1</span></div>
     <p class="muted">Do not re-read the explanation first. Try to recall why the answer was wrong, reveal the answer, then rate the recall.</p>
@@ -180,22 +180,25 @@ function suggestedRepairs(state) {
   }).sort((a,b)=>b.score-a.score);
 }
 
-function repairLessonsHTML(state) {
+function repairLessonsHTML(state, adaptive) {
   const ranked = suggestedRepairs(state);
   return `<section class="card adaptive-card" data-adaptive-root="repair">
     <div class="adaptive-top"><div><div class="eyebrow">Repair Lessons</div><h2>Short lessons triggered by your data</h2></div><span class="chip primary">Vocabulary + Grammar</span></div>
-    <div class="repair-grid">${ranked.map(({lesson,score},i)=>`<article class="repair-card"><div class="cluster"><span class="chip">${lesson.id}</span>${i===0&&score>0?'<span class="chip warning">Recommended</span>':''}</div><h3>${esc(lesson.title)}</h3><p class="muted">${esc(lesson.objective)}</p><div class="meta"><span>${lesson.cefr}</span><span>${lesson.estimatedMinutes} min</span><span>Difficulty ${lesson.difficulty}/5</span></div><button class="btn soft" data-adaptive-action="open-repair" data-repair-id="${lesson.id}">${state.repairProgress?.[lesson.id]?.completed ? 'Review repair lesson' : 'Open repair lesson'}</button></article>`).join('')}</div>
+    <div class="repair-grid">${ranked.map(({lesson,score},i)=>`<article class="repair-card"><div class="cluster"><span class="chip">${lesson.id}</span>${i===0&&score>0?'<span class="chip warning">Recommended</span>':''}</div><h3>${esc(lesson.title)}</h3><p class="muted">${esc(lesson.objective)}</p><div class="meta"><span>${lesson.cefr}</span><span>${lesson.estimatedMinutes} min</span><span>Difficulty ${lesson.difficulty}/5</span></div><button class="btn soft" data-adaptive-action="open-repair" data-repair-id="${lesson.id}">${adaptive.repairProgress?.[lesson.id]?.completed ? 'Review repair lesson' : 'Open repair lesson'}</button></article>`).join('')}</div>
   </section>`;
 }
 
-function renderRepairModal(state) {
-  document.querySelector('[data-adaptive-modal]')?.remove();
-  if (!repairModal) return;
+function renderRepairModal(state, adaptive) {
+  const existing = document.querySelector('[data-adaptive-modal]');
+  if (!repairModal) { existing?.remove(); return; }
+  if (existing?.dataset.repairId === repairModal.id) return;
+  existing?.remove();
   const lesson = REPAIR_LESSONS.find(l => l.id === repairModal.id);
   if (!lesson) return;
-  const answers = state.repairProgress?.[lesson.id]?.answers || {};
+  const answers = adaptive.repairProgress?.[lesson.id]?.answers || {};
   const root = document.createElement('div');
   root.dataset.adaptiveModal = 'true';
+  root.dataset.repairId = lesson.id;
   root.className = 'adaptive-modal-backdrop';
   root.innerHTML = `<div class="adaptive-modal" role="dialog" aria-modal="true">
     <div class="adaptive-top"><div><div class="eyebrow">${lesson.lessonType} · ${lesson.id}</div><h2>${esc(lesson.title)}</h2></div><button class="btn ghost" data-adaptive-action="close-repair">✕</button></div>
@@ -216,8 +219,10 @@ function injectAdaptiveUI() {
   if (applying) return;
   applying = true;
   try {
-    const state = ensureAdaptiveState(readState());
-    writeStateSilently(state);
+    const state = readState();
+    state.errors ||= []; state.fixedErrors ||= []; state.completedLessons ||= []; state.studyHistory ||= []; state.profile ||= {}; state.study ||= { preferredMinutes: 20 };
+    const adaptive = ensureAdaptiveState(state);
+    writeAdaptiveStateSilently(adaptive);
     const main = document.querySelector('#main');
     if (!main) return;
     const route = location.hash.replace(/^#\/?/, '') || 'today';
@@ -228,20 +233,22 @@ function injectAdaptiveUI() {
     }
     if (route === 'improve') {
       const notebook = [...main.querySelectorAll('.card')].find(card => card.textContent.includes('Error Notebook'));
-      if (notebook && !main.querySelector('[data-adaptive-root="review"]')) notebook.insertAdjacentHTML('beforebegin', reviewQueueHTML(state));
-      if (notebook && !main.querySelector('[data-adaptive-root="repair"]')) notebook.insertAdjacentHTML('afterend', repairLessonsHTML(state));
+      if (notebook && !main.querySelector('[data-adaptive-root="review"]')) notebook.insertAdjacentHTML('beforebegin', reviewQueueHTML(state, adaptive));
+      if (notebook && !main.querySelector('[data-adaptive-root="repair"]')) notebook.insertAdjacentHTML('afterend', repairLessonsHTML(state, adaptive));
     }
-    renderRepairModal(state);
+    renderRepairModal(state, adaptive);
   } finally { applying = false; }
 }
 
-function writeStateSilently(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+function writeAdaptiveStateSilently(adaptive) {
+  localStorage.setItem(ADAPTIVE_STORAGE_KEY, JSON.stringify(adaptive));
 }
 
 function rateReview(errorId, rating) {
-  const state = ensureAdaptiveState(readState());
-  const item = state.reviewSchedule[errorId];
+  const state = readState();
+  state.errors ||= [];
+  const adaptive = ensureAdaptiveState(state);
+  const item = adaptive.reviewSchedule[errorId];
   const rule = REVIEW_RATINGS[rating];
   if (!item || !rule) return;
   const nextDays = rule.nextDays(item.intervalDays || 0);
@@ -250,13 +257,9 @@ function rateReview(errorId, rating) {
   item.attempts = (item.attempts || 0) + 1;
   item.lastReviewedAt = Date.now();
   item.lastRating = rating;
-  if (rule.mastery) {
-    if (!state.fixedErrors.includes(errorId)) state.fixedErrors.push(errorId);
-  } else {
-    state.fixedErrors = state.fixedErrors.filter(id => id !== errorId);
-  }
-  state.studyHistory.push({ ts: Date.now(), type: 'error-review', errorId, rating, nextDays });
-  writeState(state);
+  item.mastered = rule.mastery;
+  adaptive.reviewHistory.push({ ts: Date.now(), errorId, rating, nextDays });
+  writeAdaptiveState(adaptive);
   showMiniToast(`Review saved · next in ${nextDays} day${nextDays===1?'':'s'}`);
   forceAppRefresh();
 }
@@ -286,33 +289,37 @@ function handleAdaptiveClick(event) {
   }
   if (action === 'rate-review') rateReview(el.dataset.errorId, el.dataset.rating);
   if (action === 'open-repair') { repairModal = { id: el.dataset.repairId }; injectAdaptiveUI(); }
-  if (action === 'close-repair') { repairModal = null; renderRepairModal(ensureAdaptiveState(readState())); }
+  if (action === 'close-repair') { repairModal = null; renderRepairModal(readState(), readAdaptiveState()); }
   if (action === 'repair-option') {
-    const state = ensureAdaptiveState(readState());
+    const state = readState();
+    const adaptive = ensureAdaptiveState(state);
     const id = el.dataset.repairId;
     const idx = Number(el.dataset.questionIndex);
-    state.repairProgress[id] ||= { answers: {}, completed: false };
-    state.repairProgress[id].answers ||= {};
-    state.repairProgress[id].answers[idx] = { selected: el.dataset.value, checked: false };
-    writeStateSilently(state);
-    renderRepairModal(state);
+    adaptive.repairProgress[id] ||= { answers: {}, completed: false };
+    adaptive.repairProgress[id].answers ||= {};
+    adaptive.repairProgress[id].answers[idx] = { selected: el.dataset.value, checked: false };
+    writeAdaptiveStateSilently(adaptive);
+    document.querySelector('[data-adaptive-modal]')?.remove();
+    renderRepairModal(state, adaptive);
   }
   if (action === 'repair-check') {
-    const state = ensureAdaptiveState(readState());
+    const state = readState();
+    const adaptive = ensureAdaptiveState(state);
     const id = el.dataset.repairId;
     const idx = Number(el.dataset.questionIndex);
-    if (state.repairProgress?.[id]?.answers?.[idx]) state.repairProgress[id].answers[idx].checked = true;
-    writeStateSilently(state);
-    renderRepairModal(state);
+    if (adaptive.repairProgress?.[id]?.answers?.[idx]) adaptive.repairProgress[id].answers[idx].checked = true;
+    writeAdaptiveStateSilently(adaptive);
+    document.querySelector('[data-adaptive-modal]')?.remove();
+    renderRepairModal(state, adaptive);
   }
   if (action === 'complete-repair') {
-    const state = ensureAdaptiveState(readState());
+    const state = readState();
+    const adaptive = ensureAdaptiveState(state);
     const id = el.dataset.repairId;
-    state.repairProgress[id] ||= { answers: {} };
-    state.repairProgress[id].completed = true;
-    state.repairProgress[id].completedAt = Date.now();
-    state.studyHistory.push({ ts: Date.now(), type: 'repair-complete', lessonId: id });
-    writeState(state);
+    adaptive.repairProgress[id] ||= { answers: {} };
+    adaptive.repairProgress[id].completed = true;
+    adaptive.repairProgress[id].completedAt = Date.now();
+    writeAdaptiveState(adaptive);
     repairModal = null;
     showMiniToast('Repair lesson saved as complete');
     forceAppRefresh();
