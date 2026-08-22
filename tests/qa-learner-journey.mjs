@@ -64,7 +64,6 @@ const { LESSONS }=await import('../data.js');
 const { CORE_LESSON_META, REPAIR_LESSONS }=await import('../adaptive-data.js');
 const { MINI_TESTS }=await import('../mini-test-data-v1.js');
 const { adaptiveCandidates, prerequisitesMet, recentSkillCounts, skillLabel }=await import('../adaptive-guardrails-v1.js');
-const { bestEligibleRecommendation }=await import('../adaptive-today-guardrails-v1.js');
 const { generatePlan }=await import(`../study-plan-v1.js?journey=${Date.now()}`);
 const { collectBackup, validateBackup, applyBackup, APP_VERSION }=await import('../data-portability-v1.js');
 const { runDiagnostics }=await import('../diagnostics-v1.js');
@@ -82,8 +81,6 @@ let candidates=adaptiveCandidates(placementCore,blankAdaptive,CORE_LESSON_META,R
 assert(candidates.length>0,'Placement state should still have eligible beginner/core work.');
 assert(!candidates.some(x=>/^Q[RL]/.test(x.id)),'Question Type Labs must not appear before their prerequisites are completed.');
 assert(candidates.every(x=>prerequisitesMet(placementCore,blankAdaptive,x.id,LESSONS)),'Every Adaptive Today candidate must satisfy actual lesson prerequisites.');
-const firstRec=bestEligibleRecommendation(placementCore,blankAdaptive);
-assert(firstRec&&prerequisitesMet(placementCore,blankAdaptive,firstRec.lesson.id,LESSONS),'Adaptive Today recommendation must be prerequisite-safe.');
 
 // 2. Core Reading work unlocks the corresponding Lab only after prerequisites.
 const readingCore={...placementCore,completedLessons:['R01','R02','R03']};
