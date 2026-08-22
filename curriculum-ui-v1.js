@@ -56,8 +56,9 @@ function updateProgress(main) {
   if (!label) return;
   const stat = label.closest('.stat');
   const value = stat?.querySelector('.stat-value');
-  if (value) value.textContent = `${completedCount()}/30`;
-  label.textContent = 'curriculum units completed';
+  const wanted = `${completedCount()}/30`;
+  if (value && value.textContent !== wanted) value.textContent = wanted;
+  if (label.textContent !== 'curriculum units completed') label.textContent = 'curriculum units completed';
 }
 
 function apply() {
