@@ -20,7 +20,22 @@ for (const token of [
   "Your priorities",
   "Quick practice",
   "study actions · 7 days",
-  "data-today-shortcuts"
+  "data-today-shortcuts",
+  "Learn by skill",
+  "data-learn-filter",
+  "30-unit curriculum",
+  "data-site-guide-learn-map",
+  "IELTS practice",
+  "data-ielts-stage-nav",
+  "data-ielts-stage",
+  "Strategy",
+  "Question Types",
+  "Mini Tests",
+  "Full Mock",
+  "data-site-guide-ielts-map",
+  "data-question-type-lab-index",
+  "data-mini-test-index",
+  "data-mock-center"
 ]) assert(js.includes(token), `UX polish JS missing ${token}`);
 
 for (const token of [
@@ -28,6 +43,16 @@ for (const token of [
   '.site-guide-welcome-compact',
   '.today-shortcuts',
   '.adaptive-breakdown',
+  '#main[data-learn-simplified="true"]',
+  '.learn-toolbar',
+  '.learn-filter-row',
+  '.learn-simplified-grid',
+  '#main[data-ielts-simplified="true"]',
+  '.ielts-stage-nav',
+  '.ielts-stage-tabs',
+  '.ielts-stage-tab.active',
+  '.ielts-stage-section[hidden]',
+  '[data-question-type-lab-index] .grid.two',
   '@media (max-width: 520px)'
 ]) assert(css.includes(token), `UX polish CSS missing ${token}`);
 
@@ -38,5 +63,7 @@ assert(polishCssIndex >= 0, 'UX polish stylesheet must be loaded.');
 assert(guideIndex >= 0 && polishIndex > guideIndex, 'UX polish must load after the site guide so capture handlers can harden guide controls.');
 
 console.log('✓ How-to-use Close / X / Go to Today interactions are hardened in capture phase');
-console.log('✓ Today hides duplicate recommendation, priority/quick-practice and dashboard-stat clutter');
-console.log('✓ Getting Started is compact while detailed destinations remain available elsewhere');
+console.log('✓ Today keeps one primary next action and compact secondary shortcuts');
+console.log('✓ Learn removes duplicated guide/scope copy and adds skill filtering to the 30-unit curriculum');
+console.log('✓ IELTS exposes Strategy / Question Types / Mini Tests / Full Mock as one-stage-at-a-time navigation');
+console.log('✓ Learn and IELTS card density is reduced responsively without removing underlying content');
