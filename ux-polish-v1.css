@@ -1,0 +1,127 @@
+/* V1 UX polish: Today should answer one question — what should I do next? */
+#main[data-today-simplified="true"] .page-head {
+  margin-bottom: 14px;
+}
+
+#main[data-today-simplified="true"] .page-head h1 {
+  max-width: 720px;
+}
+
+#main[data-today-simplified="true"] .page-head .lede {
+  max-width: 620px;
+}
+
+.today-time-card {
+  padding: 14px 18px;
+  margin-bottom: 14px !important;
+}
+
+.today-time-card .time-picker {
+  margin-top: 8px;
+}
+
+#main[data-today-simplified="true"] [data-adaptive-root="today"],
+#main[data-today-simplified="true"] > .focus-card:not([hidden]) {
+  margin-bottom: 0;
+}
+
+#main[data-today-simplified="true"] [data-adaptive-root="today"] .adaptive-breakdown {
+  display: none;
+}
+
+#main[data-today-simplified="true"] [data-adaptive-root="today"] .adaptive-top .score-badge {
+  display: none;
+}
+
+#main[data-today-simplified="true"] [data-adaptive-root="today"] p.muted {
+  max-width: 760px;
+}
+
+.today-shortcuts {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 2px 0;
+  margin-bottom: 4px;
+}
+
+.site-guide-welcome-compact {
+  padding: 16px 18px;
+  margin: 0 0 14px;
+}
+
+.site-guide-welcome-compact .site-guide-welcome-head > div > p,
+.site-guide-welcome-compact .site-guide-step p {
+  display: none;
+}
+
+.site-guide-welcome-compact .site-guide-welcome-head h2 {
+  margin-top: 3px;
+  font-size: 18px;
+}
+
+.site-guide-welcome-compact .site-guide-steps {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.site-guide-welcome-compact .site-guide-step {
+  min-height: 64px;
+  padding: 10px 12px;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: center;
+}
+
+.site-guide-welcome-compact .site-guide-number {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.site-guide-welcome-compact .site-guide-status {
+  position: static;
+  grid-column: 2;
+  justify-self: start;
+  padding: 2px 7px;
+}
+
+.site-guide-welcome-compact .site-guide-actions {
+  margin-top: 12px;
+}
+
+/* Help remains complete, but visually lighter and faster to scan. */
+.site-guide-modal .lede {
+  margin-bottom: 10px;
+}
+
+.site-guide-modal .site-guide-page-grid button {
+  min-height: 116px;
+}
+
+.site-guide-modal .site-guide-page-grid span {
+  line-height: 1.4;
+}
+
+@media (max-width: 760px) {
+  .today-shortcuts {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .site-guide-welcome-compact .site-guide-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .site-guide-welcome-compact .site-guide-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .site-guide-welcome-compact .site-guide-step {
+    min-height: 54px;
+  }
+}
