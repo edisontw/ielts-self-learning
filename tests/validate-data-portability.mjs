@@ -118,6 +118,7 @@ validateBackup(legacy);
 localStorage.setItem(MOCK_KEY,JSON.stringify(mock));
 applyBackup(legacy);
 assert(localStorage.getItem(MOCK_KEY)===null,'Importing a schema-v1 backup must clear newer Mock history instead of leaving stale learner data.');
+assert(localStorage.getItem(THEME_KEY)==='dark','Schema-v1 import must restore its own appearance preference.');
 
 localStorage.setItem(ADAPTIVE_KEY,JSON.stringify(adaptive));
 localStorage.setItem(PLAN_KEY,JSON.stringify(plan));
@@ -127,7 +128,7 @@ assert(localStorage.getItem(CORE_KEY)===null,'Reset must remove core learner dat
 assert(localStorage.getItem(ADAPTIVE_KEY)===null,'Reset must remove adaptive learner data.');
 assert(localStorage.getItem(PLAN_KEY)===null,'Reset must remove Study Plan data.');
 assert(localStorage.getItem(MOCK_KEY)===null,'Reset must remove Full Mock history.');
-assert(localStorage.getItem(THEME_KEY)==='light','Reset must preserve Light/Dark preference.');
+assert(localStorage.getItem(THEME_KEY)==='dark','Reset must preserve the current Light/Dark preference.');
 
 const source=fs.readFileSync(path.join(root,'data-portability-v1.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
