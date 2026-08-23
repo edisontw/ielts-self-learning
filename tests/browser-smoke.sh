@@ -28,13 +28,22 @@ for asset in index.html app.js data.js boot-guard-v1.js styles.css; do
   curl -fsS "$BASE/$asset" >/dev/null || { echo "Missing asset: $asset" >&2; exit 1; }
 done
 
-"$CHROME" \
+set +e
+timeout 25s "$CHROME" \
   --headless=new \
   --no-sandbox \
   --disable-gpu \
   --disable-dev-shm-usage \
-  --virtual-time-budget=7000 \
-  --dump-dom "$BASE/" >/tmp/ielts-dom.html 2>/tmp/ielts-chrome.log || true
+  --disable-background-networking \
+  --disable-component-update \
+  --virtual-time-budget=5000 \
+  --dump-dom "$BASE/" >/tmp/ielts-dom.html 2>/tmp/ielts-chrome.log
+CHROME_STATUS=$?
+set -e
+
+if [[ "$CHROME_STATUS" -ne 0 && "$CHROME_STATUS" -ne 124 ]]; then
+  echo "Chrome exited with status $CHROME_STATUS" >&2
+fi
 
 if ! grep -q 'class="app-shell"' /tmp/ielts-dom.html; then
   echo "Browser smoke failed: app-shell was not rendered." >&2
