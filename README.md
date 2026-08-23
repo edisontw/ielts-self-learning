@@ -2,7 +2,7 @@
 
 A local-first IELTS Academic self-learning workspace for learners around IELTS 5.5–6.5 aiming toward 6.5–7.5.
 
-Current version: **v0.15.0**
+Current version: **v0.14.0**
 
 Core loop:
 
