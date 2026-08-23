@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-22",
+  "updatedAt": "2026-08-23",
   "policy": "Production MP3 first; labelled browser-voice fallback only when the MP3 cannot be played.",
   "assets": [
     {
       "id": "ML01",
       "path": "media/audio/mini-tests/ml01-research-skills-workshops.mp3",
       "sourceUploadName": "ML01.mp3",
-      "status": "production-candidate",
+      "status": "production-live",
       "scriptSource": "mini-test-data-v1.js#MINI_TESTS[id=ML01].script",
       "durationSeconds": 117.86449,
       "sampleRateHz": 44100,
@@ -24,16 +24,16 @@
       "qa": {
         "container": "passed",
         "durationContract": "passed",
-        "technicalPlayback": "pending deployed-browser QA",
+        "technicalPlayback": "passed — owner verified deployed playback on 2026-08-23",
         "transcriptAlignment": "use canonical repository script; do not replace it with automatic transcription",
-        "contentApproval": "owner-provided replacement candidate"
+        "contentApproval": "owner approved and deployed"
       }
     },
     {
       "id": "ML02",
       "path": "media/audio/mini-tests/ml02-community-photography-walk.mp3",
       "sourceUploadName": "ML02.mp3",
-      "status": "production-candidate",
+      "status": "production-live",
       "scriptSource": "mini-test-data-v2.js#MINI_TESTS_V2[id=ML02].script",
       "durationSeconds": 140.460408,
       "sampleRateHz": 44100,
@@ -50,9 +50,9 @@
       "qa": {
         "container": "passed",
         "durationContract": "passed",
-        "technicalPlayback": "pending deployed-browser QA",
+        "technicalPlayback": "passed — owner verified deployed playback on 2026-08-23",
         "transcriptAlignment": "use canonical repository script; do not replace it with automatic transcription",
-        "contentApproval": "owner-provided replacement candidate"
+        "contentApproval": "owner approved and deployed"
       }
     }
   ]
