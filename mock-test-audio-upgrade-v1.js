@@ -8,9 +8,14 @@ const MOCK_AUDIO = [
   './media/audio/mock-tests/ma01-listening-part3-campus-garden-research-project.mp3',
   './media/audio/mock-tests/ma01-listening-part4-urban-trees-heat-adaptation.mp3'
 ];
+const PLAYER_NOTE = 'Production MP3 · one play only. No pause, seek or replay controls. Browser voice is fallback only if the recording cannot play.';
 
 let playedParts = new Set();
 let playInFlight = false;
+
+function setTextIfChanged(node, value) {
+  if (node && node.textContent !== value) node.textContent = value;
+}
 
 function currentPartIndex() {
   const tabs = [...document.querySelectorAll?.('[data-mock-player] [data-mock-part]') || []];
@@ -44,7 +49,7 @@ function upgradeCopy() {
   if (!panel || !button) return;
 
   const note = panel.querySelector?.('p.small.muted');
-  if (note) note.textContent = 'Production MP3 · one play only. No pause, seek or replay controls. Browser voice is fallback only if the recording cannot play.';
+  setTextIfChanged(note, PLAYER_NOTE);
 
   const partIndex = currentPartIndex();
   const status = sourceStatusNode(button);
@@ -52,11 +57,11 @@ function upgradeCopy() {
     button.disabled = true;
     button.classList.remove('primary');
     button.classList.add('soft');
-    if (!button.textContent.includes('production') && !button.textContent.includes('fallback')) button.textContent = 'Audio already played';
-    if (status && !status.textContent) status.textContent = 'This Part has already used its one allowed playback.';
+    if (!button.textContent.includes('production') && !button.textContent.includes('fallback')) setTextIfChanged(button, 'Audio already played');
+    if (status && !status.textContent) setTextIfChanged(status, 'This Part has already used its one allowed playback.');
   } else if (!playInFlight) {
     button.disabled = false;
-    if (status && !status.textContent) status.textContent = 'Production MP3 preferred · browser voice fallback if unavailable';
+    if (status && !status.textContent) setTextIfChanged(status, 'Production MP3 preferred · browser voice fallback if unavailable');
   }
 }
 
@@ -73,9 +78,9 @@ async function handlePlay(button) {
 
   playInFlight = true;
   button.disabled = true;
-  button.textContent = 'Loading recording…';
+  setTextIfChanged(button, 'Loading recording…');
   const status = sourceStatusNode(button);
-  if (status) status.textContent = 'Checking production MP3…';
+  if (status) setTextIfChanged(status, 'Checking production MP3…');
 
   try {
     const result = await playListeningMedia({
@@ -89,16 +94,16 @@ async function handlePlay(button) {
     button.classList.remove('primary');
     button.classList.add('soft');
     button.disabled = true;
-    button.textContent = result.mode === 'production'
+    setTextIfChanged(button, result.mode === 'production'
       ? 'Audio played · production MP3'
-      : 'Audio played · browser voice fallback';
-    if (status) status.textContent = result.mode === 'production'
+      : 'Audio played · browser voice fallback');
+    if (status) setTextIfChanged(status, result.mode === 'production'
       ? 'Production multi-voice MP3'
-      : 'Browser voice fallback · not production IELTS audio';
+      : 'Browser voice fallback · not production IELTS audio');
   } catch (error) {
     button.disabled = false;
-    button.textContent = 'Play Part once';
-    if (status) status.textContent = error?.message || 'Listening audio is unavailable.';
+    setTextIfChanged(button, 'Play Part once');
+    if (status) setTextIfChanged(status, error?.message || 'Listening audio is unavailable.');
   } finally {
     playInFlight = false;
   }
@@ -140,4 +145,4 @@ if (typeof document !== 'undefined') {
   setTimeout(upgradeCopy, 0);
 }
 
-export { MOCK_AUDIO };
+export { MOCK_AUDIO, PLAYER_NOTE, setTextIfChanged };
