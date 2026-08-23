@@ -78,7 +78,7 @@ assert(healthy.counts.reviewDue===1&&healthy.counts.vocabularyDue===1,'Diagnosti
 assert(healthy.counts.productiveAttempts===1,'Diagnostics must count productive attempts.');
 assert(healthy.counts.feedbackReturns===1&&healthy.counts.feedbackPending===1,'Diagnostics must distinguish pending AI feedback returns.');
 assert(healthy.counts.planWeeks===1&&healthy.counts.planSessions===3,'Diagnostics must summarize Study Plan size.');
-assert(healthy.capabilities.localStorage&&healthy.capabilities.speechSynthesis&&healthy.capabilities.microphoneAPI&&healthy.capabilities.mediaRecorder,'Browser capability detection must expose prototype media requirements.');
+assert(healthy.capabilities.localStorage&&healthy.capabilities.speechSynthesis&&healthy.capabilities.microphoneAPI&&healthy.capabilities.mediaRecorder,'Browser capability detection must expose workspace media requirements.');
 
 const text=reportText(healthy);
 for(const secret of ['PRIVATE ANSWER TEXT','PRIVATE ERROR QUESTION','PRIVATE ESSAY CONTENT','PRIVATE TRANSCRIPT CONTENT','PRIVATE AI FEEDBACK CONTENT']) {
@@ -101,7 +101,7 @@ assert(refs.errors.some(x=>x.includes('Unknown completed lesson IDs')),'Unknown 
 assert(refs.errors.some(x=>x.includes('Unknown Mini Test IDs')),'Unknown Mini Test history IDs must be reported.');
 assert(refs.errors.some(x=>x.includes('Study Plan references missing content')),'Missing Study Plan content references must be reported.');
 
-assert(APP_VERSION==='0.13.0','Backup APP_VERSION must be v0.13.0.');
+assert(APP_VERSION==='0.14.0','Backup APP_VERSION must be v0.14.0.');
 assert(pkg.version===APP_VERSION,'package.json and backup APP_VERSION must match.');
 assert(STUDY_PLAN_SCHEMA_VERSION===1,'Diagnostics must expose Study Plan schema version 1.');
 assert(collectBackup(storage).appVersion===APP_VERSION,'Exported backup metadata must use the current app version.');
@@ -112,7 +112,7 @@ for(const token of ['data-diagnostics-panel','Copy diagnostic report','Read-only
 assert(source.includes("['lesson','lab','productive-retry']"),'Diagnostics must validate lesson-like Study Plan references.');
 assert(source.includes("item?.kind==='mini-test'"),'Diagnostics must validate Mini Test Study Plan references.');
 assert(source.includes('no essay text, transcript text, selected-answer text or AI feedback content included'),'Copied report must explicitly exclude learner content.');
-assert(portability.includes("const APP_VERSION = '0.13.0'"),'Data portability metadata must match the diagnostics release.');
+assert(portability.includes("const APP_VERSION = '0.14.0'"),'Data portability metadata must match the site-guide release.');
 const dataIndex=index.indexOf('./data-portability-v1.js');
 const diagIndex=index.indexOf('./diagnostics-v1.js');
 assert(dataIndex>=0&&diagIndex>dataIndex,'Diagnostics must load after data portability so version/schema metadata are available.');
@@ -121,4 +121,4 @@ console.log('✓ Diagnostics reports app, backup and Study Plan schema versions'
 console.log('✓ Healthy local data, browser capabilities and learner-data counts are summarized');
 console.log('✓ Malformed JSON and stale curriculum / Mini Test / Study Plan references are detected');
 console.log('✓ Copied diagnostics exclude essay, transcript, answer and AI-feedback content');
-console.log('✓ Backup metadata and package version remain aligned at v0.13.0');
+console.log('✓ Backup metadata and package version remain aligned at v0.14.0');
