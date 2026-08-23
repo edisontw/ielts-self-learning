@@ -10,6 +10,10 @@ function isToday() {
   return routeIncludes('today');
 }
 
+function setTextIfChanged(node, value) {
+  if (node && node.textContent !== value) node.textContent = value;
+}
+
 function closeSiteGuide() {
   document.querySelector('[data-site-guide-backdrop]')?.remove();
   delete document.body.dataset.siteGuideOpen;
@@ -59,8 +63,7 @@ function compactGettingStarted(main) {
   const guide = main.querySelector('[data-site-guide-welcome]');
   if (!guide) return;
   guide.classList.add('site-guide-welcome-compact');
-  const title = guide.querySelector('h2');
-  if (title) title.textContent = 'Start in four steps';
+  setTextIfChanged(guide.querySelector('h2'), 'Start in four steps');
 }
 
 function injectTodayShortcuts(main, anchor) {
@@ -85,10 +88,8 @@ function simplifyToday() {
   main.dataset.todaySimplified = 'true';
 
   const head = main.querySelector('.page-head');
-  const h1 = head?.querySelector('h1');
-  const lede = head?.querySelector('.lede');
-  if (h1) h1.textContent = "Today's study";
-  if (lede) lede.textContent = 'Choose your time and start the next useful step.';
+  setTextIfChanged(head?.querySelector('h1'), "Today's study");
+  setTextIfChanged(head?.querySelector('.lede'), 'Choose your time and start the next useful step.');
 
   compactGettingStarted(main);
 
@@ -141,7 +142,7 @@ function applyLearnFilter(main, filter = learnFilter) {
   for (const button of main.querySelectorAll('[data-learn-filter]')) {
     const active = button.dataset.learnFilter === filter;
     button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
+    if (button.getAttribute('aria-pressed') !== String(active)) button.setAttribute('aria-pressed', String(active));
   }
 }
 
@@ -166,10 +167,8 @@ function simplifyLearn() {
   main.dataset.learnSimplified = 'true';
 
   const head = main.querySelector('.page-head');
-  const h1 = head?.querySelector('h1');
-  const lede = head?.querySelector('.lede');
-  if (h1) h1.textContent = 'Learn by skill';
-  if (lede) lede.textContent = 'Choose one skill, complete a lesson, then use Today to decide what comes next.';
+  setTextIfChanged(head?.querySelector('h1'), 'Learn by skill');
+  setTextIfChanged(head?.querySelector('.lede'), 'Choose one skill, complete a lesson, then use Today to decide what comes next.');
 
   const map = main.querySelector('[data-site-guide-learn-map]');
   if (map) map.hidden = true;
@@ -232,7 +231,7 @@ function selectIELTSStage(main, stage = ieltsStage) {
   for (const button of main.querySelectorAll('[data-ielts-stage]')) {
     const active = button.dataset.ieltsStage === stage;
     button.classList.toggle('active', active);
-    button.setAttribute('aria-selected', String(active));
+    if (button.getAttribute('aria-selected') !== String(active)) button.setAttribute('aria-selected', String(active));
   }
 }
 
@@ -245,10 +244,8 @@ function simplifyIELTS() {
   if (main.querySelector('[data-mini-test-player],[data-mock-player]')) return;
 
   const head = main.querySelector(':scope > .page-head');
-  const h1 = head?.querySelector('h1');
-  const lede = head?.querySelector('.lede');
-  if (h1) h1.textContent = 'IELTS practice';
-  if (lede) lede.textContent = 'Choose the level of exam practice that matches what you need now.';
+  setTextIfChanged(head?.querySelector('h1'), 'IELTS practice');
+  setTextIfChanged(head?.querySelector('.lede'), 'Choose the level of exam practice that matches what you need now.');
 
   const map = main.querySelector('[data-site-guide-ielts-map]');
   if (map) map.hidden = true;
