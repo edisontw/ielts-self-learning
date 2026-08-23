@@ -62,13 +62,14 @@ function learnMapHTML() {
 
 function ieltsGuideHTML() {
   return `<section class="card site-guide-map" data-site-guide-ielts-map>
-    <div class="eyebrow">Three IELTS layers</div><h2>Choose the right level of exam practice.</h2>
-    <div class="site-guide-map-grid three">
+    <div class="eyebrow">Four IELTS layers</div><h2>Choose the right level of exam practice.</h2>
+    <div class="site-guide-map-grid">
       <div><span>1</span><strong>Strategy</strong><p>Understand test structure, band plateaus and how to review a practice test.</p></div>
       <div><span>2</span><strong>Question Type Lab</strong><p>Practise one decision at a time with hints, explanations, repair links and retry.</p></div>
       <div><span>3</span><strong>Mini Test</strong><p>Use timed Test Mode with no hints before submission. ML01 and ML02 now use production MP3 audio.</p></div>
+      <div><span>4</span><strong>Full Mock</strong><p>Run the Academic L/R/W simulation only after skill and question-type practice. Speaking remains a structured beta practice flow.</p></div>
     </div>
-    <div class="callout success" style="margin-top:16px"><strong>Listening audio live:</strong> ML01 and ML02 use the uploaded recordings. The transcript stays hidden until submission and each attempt allows one successful playback.</div>
+    <div class="callout success" style="margin-top:16px"><strong>Listening audio live:</strong> ML01, ML02 and Mock 01 use uploaded recordings as the primary source. Transcripts stay hidden until submission and strict attempts allow one playback per recording.</div>
   </section>`;
 }
 
@@ -81,13 +82,13 @@ function helpModalHTML() {
       <div class="site-guide-page-grid">
         <button data-site-guide-nav="today"><strong>Today</strong><span>One useful next action based on time, prerequisites, due review and observed weakness.</span></button>
         <button data-site-guide-nav="learn"><strong>Learn</strong><span>The 30-unit English curriculum: habits, four skills and targeted language repair.</span></button>
-        <button data-site-guide-nav="ielts"><strong>IELTS</strong><span>Strategy, 12 Question Type Labs and four timed Mini Tests.</span></button>
+        <button data-site-guide-nav="ielts"><strong>IELTS</strong><span>Strategy, 12 Question Type Labs, four timed Mini Tests and the Full Mock Test Center.</span></button>
         <button data-site-guide-nav="improve"><strong>Improve</strong><span>Error Notebook, spaced Review Queue, Vocabulary Review and retry decisions.</span></button>
         <button data-site-guide-nav="progress"><strong>Progress</strong><span>Study Plan, productive evidence, backup/restore and troubleshooting.</span></button>
       </div>
       <div class="grid two site-guide-principles">
         <div class="callout"><strong>Practice Mode</strong><br><span class="muted">Use hints, replay, transcript, explanations and retry while building a skill.</span></div>
-        <div class="callout warning"><strong>Test Mode</strong><br><span class="muted">Use a timer, normal speed and no hints before submission. Raw scores are diagnostic, not IELTS bands.</span></div>
+        <div class="callout warning"><strong>Test Mode</strong><br><span class="muted">Use a timer, normal speed and no hints before submission. Raw scores are diagnostic, not official IELTS results.</span></div>
       </div>
       <div class="callout success site-guide-local"><strong>Local-first:</strong> learner data stays in this browser unless you export a backup. No account is required and external AI feedback is copied manually.</div>
       <div class="cluster site-guide-modal-actions"><button class="btn primary" data-site-guide-nav="today">Go to Today</button><button class="btn soft" data-site-guide-close>Close</button></div>
