@@ -16,4 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm test
+      - name: Run test suite
+        run: npm test
+      - name: Browser smoke test
+        run: bash tests/browser-smoke.sh
