@@ -32,16 +32,20 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
   - Vocabulary / Grammar Repair 3
   - IELTS Strategy 3
 - 12 Question Type Labs: Reading 6 + Listening 6;
+  - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;
+  - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;
+  - new Listening B/C scripts use the shared labelled browser-voice practice fallback until production MP3 replaces them;
 - four timed Mini Tests:
   - MR01 / MR02 Reading — 12 questions / 12 minutes
   - ML01 / ML02 Listening — 10 questions / 9 minutes;
 - production MP3 audio live for ML01 and ML02;
+- Full Mock Test Center with 40 Listening + 40 Academic Reading + 2 Writing tasks + 3 Speaking parts;
 - prerequisite-safe Adaptive Today recommendations;
 - configurable Study Plan using Placement, observed performance, due review, productive retry evidence and available time;
 - Error Notebook, Repair lessons, spaced Review Queue and lesson-derived Vocabulary Review;
 - Writing / Speaking productive evidence and revision comparison;
 - portable external-AI prompt workflow without importing AI band scores;
-- local learner-data export, import and reset;
+- local learner-data export, import and reset, including Full Mock history;
 - privacy-safe Diagnostics / Troubleshooting;
 - English-first interface with optional Traditional Chinese scaffolding;
 - dependency-free validation through `npm test` and GitHub Actions.
@@ -50,7 +54,7 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
 
 - English proficiency development remains roughly 60% of the product; explicit IELTS preparation remains up to 40%.
 - Quick Placement recommends a starting point. It does not estimate an exact IELTS band.
-- Mini Test results are diagnostic raw scores, not IELTS bands.
+- Mini Test and Full Mock results are learning evidence, not automatic official IELTS band scores.
 - AI is a coach, not an examiner.
 - Learner data is local-first and no account is required.
 - A wrong answer should lead to explanation, repair, retry and later review.
@@ -67,7 +71,11 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
 - `VG01–VG03` Vocabulary / Grammar Repair
 - `I01–I03` IELTS Strategy
 
-### Question Type Lab — 12 units
+### Question Type Lab — 12 units × 3 sets
+
+Each Lab uses:
+
+`SET A GUIDED → SET B INDEPENDENT → REPAIR IF NEEDED → SET C RETRY CHALLENGE`
 
 Reading:
 
@@ -86,6 +94,8 @@ Listening:
 - `QL04` Matching
 - `QL05` Short Answer
 - `QL06` Sentence Completion
+
+Set B and Set C use new passages / situations / distractors rather than repeating Set A answers. This lets Error → Repair → Retry use unseen items instead of memorised answers.
 
 ### Mini Tests — Test Mode
 
@@ -144,12 +154,13 @@ Current production-live assets:
 
 - `media/audio/mini-tests/ml01-research-skills-workshops.mp3`
 - `media/audio/mini-tests/ml02-community-photography-walk.mp3`
+- Full Mock Listening production media
 
-Both assets have owner-confirmed deployed playback, recorded provenance, technical metadata and checksums.
+The 12 new QL01–QL06 Set B/C scripts are content-ready and wired to the shared practice fallback; they remain candidates for the next production-audio batch.
 
 ## Local data and privacy
 
-The browser stores Placement, profile, progress, errors, notes, drafts, transcripts, review schedules, productive evidence, Mini Test history and Study Plan data.
+The browser stores Placement, profile, progress, errors, notes, drafts, transcripts, review schedules, productive evidence, Mini Test history, Full Mock history and Study Plan data.
 
 Progress provides:
 
@@ -175,7 +186,7 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers curriculum registration, learner-state flow, prerequisite guardrails, Labs, Mini Tests, production audio, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails and the v0.14.0 Site Guide.
+Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails and Site Guide behaviour.
 
 ## Source of truth
 
@@ -186,14 +197,16 @@ Implementation hierarchy:
 1. V1.0 — product principles
 2. V1.1 — UX / architecture / curriculum specification
 3. V1.2 — prototype content pack
-4. current implementation and regression tests
+4. V1.3 — content depth expansion and current implementation
+5. regression tests
 
 ## Next implementation priorities
 
-1. create and QA production audio for Quick Placement and L01–L05;
-2. add structured Writing and Speaking transfer tasks that use productive evidence rather than fake automatic band scoring;
-3. perform direct deployed desktop and mobile QA for Placement → Study Plan → lesson → Lab → Mini Test → Repair → retry → backup / restore;
-4. review MR02 / ML02 timing, distractor difficulty and recurring-error usefulness with real learner attempts;
-5. improve Study Plan rebalancing from actual multi-test usage without silently changing the learner's calendar;
-6. reduce progressive DOM-patching technical debt by consolidating mature UI enhancements into the base renderer;
-7. evaluate account sync or PWA only after the content, media and learner-data model is stable.
+1. produce and QA production MP3 for the 12 new QL01–QL06 Set B/C scripts, then continue Quick Placement and L01–L05 audio coverage;
+2. build a complete Academic Writing Task 1 path plus roughly 12 reusable Task 1 prompts;
+3. add a Speaking Practice Bank with Part 1, Part 2 cue cards and linked Part 3 follow-up questions;
+4. expand timed practice with MR03 / MR04 and ML03 / ML04 after the Lab retry bank is stable;
+5. expand Vocabulary / Grammar Repair from real recurring Error Notebook tags rather than adding generic grammar lessons blindly;
+6. perform direct deployed desktop and mobile QA for Placement → Study Plan → lesson → Lab A/B/C → Mini Test → Repair → retry → Full Mock → backup / restore;
+7. reduce progressive DOM-patching technical debt by consolidating mature UI enhancements into the base renderer;
+8. evaluate account sync or PWA only after the content, media and learner-data model is stable.
