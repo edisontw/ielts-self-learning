@@ -92,6 +92,183 @@
   margin-top: 12px;
 }
 
+/* Learn: browse lessons instead of reading another product explanation. */
+#main[data-learn-simplified="true"] > .page-head {
+  margin-bottom: 14px;
+}
+
+.learn-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 15px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-subtle);
+}
+
+.learn-toolbar > div:first-child {
+  display: grid;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.learn-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.learn-filter-row .btn.active {
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
+}
+
+.learn-simplified-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+
+.ux-lesson-card {
+  padding: 16px;
+  gap: 13px;
+}
+
+.ux-lesson-card p.muted {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.ux-lesson-card footer > .small.muted {
+  display: none;
+}
+
+.ux-lesson-card footer {
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+/* IELTS: expose one practice layer at a time. */
+#main[data-ielts-simplified="true"] > .page-head {
+  margin-bottom: 14px;
+}
+
+.ielts-stage-nav {
+  padding: 15px;
+  margin-bottom: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.ielts-stage-intro {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 11px;
+}
+
+.ielts-stage-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ielts-stage-tab {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  column-gap: 8px;
+  row-gap: 1px;
+  align-items: center;
+}
+
+.ielts-stage-tab > span {
+  grid-row: 1 / span 2;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ielts-stage-tab strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ielts-stage-tab small {
+  color: var(--text-muted);
+}
+
+.ielts-stage-tab:hover,
+.ielts-stage-tab.active {
+  border-color: color-mix(in srgb, var(--primary) 48%, var(--border));
+}
+
+.ielts-stage-tab.active {
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.ielts-stage-tab.active > span {
+  background: var(--surface);
+  color: var(--primary-strong);
+}
+
+.ielts-stage-section {
+  margin-top: 0 !important;
+}
+
+.ielts-stage-section[hidden] {
+  display: none !important;
+}
+
+#main[data-ielts-simplified="true"] .ielts-stage-section > .page-head {
+  margin-bottom: 12px !important;
+}
+
+#main[data-ielts-simplified="true"] .ielts-stage-section > .page-head p.muted {
+  display: none;
+}
+
+#main[data-ielts-simplified="true"] [data-ielts-strategy-index] .lesson-card p.muted,
+#main[data-ielts-simplified="true"] [data-question-type-lab-index] .lesson-card p.muted,
+#main[data-ielts-simplified="true"] [data-mini-test-index] .lesson-card p.muted {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+#main[data-ielts-simplified="true"] [data-ielts-strategy-index] .lesson-card footer > .small.muted,
+#main[data-ielts-simplified="true"] [data-question-type-lab-index] .lesson-card footer > .small.muted {
+  display: none;
+}
+
+#main[data-ielts-simplified="true"] [data-question-type-lab-index] .grid.two {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
 /* Help remains complete, but visually lighter and faster to scan. */
 .site-guide-modal .lede {
   margin-bottom: 10px;
@@ -105,23 +282,47 @@
   line-height: 1.4;
 }
 
+@media (max-width: 1120px) {
+  .learn-simplified-grid,
+  #main[data-ielts-simplified="true"] [data-question-type-lab-index] .grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
 @media (max-width: 760px) {
-  .today-shortcuts {
+  .today-shortcuts,
+  .learn-toolbar,
+  .ielts-stage-intro {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .site-guide-welcome-compact .site-guide-steps {
+  .learn-filter-row {
+    justify-content: flex-start;
+  }
+
+  .site-guide-welcome-compact .site-guide-steps,
+  .ielts-stage-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 520px) {
-  .site-guide-welcome-compact .site-guide-steps {
-    grid-template-columns: 1fr;
+  .site-guide-welcome-compact .site-guide-steps,
+  .learn-simplified-grid,
+  #main[data-ielts-simplified="true"] [data-question-type-lab-index] .grid.two {
+    grid-template-columns: 1fr !important;
   }
 
   .site-guide-welcome-compact .site-guide-step {
     min-height: 54px;
+  }
+
+  .ielts-stage-tabs {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ielts-stage-tab {
+    padding: 10px;
   }
 }
