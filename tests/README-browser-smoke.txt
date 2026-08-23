@@ -1,0 +1,1 @@
+The browser smoke test starts a local static server and loads the site in the GitHub runner's real Chrome/Chromium binary. It fails if the app shell does not render, and prints the resulting DOM and browser/server logs for diagnosis.
