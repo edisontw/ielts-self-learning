@@ -28,15 +28,18 @@ for (const [id, contract] of Object.entries(expected)) {
   const asset = manifest.assets.find(item => item.id === id);
   assert(asset, `${id} must be registered in the audio manifest.`);
   assert(asset.path === contract.path, `${id} manifest path must match the runtime path.`);
-  assert(asset.status === 'production-candidate', `${id} must remain a production candidate until deployed playback QA passes.`);
+  assert(asset.status === 'production-live', `${id} must be marked production-live after deployed playback QA.`);
+  assert(fs.existsSync(path.join(root, asset.path)), `${id} production MP3 must exist at the runtime path.`);
   assert(asset.durationSeconds >= contract.duration[0] && asset.durationSeconds <= contract.duration[1], `${id} duration must satisfy the production specification.`);
   assert(asset.sampleRateHz === 44100, `${id} must record its 44.1 kHz source rate.`);
   assert(asset.channels === 1, `${id} must record mono output.`);
   assert(asset.bitrateKbps === 192, `${id} must record its 192 kbps bitrate.`);
   assert(asset.sha256 === contract.sha256, `${id} checksum must match the owner-provided replacement file.`);
   assert(asset.provenance?.syntheticVoice === true, `${id} provenance must disclose synthetic voice use.`);
+  assert(asset.qa?.technicalPlayback?.includes('passed'), `${id} must record deployed playback QA as passed.`);
   assert(asset.qa?.transcriptAlignment?.includes('canonical repository script'), `${id} must preserve the repository transcript as source of truth.`);
 }
 
-console.log('✓ ML01 and ML02 replacement candidates match runtime paths and duration contracts');
-console.log('✓ Audio provenance, checksums, format metadata and transcript-source policy recorded');
+console.log('✓ ML01 and ML02 production MP3 files exist at the runtime paths');
+console.log('✓ Deployed playback QA and production-live status are recorded');
+console.log('✓ Audio provenance, checksums, format metadata and transcript-source policy remain valid');
