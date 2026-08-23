@@ -15,6 +15,14 @@ function readMockDiagnostics(storage = localStorage) {
   return { status:'healthy', attempts:history.length, chars:raw.length, error:null };
 }
 
+function setTextIfChanged(node, value) {
+  if (node && node.textContent !== value) node.textContent = value;
+}
+
+function setHTMLIfChanged(node, value) {
+  if (node && node.innerHTML !== value) node.innerHTML = value;
+}
+
 function applyMockDiagnostics() {
   const panel = document.querySelector?.('[data-diagnostics-panel]');
   if (!panel) return;
@@ -27,16 +35,18 @@ function applyMockDiagnostics() {
     if (actions) actions.insertAdjacentElement('beforebegin', row); else panel.appendChild(row);
   }
   const kb = report.chars < 1024 ? `${report.chars} B` : `${(report.chars/1024).toFixed(1)} KB`;
-  row.className = `callout ${report.status === 'error' ? 'danger' : 'success'}`;
-  row.innerHTML = report.status === 'error'
+  const className = `callout ${report.status === 'error' ? 'danger' : 'success'}`;
+  if (row.className !== className) row.className = className;
+  const html = report.status === 'error'
     ? `<strong>Full Mock data issue</strong><br><span class="small">${report.error}</span>`
     : `<strong>Full Mock local data:</strong> ${report.attempts} attempt(s) · ${kb}`;
+  setHTMLIfChanged(row, html);
 
   if (report.status === 'error') {
     const chip = panel.querySelector('.adaptive-top .chip');
     if (chip) {
-      chip.className = 'chip danger';
-      chip.textContent = 'Data issue';
+      if (chip.className !== 'chip danger') chip.className = 'chip danger';
+      setTextIfChanged(chip, 'Data issue');
     }
   }
 }
@@ -47,4 +57,4 @@ if (typeof document !== 'undefined') {
   setTimeout(applyMockDiagnostics, 0);
 }
 
-export { MOCK_KEY, readMockDiagnostics, applyMockDiagnostics };
+export { MOCK_KEY, readMockDiagnostics, applyMockDiagnostics, setTextIfChanged, setHTMLIfChanged };
