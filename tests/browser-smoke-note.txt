@@ -1,1 +1,0 @@
-This file intentionally exists so the browser smoke change is visible in repository history. The executable test is tests/browser-smoke.sh.
