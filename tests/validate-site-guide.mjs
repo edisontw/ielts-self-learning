@@ -61,11 +61,11 @@ for (const token of [
   "event.key === 'Escape'",
   'Local-first workspace',
   'Later V1',
-  'Production audio live'
+  'Listening audio live'
 ]) assert(source.includes(token), `Site guide source missing ${token}.`);
 
 for (const route of ['today', 'learn', 'ielts', 'improve', 'progress']) {
-  assert(source.includes(`data-site-guide-nav=\"${route}\"`), `Help modal must link to ${route}.`);
+  assert(source.includes(`data-site-guide-nav="${route}"`), `Help modal must link to ${route}.`);
 }
 assert(source.includes(`const DISMISSED_KEY = 'ielts-site-guide-dismissed-v1'`), 'Guide dismissal must use a stable local key.');
 assert(DISMISSED_KEY === 'ielts-site-guide-dismissed-v1', 'Exported dismissal key is incorrect.');
