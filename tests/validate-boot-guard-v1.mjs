@@ -6,7 +6,6 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const source = fs.readFileSync(path.join(root, 'boot-guard-v1.js'), 'utf8');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const workflow = fs.readFileSync(path.join(root, '.github/workflows/pages.yml'), 'utf8');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
 const { normalizeCoreState } = await import('../boot-guard-v1.js');
@@ -34,11 +33,9 @@ assert(guardIndex >= 0 && guardIndex < appIndex, 'Boot guard must load before ap
 for (const token of ['The page could not start normally.', 'ielts-self-learning-recovery-v1-', 'unhandledrejection', 'repairStoredCore']) {
   assert(source.includes(token), `Boot guard missing ${token}`);
 }
-for (const token of ['actions/configure-pages@v5','actions/upload-pages-artifact@v4','actions/deploy-pages@v4','pages: write','id-token: write']) {
-  assert(workflow.includes(token), `Pages workflow missing ${token}`);
-}
-assert(fs.existsSync(path.join(root, '.nojekyll')), '.nojekyll must be present for static deployment.');
+assert(fs.existsSync(path.join(root, '.nojekyll')), '.nojekyll must be present for static branch deployment.');
+assert(!fs.existsSync(path.join(root, '.github/workflows/pages.yml')), 'Custom Pages workflow should not coexist with configured branch deployment.');
 
 console.log('✓ Stale local learner state is normalized before app startup');
 console.log('✓ Blank startup now renders a recoverable error screen instead of an empty page');
-console.log('✓ GitHub Pages has an explicit validated deployment workflow');
+console.log('✓ Static branch deployment keeps .nojekyll and no conflicting custom Pages workflow');
