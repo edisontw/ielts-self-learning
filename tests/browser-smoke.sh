@@ -24,7 +24,7 @@ for _ in {1..20}; do
   sleep 0.25
 done
 
-for asset in index.html app.js data.js boot-guard-v1.js styles.css mock-test-runtime-v1.js mock-test-audio-upgrade-v1.js mock-integration-fix-v1.js data-portability-v1.js diagnostics-v1.js content/placement/quick-placement-v1.json; do
+for asset in index.html app.js data.js boot-guard-v1.js styles.css question-type-lab-depth-v1.js question-type-lab-depth-runtime-v1.js mock-test-runtime-v1.js mock-test-audio-upgrade-v1.js mock-integration-fix-v1.js data-portability-v1.js diagnostics-v1.js content/placement/quick-placement-v1.json; do
   curl -fsS "$BASE/$asset" >/dev/null || { echo "Missing asset: $asset" >&2; exit 1; }
 done
 
@@ -79,6 +79,8 @@ smoke_route '#/improve' 'Errors are learning data.' improve
 smoke_route '#/progress' 'Your profile should guide the next step' progress
 smoke_route '#/placement' 'Quick Placement' placement
 smoke_route '#/lesson/LB01' 'Practice Is Not the Same as Testing' lesson
+smoke_route '#/lesson/QR01' 'Set B — Independent' qr01-depth
+smoke_route '#/lesson/QL01' 'Play practice audio' ql01-depth
 smoke_route '#/ielts' 'Full Mock' ielts-mobile '390,844'
 
-echo "Browser smoke passed across core desktop routes plus mobile IELTS navigation."
+echo "Browser smoke passed across core desktop routes, V1.3 Lab depth routes and mobile IELTS navigation."
