@@ -4,7 +4,7 @@ const PLAN_KEY = 'ielts-study-plan-v1';
 const THEME_KEY = 'ielts-theme';
 const BACKUP_FORMAT = 'ielts-self-learning-backup';
 const BACKUP_SCHEMA_VERSION = 1;
-const APP_VERSION = '0.13.0';
+const APP_VERSION = '0.14.0';
 const MAX_BACKUP_CHARS = 5_000_000;
 const BACKUP_KEYS = [CORE_KEY, ADAPTIVE_KEY, PLAN_KEY, THEME_KEY];
 const LEARNER_KEYS = [CORE_KEY, ADAPTIVE_KEY, PLAN_KEY];
@@ -146,7 +146,7 @@ function toolsHTML() {
   const s = currentSummary();
   return `<section class="card extension-card" data-local-data-tools style="margin-top:18px">
     <div class="adaptive-top"><div><div class="eyebrow">Local data · Backup & restore</div><h2>Keep your learner data portable.</h2></div><span class="chip primary">Local-first</span></div>
-    <p class="muted">Export one JSON backup before changing browsers or resetting this prototype. Import validates the backup before replacing local learner data. No file is uploaded to a server.</p>
+    <p class="muted">Export one JSON backup before changing browsers or resetting this workspace. Import validates the backup before replacing local learner data. No file is uploaded to a server.</p>
     <div class="grid four" style="margin-top:14px">
       <div class="card stat"><div class="stat-value">${s.coreCompleted}</div><div class="stat-label">core lessons completed</div></div>
       <div class="card stat"><div class="stat-value">${s.errors}</div><div class="stat-label">saved errors</div></div>
