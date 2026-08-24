@@ -106,6 +106,85 @@
         "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
         "contentApproval": "passed — speaker separation, rejected alternatives, start time and final decision verified"
       }
+    },
+    {
+      "id": "QL04-B",
+      "path": "media/audio/question-type-labs/ql04-b-online-course-feedback.mp3",
+      "sourceUploadName": "ql04-b-online-course-feedback.mp3",
+      "status": "production-ready",
+      "scriptSource": "question-type-lab-depth-v1.js#LAB_DEPTH_LISTENING_SCRIPTS[QL04-B]",
+      "durationSeconds": 28.36898,
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "bitrateKbps": 192,
+      "sizeBytes": 681525,
+      "sha256": "3ef5ec1fa865b5f67f95614b64bc8925c1998eac394d5e776c130b5f0b7d59a8",
+      "provenance": {
+        "providedBy": "repository owner",
+        "createdWith": "TTSMaker multi-speaker dialogue generator; standardized without content edits",
+        "syntheticVoice": true,
+        "receivedDate": "2026-08-24"
+      },
+      "qa": {
+        "container": "passed — standardized to mono 44.1 kHz / 192 kbps MP3",
+        "durationContract": "passed — 28.37 seconds",
+        "technicalPlayback": "pending deployed verification after merge",
+        "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
+        "contentApproval": "passed — three speakers are distinct and each speaker's target preference remains clear after distractors"
+      }
+    },
+    {
+      "id": "QL04-C",
+      "path": "media/audio/question-type-labs/ql04-c-new-office-feedback.mp3",
+      "sourceUploadName": "ql04-c-new-office-feedback.mp3",
+      "status": "production-ready",
+      "scriptSource": "question-type-lab-depth-v1.js#LAB_DEPTH_LISTENING_SCRIPTS[QL04-C]",
+      "durationSeconds": 22.308571,
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "bitrateKbps": 192,
+      "sizeBytes": 536075,
+      "sha256": "3658ef1b515fbba7f04fb2858823f254cff202ea524d3e18577e6046badb38e8",
+      "provenance": {
+        "providedBy": "repository owner",
+        "createdWith": "TTSMaker multi-speaker dialogue generator; source tempo reduced to 0.8x for IELTS-natural pacing, then standardized; wording unchanged",
+        "syntheticVoice": true,
+        "receivedDate": "2026-08-24"
+      },
+      "qa": {
+        "container": "passed — standardized to mono 44.1 kHz / 192 kbps MP3",
+        "durationContract": "passed — 22.31 seconds after tempo correction",
+        "technicalPlayback": "pending deployed verification after merge",
+        "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
+        "contentApproval": "passed — three speakers remain distinct; natural light, shorter journey and small meeting rooms are correctly separated",
+        "tempoCorrection": "passed — source was approximately 188 wpm; adjusted to approximately 151 wpm without changing wording"
+      }
+    },
+    {
+      "id": "QL05-B",
+      "path": "media/audio/question-type-labs/ql05-b-riverside-volunteers.mp3",
+      "sourceUploadName": "ql05-b-riverside-volunteers.mp3",
+      "status": "production-ready",
+      "scriptSource": "question-type-lab-depth-v1.js#LAB_DEPTH_LISTENING_SCRIPTS[QL05-B]",
+      "durationSeconds": 16.718367,
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "bitrateKbps": 192,
+      "sizeBytes": 401910,
+      "sha256": "48475e50b3bdc37e08743c40091e952cbbab91f29ae2e7250b08996d7f471710",
+      "provenance": {
+        "providedBy": "repository owner",
+        "createdWith": "TTSMaker multi-speaker dialogue generator; standardized without content edits",
+        "syntheticVoice": true,
+        "receivedDate": "2026-08-24"
+      },
+      "qa": {
+        "container": "passed — standardized to mono 44.1 kHz / 192 kbps MP3",
+        "durationContract": "passed — 16.72 seconds accepted below the planning estimate because pacing is approximately 144 wpm and content is complete",
+        "technicalPlayback": "pending deployed verification after merge",
+        "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
+        "contentApproval": "passed — interviewer/coordinator voices are consistent; photo identification, north entrance, bicycle racks and eight twenty are clear"
+      }
     }
   ]
 }
