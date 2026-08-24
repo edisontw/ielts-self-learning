@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-23",
+  "updatedAt": "2026-08-24",
   "policy": "Production MP3 first; labelled browser-voice fallback only when the MP3 cannot be played.",
   "assets": [
     {
@@ -53,6 +53,58 @@
         "technicalPlayback": "passed — owner verified deployed playback on 2026-08-23",
         "transcriptAlignment": "use canonical repository script; do not replace it with automatic transcription",
         "contentApproval": "owner approved and deployed"
+      }
+    },
+    {
+      "id": "QL01-B",
+      "path": "media/audio/question-type-labs/ql01-b-careers-session-room.mp3",
+      "sourceUploadName": "ql01-b-careers-session-room.mp3.mp3",
+      "status": "production-ready",
+      "scriptSource": "question-type-lab-depth-v1.js#LAB_DEPTH_LISTENING_SCRIPTS[QL01-B]",
+      "durationSeconds": 21.86449,
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "bitrateKbps": 192,
+      "sizeBytes": 525417,
+      "sha256": "03fc298d3ee13ef0371a18aa7f9852f1056212d9ee8ef71d0853919fd4962696",
+      "provenance": {
+        "providedBy": "repository owner",
+        "createdWith": "TTSMaker multi-speaker dialogue generator; standardized without content edits",
+        "syntheticVoice": true,
+        "receivedDate": "2026-08-24"
+      },
+      "qa": {
+        "container": "passed — standardized to mono 44.1 kHz / 192 kbps MP3",
+        "durationContract": "passed — 21.86 seconds accepted against the 22–32 second target with rounding tolerance",
+        "technicalPlayback": "pending deployed verification after merge",
+        "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
+        "contentApproval": "passed — speaker separation, distractor sequence, numbers and final decision verified"
+      }
+    },
+    {
+      "id": "QL01-C",
+      "path": "media/audio/question-type-labs/ql01-c-market-visit.mp3",
+      "sourceUploadName": "ql01-c-market-visit.mp3",
+      "status": "production-ready",
+      "scriptSource": "question-type-lab-depth-v1.js#LAB_DEPTH_LISTENING_SCRIPTS[QL01-C]",
+      "durationSeconds": 22.595918,
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "bitrateKbps": 192,
+      "sizeBytes": 542972,
+      "sha256": "1a17926edb3b6a1b6c72a7a4d773475b79c6f57254ce4b37182ccf7e3c1270ab",
+      "provenance": {
+        "providedBy": "repository owner",
+        "createdWith": "TTSMaker multi-speaker dialogue generator; standardized without content edits",
+        "syntheticVoice": true,
+        "receivedDate": "2026-08-24"
+      },
+      "qa": {
+        "container": "passed — standardized to mono 44.1 kHz / 192 kbps MP3",
+        "durationContract": "passed",
+        "technicalPlayback": "pending deployed verification after merge",
+        "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
+        "contentApproval": "passed — speaker separation, rejected alternatives, start time and final decision verified"
       }
     }
   ]
