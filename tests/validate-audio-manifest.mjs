@@ -25,7 +25,7 @@ const expected = {
   ML02: {
     path: MINI_TEST_AUDIO.ML02.replace(/^\.\//, ''),
     duration: [138, 153],
-    sha256: 'd16bb0a630524c4029edc5d52ee9112ad15be',
+    sha256: 'd16bb0a630524c4029edc3016150d8a56cce81431c8404b43dd73396ea6db2ec',
     sizeBytes: 3371719,
     statuses: ['production-live']
   },
@@ -44,9 +44,6 @@ const expected = {
     statuses: ['production-ready', 'production-live']
   }
 };
-
-// Keep the trusted existing ML02 checksum explicit and readable.
-expected.ML02.sha256 = 'd16bb0a630524c4029edc3016150d8a56cce81431c8404b43dd73396ea6db2ec';
 
 for (const [id, contract] of Object.entries(expected)) {
   const asset = manifest.assets.find(item => item.id === id);
