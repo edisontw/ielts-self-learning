@@ -4,11 +4,13 @@ const PLAN_PREFIX='wt1-plan-';
 
 const read=(key,fallback={})=>{try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}catch{return structuredClone(fallback);}};
 const write=(key,value)=>localStorage.setItem(key,JSON.stringify(value));
+const wordCount=(text='')=>(String(text).trim().match(/\S+/g)||[]).length;
 
 function coreState(){
   const core=read(CORE_KEY,{});
   core.writingDrafts ||= {};
   core.notes ||= {};
+  core.studyHistory ||= [];
   return core;
 }
 
@@ -48,6 +50,22 @@ function mirrorPlan(id,text){
   write(CORE_KEY,core);
 }
 
+function recordPracticeMarker(){
+  const wt1=wt1State();
+  const promptId=wt1.activeId;
+  const draft=wt1.drafts?.[promptId]||'';
+  const core=coreState();
+  core.studyHistory.push({
+    ts:Date.now(),
+    type:'writing-task1-practice',
+    lessonId:'WT1-05',
+    promptId,
+    mode:wt1.mode,
+    wordCount:wordCount(draft)
+  });
+  write(CORE_KEY,core);
+}
+
 function syncCurrentWorkspace(){
   const wt1=wt1State();
   for(const [id,text] of Object.entries(wt1.drafts||{})) mirrorDraft(id,text);
@@ -66,7 +84,11 @@ if(typeof document!=='undefined'){
     if(plan){mirrorPlan(wt1State().activeId,plan.value);}
   });
 
+  document.addEventListener('click',event=>{
+    if(event.target.closest?.('[data-wt1-save-attempt]')) recordPracticeMarker();
+  });
+
   window.addEventListener('beforeunload',syncCurrentWorkspace);
 }
 
-export { WT1_KEY, CORE_KEY, PLAN_PREFIX, hydrateWorkspaceFromCore, mirrorDraft, mirrorPlan, syncCurrentWorkspace };
+export { WT1_KEY, CORE_KEY, PLAN_PREFIX, hydrateWorkspaceFromCore, mirrorDraft, mirrorPlan, recordPracticeMarker, syncCurrentWorkspace };
