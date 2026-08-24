@@ -8,6 +8,7 @@ import { SPEAKING_PART1_TOPICS, SPEAKING_PART2_CARDS, SPEAKING_PART3_SETS, SPEAK
 const here=path.dirname(fileURLToPath(import.meta.url));
 const root=path.resolve(here,'..');
 const runtime=fs.readFileSync(path.join(root,'speaking-practice-bank-runtime-v1.js'),'utf8');
+const ux=fs.readFileSync(path.join(root,'ux-polish-v1.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const assert=(condition,message)=>{if(!condition)throw new Error(message);};
 
@@ -60,6 +61,7 @@ assert(runtime.includes('Do not give a fake precise official IELTS band score'),
 assert(runtime.includes('data-spb-retry'),'Runtime must provide a retry-bank interaction.');
 assert(runtime.includes('data-lesson=\"S01\"')&&runtime.includes('data-lesson=\"S05\"'),'Runtime must expose S01–S05 repair routes.');
 assert(!runtime.includes('new MutationObserver'),'Speaking workspace must not continuously redraw through a MutationObserver while recording.');
+assert(ux.includes('injectSpeakingBankCard(main)')&&ux.includes('data-spb-ielts-card'),'The persistent IELTS UX layer must preserve the Speaking bank entry card.');
 
 assert(index.includes('./speaking-practice-bank-v1.js'),'Speaking bank data must load in index.html.');
 assert(index.includes('./speaking-practice-bank-runtime-v1.js'),'Speaking bank runtime must load in index.html.');
@@ -69,4 +71,4 @@ console.log('✓ Speaking Practice Bank: 12 Part 1 topics / 48 questions');
 console.log('✓ Speaking Practice Bank: 12 Part 2 cue cards / 12 linked Part 3 sets / 48 Part 3 questions');
 console.log('✓ Total bank size: 108 original speaking prompts/questions');
 console.log('✓ Recorder, timers, transcript portability, AI evidence limits and retry workflow are present');
-console.log('✓ SPB01 integrates with existing S01–S05 repair lessons and Productive Evidence');
+console.log('✓ SPB01 integrates with existing S01–S05 repair lessons, Productive Evidence and simplified IELTS UX');
