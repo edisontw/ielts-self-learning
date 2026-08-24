@@ -51,7 +51,7 @@ Reference used during implementation: IELTS public Academic Writing format and p
    - save planning notes and draft locally;
    - reveal suggested feature/grouping notes only in Practice mode;
    - copy an external-AI coaching prompt;
-   - save an attempt for later retry evidence.
+   - use the existing Productive-skill evidence card to record first attempt / revision-retry evidence.
 
 ## Full prompt bank
 
@@ -95,17 +95,19 @@ The workspace uses external AI as a learning coach only. The generated prompt as
 
 The prompt explicitly tells the model not to claim a fake precise official IELTS band score.
 
-## Local data
+## Local data and portability
 
-The Task 1 workspace stores only local browser data under `ielts-writing-task1-v1`:
+Task 1 reuses the existing learner-data model rather than creating a new backup schema.
 
-- selected prompt;
-- Practice/Test mode;
-- draft per prompt;
-- plan per prompt;
-- saved attempt metadata.
+- `ielts-writing-task1-v1` keeps only workspace/UI cache such as the selected prompt and Practice/Test mode.
+- Task 1 drafts are mirrored into the existing core learner record: `ielts-self-learning-v1 → writingDrafts[WT1-*]`.
+- Task 1 plans are mirrored into `ielts-self-learning-v1 → notes[wt1-plan-WT1-*]`.
+- `writing-task1-portability-v1.js` hydrates the workspace cache from the portable core record on page load.
+- The existing Backup & Restore flow therefore exports/imports Task 1 drafts and plans without a schema-version change.
+- If learner data is reset, the bridge clears stale Task 1 draft/plan cache while preserving harmless UI preferences.
+- First-attempt / retry evidence remains in the existing `ielts-adaptive-v1 → productiveEvidence.writing` workflow rather than a second Task 1-only evidence system.
 
-The dynamic draft textarea also carries the existing `.writing-input` hook so the current productive-evidence system can recognise it.
+The dynamic draft textarea carries the existing `.writing-input` hook so the current Productive-skill evidence card can recognise the full Task 1 response.
 
 ## Validation contract
 
@@ -121,5 +123,12 @@ The dynamic draft textarea also carries the existing `.writing-input` hook so th
 - Task 1-specific error tags;
 - Writing feedback mini-drafts in WT1-02 and WT1-03;
 - the dynamic workspace mount in WT1-05.
+
+`tests/validate-writing-task1-portability-v1.mjs` checks:
+
+- drafts are mirrored to `core.writingDrafts`;
+- plans are mirrored to `core.notes`;
+- backup/import hydration restores the workspace from portable core data;
+- learner-data reset cannot leave stale Task 1 drafts/plans in the UI cache.
 
 The project version remains `0.14.0`; this is a content-depth stage rather than a schema/application version change.
