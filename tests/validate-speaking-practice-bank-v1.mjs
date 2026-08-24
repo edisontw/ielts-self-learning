@@ -8,6 +8,7 @@ import { SPEAKING_PART1_TOPICS, SPEAKING_PART2_CARDS, SPEAKING_PART3_SETS, SPEAK
 const here=path.dirname(fileURLToPath(import.meta.url));
 const root=path.resolve(here,'..');
 const runtime=fs.readFileSync(path.join(root,'speaking-practice-bank-runtime-v1.js'),'utf8');
+const bootstrap=fs.readFileSync(path.join(root,'speaking-practice-bank-bootstrap-v1.js'),'utf8');
 const ux=fs.readFileSync(path.join(root,'ux-polish-v1.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const assert=(condition,message)=>{if(!condition)throw new Error(message);};
@@ -60,15 +61,22 @@ assert(runtime.includes('Do not score or judge pronunciation'),'Transcript-only 
 assert(runtime.includes('Do not give a fake precise official IELTS band score'),'AI feedback must reject fake precise band scores.');
 assert(runtime.includes('data-spb-retry'),'Runtime must provide a retry-bank interaction.');
 assert(runtime.includes('data-lesson=\"S01\"')&&runtime.includes('data-lesson=\"S05\"'),'Runtime must expose S01–S05 repair routes.');
-assert(!runtime.includes('new MutationObserver'),'Speaking workspace must not continuously redraw through a MutationObserver while recording.');
+assert(!runtime.includes('new MutationObserver'),'Speaking response runtime must not continuously redraw while recording.');
+
+assert(bootstrap.includes("import('./speaking-practice-bank-runtime-v1.js')"),'Speaking bootstrap must lazy-load the runtime after the lesson mount exists.');
+assert(bootstrap.includes("mount.querySelector('[data-spb-workspace]')"),'Bootstrap must no-op while the live workspace is already mounted.');
+assert(bootstrap.includes('new MutationObserver'),'Bootstrap must detect delayed base-app lesson rendering.');
+assert(bootstrap.includes('recoveryPending'),'Bootstrap must throttle recovery after a base-app rerender.');
 assert(ux.includes('injectSpeakingBankCard(main)')&&ux.includes('data-spb-ielts-card'),'The persistent IELTS UX layer must preserve the Speaking bank entry card.');
 
 assert(index.includes('./speaking-practice-bank-v1.js'),'Speaking bank data must load in index.html.');
-assert(index.includes('./speaking-practice-bank-runtime-v1.js'),'Speaking bank runtime must load in index.html.');
+assert(index.includes('./speaking-practice-bank-bootstrap-v1.js'),'Speaking bank bootstrap must load in index.html.');
+assert(!index.includes('src="./speaking-practice-bank-runtime-v1.js"'),'Speaking response runtime must be lazy-loaded instead of eagerly executed before the lesson mount exists.');
 assert(index.includes('./speaking-practice-bank-v1.css'),'Speaking bank stylesheet must load in index.html.');
 
 console.log('✓ Speaking Practice Bank: 12 Part 1 topics / 48 questions');
 console.log('✓ Speaking Practice Bank: 12 Part 2 cue cards / 12 linked Part 3 sets / 48 Part 3 questions');
 console.log('✓ Total bank size: 108 original speaking prompts/questions');
 console.log('✓ Recorder, timers, transcript portability, AI evidence limits and retry workflow are present');
+console.log('✓ Lazy bootstrap mounts SPB01 only after the base lesson DOM exists and preserves live recorder state');
 console.log('✓ SPB01 integrates with existing S01–S05 repair lessons, Productive Evidence and simplified IELTS UX');
