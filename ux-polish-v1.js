@@ -205,6 +205,18 @@ function injectIELTSStageNav(main, head) {
   head?.insertAdjacentElement('afterend', nav);
 }
 
+function injectSpeakingBankCard(main) {
+  if (main.querySelector('[data-spb-ielts-card]')) return;
+  const card = document.createElement('section');
+  card.className = 'card extension-card';
+  card.dataset.spbIeltsCard = 'true';
+  card.style.marginBottom = '18px';
+  card.innerHTML = `<div class="cluster" style="justify-content:space-between"><div><div class="eyebrow">Speaking depth</div><h2 style="margin:5px 0">Speaking Practice Bank</h2></div><span class="chip primary">108 prompts</span></div><p class="muted">12 Part 1 topics, 12 Part 2 cue cards and 12 linked Part 3 discussion sets. Record, keep a portable transcript, get targeted feedback and retry the same prompt.</p><button class="btn primary" data-lesson="SPB01">Open Speaking Practice Bank</button>`;
+  const writingCard = main.querySelector('[data-wt1-ielts-card]');
+  const stageNav = main.querySelector('[data-ielts-stage-nav]');
+  (writingCard || stageNav || main.querySelector(':scope > .page-head'))?.insertAdjacentElement('afterend', card);
+}
+
 function ieltsSections(main) {
   return {
     strategy: main.querySelector('[data-ielts-strategy-index]'),
@@ -256,6 +268,7 @@ function simplifyIELTS() {
   }
 
   injectIELTSStageNav(main, head);
+  injectSpeakingBankCard(main);
   selectIELTSStage(main, ieltsStage);
 }
 
