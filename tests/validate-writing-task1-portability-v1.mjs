@@ -10,11 +10,11 @@ const WT1_KEY='ielts-writing-task1-v1';
 const assert=(condition,message)=>{if(!condition)throw new Error(message);};
 
 globalThis.localStorage=new MemoryStorage({
-  [CORE_KEY]:JSON.stringify({writingDrafts:{'WT1-LINE-01':'portable draft'},notes:{'wt1-plan-WT1-LINE-01':'portable plan'}}),
+  [CORE_KEY]:JSON.stringify({writingDrafts:{'WT1-LINE-01':'portable draft'},notes:{'wt1-plan-WT1-LINE-01':'portable plan'},studyHistory:[]}),
   [WT1_KEY]:JSON.stringify({activeId:'WT1-BAR-01',mode:'test',drafts:{'WT1-LINE-01':'stale draft'},plans:{'WT1-LINE-01':'stale plan'},attempts:[{id:'ui-only'}]})
 });
 
-const { hydrateWorkspaceFromCore, mirrorDraft, mirrorPlan, syncCurrentWorkspace } = await import('../writing-task1-portability-v1.js');
+const { hydrateWorkspaceFromCore, mirrorDraft, mirrorPlan, recordPracticeMarker, syncCurrentWorkspace } = await import('../writing-task1-portability-v1.js');
 
 hydrateWorkspaceFromCore();
 let ui=JSON.parse(localStorage.getItem(WT1_KEY));
@@ -32,11 +32,20 @@ assert(core.notes['wt1-plan-WT1-TABLE-01']==='overview + two detail groups','Tas
 ui=JSON.parse(localStorage.getItem(WT1_KEY));
 ui.drafts['WT1-MAP-01']='map draft';
 ui.plans['WT1-MAP-01']='map plan';
+ui.drafts['WT1-BAR-01']='one two three four five';
 localStorage.setItem(WT1_KEY,JSON.stringify(ui));
 syncCurrentWorkspace();
 core=JSON.parse(localStorage.getItem(CORE_KEY));
 assert(core.writingDrafts['WT1-MAP-01']==='map draft','Workspace sync must preserve cached drafts in portable core data.');
 assert(core.notes['wt1-plan-WT1-MAP-01']==='map plan','Workspace sync must preserve cached plans in portable core data.');
+
+recordPracticeMarker();
+core=JSON.parse(localStorage.getItem(CORE_KEY));
+const marker=core.studyHistory.at(-1);
+assert(marker?.type==='writing-task1-practice','Save attempt must create a portable Task 1 practice marker.');
+assert(marker.promptId==='WT1-BAR-01'&&marker.mode==='test','Practice marker must record active prompt and mode.');
+assert(marker.wordCount===5,'Practice marker must record the current draft word count.');
+assert(marker.lessonId==='WT1-05','Task 1 practice marker must remain associated with the full workspace lesson.');
 
 // Simulate learner-data reset: core is removed while the UI cache still exists.
 localStorage.removeItem(CORE_KEY);
@@ -47,5 +56,6 @@ assert(Object.keys(ui.plans).length===0,'Reset core data must clear stale Task 1
 assert(ui.activeId==='WT1-BAR-01'&&ui.mode==='test','Reset must keep harmless Task 1 UI preferences.');
 
 console.log('✓ Task 1 drafts and plans use the existing portable core learner record');
+console.log('✓ Save attempt creates a portable study-history marker while productive evidence remains separate');
 console.log('✓ Backup/import hydration restores Task 1 workspace content from core data');
 console.log('✓ Learner-data reset cannot leave stale Task 1 drafts or plans in the UI cache');
