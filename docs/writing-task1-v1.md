@@ -99,13 +99,14 @@ The prompt explicitly tells the model not to claim a fake precise official IELTS
 
 Task 1 reuses the existing learner-data model rather than creating a new backup schema.
 
-- `ielts-writing-task1-v1` keeps only workspace/UI cache such as the selected prompt and Practice/Test mode.
+- `ielts-writing-task1-v1` is a workspace/UI cache. It may contain working copies used by the dynamic runtime, but it is not the portable source of truth for learner writing.
 - Task 1 drafts are mirrored into the existing core learner record: `ielts-self-learning-v1 → writingDrafts[WT1-*]`.
 - Task 1 plans are mirrored into `ielts-self-learning-v1 → notes[wt1-plan-WT1-*]`.
 - `writing-task1-portability-v1.js` hydrates the workspace cache from the portable core record on page load.
 - The existing Backup & Restore flow therefore exports/imports Task 1 drafts and plans without a schema-version change.
+- `Save attempt` also writes a lightweight `writing-task1-practice` marker to the existing portable `studyHistory`; this is a study-action record, not an IELTS score or retry-quality measure.
 - If learner data is reset, the bridge clears stale Task 1 draft/plan cache while preserving harmless UI preferences.
-- First-attempt / retry evidence remains in the existing `ielts-adaptive-v1 → productiveEvidence.writing` workflow rather than a second Task 1-only evidence system.
+- First-attempt / retry quality evidence remains in the existing `ielts-adaptive-v1 → productiveEvidence.writing` workflow rather than a second Task 1-only evidence system.
 
 The dynamic draft textarea carries the existing `.writing-input` hook so the current Productive-skill evidence card can recognise the full Task 1 response.
 
@@ -128,6 +129,7 @@ The dynamic draft textarea carries the existing `.writing-input` hook so the cur
 
 - drafts are mirrored to `core.writingDrafts`;
 - plans are mirrored to `core.notes`;
+- Save attempt writes a portable practice marker to `core.studyHistory`;
 - backup/import hydration restores the workspace from portable core data;
 - learner-data reset cannot leave stale Task 1 drafts/plans in the UI cache.
 
