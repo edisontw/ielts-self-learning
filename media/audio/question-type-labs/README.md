@@ -1,8 +1,8 @@
 # Question Type Lab production audio
 
-Production MP3 target directory for V1.3 Listening depth sets.
+Production MP3 directory for V1.3 Listening depth sets.
 
-Expected files:
+All 12 Set B / Set C Question Type Lab production files now exist:
 
 - `ql01-b-careers-session-room.mp3`
 - `ql01-c-market-visit.mp3`
@@ -17,8 +17,8 @@ Expected files:
 - `ql06-b-prototype-redesign.mp3`
 - `ql06-c-office-renovation-date.mp3`
 
-Until a file exists, `question-type-lab-depth-runtime-v1.js` attempts the production path and then falls back to the labelled browser-voice practice mode.
+`question-type-lab-depth-runtime-v1.js` attempts these production paths first and uses the labelled browser-voice practice mode only if an MP3 cannot be played.
 
 Generation prompts, roles, target durations and canonical scripts are in `docs/question-type-lab-production-audio-v1.md`.
 
-After each MP3 is uploaded and deployed, verify playback and then register technical metadata/checksum/provenance in the production audio manifest. Do not mark an asset `production-live` before the file exists and playback has been checked.
+Technical metadata, checksums, provenance and QA status are registered in `media/audio/manifest-v1.json`. Assets remain `production-ready` until deployed playback is independently verified; do not mark them `production-live` only because the file exists in the repository.
