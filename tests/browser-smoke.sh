@@ -24,7 +24,7 @@ for _ in {1..20}; do
   sleep 0.25
 done
 
-for asset in index.html app.js data.js boot-guard-v1.js styles.css question-type-lab-depth-v1.js question-type-lab-depth-runtime-v1.js writing-task1-v1.js writing-task1-portability-v1.js writing-task1-runtime-v1.js writing-task1-v1.css speaking-practice-bank-v1.js speaking-practice-bank-runtime-v1.js speaking-practice-bank-v1.css mock-test-runtime-v1.js mock-test-audio-upgrade-v1.js mock-integration-fix-v1.js data-portability-v1.js diagnostics-v1.js content/placement/quick-placement-v1.json; do
+for asset in index.html app.js data.js boot-guard-v1.js styles.css question-type-lab-depth-v1.js question-type-lab-depth-runtime-v1.js writing-task1-v1.js writing-task1-portability-v1.js writing-task1-runtime-v1.js writing-task1-v1.css speaking-practice-bank-v1.js speaking-practice-bank-runtime-v1.js speaking-practice-bank-bootstrap-v1.js speaking-practice-bank-v1.css mock-test-runtime-v1.js mock-test-audio-upgrade-v1.js mock-integration-fix-v1.js data-portability-v1.js diagnostics-v1.js content/placement/quick-placement-v1.json; do
   curl -fsS "$BASE/$asset" >/dev/null || { echo "Missing asset: $asset" >&2; exit 1; }
 done
 
