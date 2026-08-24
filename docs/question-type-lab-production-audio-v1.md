@@ -2,6 +2,8 @@
 
 This pack prepares production MP3 for the 12 Listening depth sets added in V1.3.
 
+For the current TTSMaker-specific click-by-click workflow, including the free-plan strategy and exact QL01-B/C dialogue blocks, see [`ttsmaker-question-type-lab-workflow-v1.md`](ttsmaker-question-type-lab-workflow-v1.md).
+
 Runtime policy:
 
 `PRODUCTION MP3 → if unavailable, LABELLED BROWSER-VOICE FALLBACK`
