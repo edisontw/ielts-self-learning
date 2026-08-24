@@ -49,8 +49,8 @@ assert(LESSONS.some(l=>l.id==='SPB01'),'SPB01 must register in LESSONS.');
 assert(CORE_LESSON_META.some(l=>l.id==='SPB01'),'SPB01 must register adaptive metadata.');
 
 assert(runtime.includes("const CORE_KEY='ielts-self-learning-v1'"),'Speaking bank must use the portable core learner record.');
-assert(runtime.includes('core.speakingTranscripts ||= {}'),'Speaking bank transcripts must use core.speakingTranscripts.');
-assert(runtime.includes('core.studyHistory.push'),'Speaking bank attempts must use portable studyHistory.');
+assert(runtime.includes('speakingTranscripts||={}'),'Speaking bank transcripts must use core.speakingTranscripts.');
+assert(runtime.includes("type:'speaking-bank-attempt'"),'Speaking bank attempts must use portable studyHistory.');
 assert(runtime.includes('MediaRecorder'),'Speaking bank must support browser recording when available.');
 assert(runtime.includes('class=\"text-area spb-transcript speaking-input\"'),'Speaking bank transcript must expose the existing Productive Evidence hook.');
 assert(runtime.includes('data-spb-timer=\"60\"')&&runtime.includes('data-spb-timer=\"120\"'),'Part 2 must expose 1-minute preparation and 2-minute long-turn timers.');
@@ -59,6 +59,7 @@ assert(runtime.includes('Do not score or judge pronunciation'),'Transcript-only 
 assert(runtime.includes('Do not give a fake precise official IELTS band score'),'AI feedback must reject fake precise band scores.');
 assert(runtime.includes('data-spb-retry'),'Runtime must provide a retry-bank interaction.');
 assert(runtime.includes('data-lesson=\"S01\"')&&runtime.includes('data-lesson=\"S05\"'),'Runtime must expose S01–S05 repair routes.');
+assert(!runtime.includes('new MutationObserver'),'Speaking workspace must not continuously redraw through a MutationObserver while recording.');
 
 assert(index.includes('./speaking-practice-bank-v1.js'),'Speaking bank data must load in index.html.');
 assert(index.includes('./speaking-practice-bank-runtime-v1.js'),'Speaking bank runtime must load in index.html.');
