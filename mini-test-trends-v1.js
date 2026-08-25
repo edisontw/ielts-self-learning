@@ -1,4 +1,4 @@
-import './mini-test-data-v2.js';
+import './mini-test-data-v3.js';
 import { MINI_TESTS } from './mini-test-data-v1.js';
 
 const CORE_KEY='ielts-self-learning-v1';
@@ -7,6 +7,7 @@ const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{re
 const write=(key,value)=>localStorage.setItem(key,JSON.stringify(value));
 const esc=(v='')=>String(v).replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[c]));
 const testById=id=>MINI_TESTS.find(t=>t.id===id);
+const formCount=skill=>MINI_TESTS.filter(t=>t.skill===skill).length;
 
 function tagCountsForSubmission(result){
   const test=testById(result?.testId);
@@ -36,7 +37,7 @@ function annotateSubmission(result){
   return row;
 }
 
-function latestDistinctAttempts(adaptive,skill,limit=2){
+function latestDistinctAttempts(adaptive,skill,limit=4){
   const rows=[...(adaptive.miniTestHistory||[])]
     .filter(x=>x.skill===skill&&x.missedErrorTags)
     .sort((a,b)=>(b.ts||0)-(a.ts||0));
@@ -52,13 +53,22 @@ function latestDistinctAttempts(adaptive,skill,limit=2){
 }
 
 function recurringPatterns(adaptive,skill){
-  const rows=latestDistinctAttempts(adaptive,skill,2);
+  const rows=latestDistinctAttempts(adaptive,skill,Math.min(4,formCount(skill)));
   if(rows.length<2)return [];
-  const [a,b]=rows;
-  const shared=Object.keys(a.missedErrorTags||{}).filter(tag=>(b.missedErrorTags||{})[tag]);
-  return shared
-    .map(tag=>({tag,count:(a.missedErrorTags[tag]||0)+(b.missedErrorTags[tag]||0),tests:[a.testId,b.testId]}))
-    .sort((x,y)=>y.count-x.count||x.tag.localeCompare(y.tag));
+  const patterns=new Map();
+  for(const row of rows){
+    for(const [tag,count] of Object.entries(row.missedErrorTags||{})){
+      if(!count)continue;
+      const current=patterns.get(tag)||{tag,count:0,tests:[],forms:0};
+      current.count+=count;
+      current.tests.push(row.testId);
+      current.forms+=1;
+      patterns.set(tag,current);
+    }
+  }
+  return [...patterns.values()]
+    .filter(x=>x.forms>=2)
+    .sort((a,b)=>b.forms-a.forms||b.count-a.count||a.tag.localeCompare(b.tag));
 }
 
 function skillSummary(adaptive,skill){
@@ -66,16 +76,16 @@ function skillSummary(adaptive,skill){
   const distinct=new Set(rows.map(x=>x.testId)).size;
   const latest=rows[0]||null;
   const recurring=recurringPatterns(adaptive,skill);
-  return {attempts:rows.length,distinct,latest,recurring};
+  return {attempts:rows.length,distinct,latest,recurring,available:formCount(skill)};
 }
 
 function renderSkill(adaptive,skill){
   const s=skillSummary(adaptive,skill);
   const label=skill==='reading'?'Reading':'Listening';
   const pattern=s.recurring.length
-    ? `<div class="callout warning" style="margin-top:10px"><strong>Recurring pattern${s.recurring.length===1?'':'s'}:</strong> ${s.recurring.slice(0,3).map(x=>esc(x.tag)).join(' · ')}<br><span class="small muted">Repeated across the two most recent different ${label} Mini Tests. Review the related skill before the next timed check.</span></div>`
-    : `<p class="small muted" style="margin-top:10px">${s.distinct<2?'Complete two different Mini Tests to detect recurring error patterns.':'No error tag repeated across the two most recent different Mini Tests.'}</p>`;
-  return `<div class="card subtle"><div class="cluster" style="justify-content:space-between"><strong>${label}</strong><span class="chip">${s.distinct}/2 test forms used</span></div><p class="muted" style="margin-top:8px">${s.attempts} attempt${s.attempts===1?'':'s'}${s.latest?` · latest ${s.latest.correct}/${s.latest.total}`:''}</p>${pattern}</div>`;
+    ? `<div class="callout warning" style="margin-top:10px"><strong>Recurring / persistent patterns:</strong><br>${s.recurring.slice(0,3).map(x=>`${esc(x.tag)} <span class="small muted">(${x.forms}/${Math.min(4,s.distinct)} recent forms)</span>`).join('<br>')}<br><span class="small muted">A tag must appear in at least two different recent ${label} Mini Tests. Three or four forms provide stronger evidence than a single repeated pair.</span></div>`
+    : `<p class="small muted" style="margin-top:10px">${s.distinct<2?'Complete two different Mini Tests to detect recurring error patterns.':`No error tag repeated across the ${Math.min(4,s.distinct)} most recent different Mini Tests.`}</p>`;
+  return `<div class="card subtle"><div class="cluster" style="justify-content:space-between"><strong>${label}</strong><span class="chip">${s.distinct}/${s.available} test forms used</span></div><p class="muted" style="margin-top:8px">${s.attempts} attempt${s.attempts===1?'':'s'}${s.latest?` · latest ${s.latest.correct}/${s.latest.total}`:''}</p>${pattern}</div>`;
 }
 
 function injectTrends(){
@@ -87,7 +97,7 @@ function injectTrends(){
   section.className='card extension-card';
   section.dataset.miniTestTrends='true';
   section.style.marginTop='18px';
-  section.innerHTML=`<div class="adaptive-top"><div><div class="eyebrow">Mini Test transfer evidence</div><h2>Look for patterns across different test forms.</h2></div><span class="chip primary">Diagnostic, not Band scoring</span></div><p class="muted">The site compares missed error tags across the two most recent different Mini Tests for each skill. A repeated tag is stronger evidence than one isolated miss.</p><div class="grid two" style="margin-top:14px">${renderSkill(adaptive,'reading')}${renderSkill(adaptive,'listening')}</div><div class="cluster" style="margin-top:14px"><button class="btn soft" data-nav="progress">Review / rebalance Study Plan</button><span class="small muted">Rebalancing remains an explicit learner action; a test result does not silently rewrite the calendar.</span></div>`;
+  section.innerHTML=`<div class="adaptive-top"><div><div class="eyebrow">Mini Test transfer evidence</div><h2>Look for patterns across different test forms.</h2></div><span class="chip primary">Diagnostic, not Band scoring</span></div><p class="muted">The site now compares missed error tags across up to the four most recent different Mini Tests for each skill. A pattern must recur on at least two forms; recurrence on three or four forms is stronger evidence of a persistent weakness.</p><div class="grid two" style="margin-top:14px">${renderSkill(adaptive,'reading')}${renderSkill(adaptive,'listening')}</div><div class="cluster" style="margin-top:14px"><button class="btn soft" data-nav="progress">Review / rebalance Study Plan</button><span class="small muted">Rebalancing remains an explicit learner action; a test result does not silently rewrite the calendar.</span></div>`;
   index.insertAdjacentElement('afterend',section);
 }
 
