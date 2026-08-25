@@ -9,7 +9,9 @@ const PRACTICE_FALLBACK_SCRIPTS = {
 
 export const MINI_TEST_AUDIO = {
   ML01: './media/audio/mini-tests/ml01-research-skills-workshops.mp3',
-  ML02: './media/audio/mini-tests/ml02-community-photography-walk.mp3'
+  ML02: './media/audio/mini-tests/ml02-community-photography-walk.mp3',
+  ML03: './media/audio/mini-tests/ml03-community-food-photography-workshop.mp3',
+  ML04: './media/audio/mini-tests/ml04-river-monitoring-field-briefing.mp3'
 };
 
 let activeAudio = null;

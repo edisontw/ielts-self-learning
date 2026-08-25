@@ -12,7 +12,7 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const fileSha256 = filePath => crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 
 assert(manifest.version === 1, 'Audio manifest version must remain 1.');
-assert(Array.isArray(manifest.assets) && manifest.assets.length >= 14, 'Audio manifest must register ML01, ML02 and all 12 QL depth assets.');
+assert(Array.isArray(manifest.assets) && manifest.assets.length >= 16, 'Audio manifest must register ML01–ML04 and all 12 QL depth assets.');
 
 const expected = {
   ML01: {
@@ -28,6 +28,20 @@ const expected = {
     sha256: 'd16bb0a630524c4029edc3016150d8a56cce81431c8404b43dd73396ea6db2ec',
     sizeBytes: 3371719,
     statuses: ['production-live']
+  },
+  ML03: {
+    path: MINI_TEST_AUDIO.ML03.replace(/^\.\//, ''),
+    duration: [148, 160],
+    sha256: 'c9705737b834d012e7b73a1242d3426cd496463afd96db5fc15ddb91a5577d20',
+    sizeBytes: 3585505,
+    statuses: ['production-ready', 'production-live']
+  },
+  ML04: {
+    path: MINI_TEST_AUDIO.ML04.replace(/^\.\//, ''),
+    duration: [142, 153],
+    sha256: 'c24bb2b7542f65e349ee487eac853aa4bbcaccf680f566863b3299e23d251662',
+    sizeBytes: 3435667,
+    statuses: ['production-ready', 'production-live']
   },
   'QL01-B': {
     path: LAB_DEPTH_AUDIO['QL01-B'].replace(/^\.\//, ''),
@@ -141,6 +155,8 @@ for (const [id, contract] of Object.entries(expected)) {
   }
 }
 
+assert(manifest.assets.find(item => item.id === 'ML03')?.qa?.tempoCorrection?.includes('142 wpm'), 'ML03 must retain its final pacing correction QA.');
+assert(manifest.assets.find(item => item.id === 'ML04')?.qa?.pauseAdjustment?.includes('wording'), 'ML04 must retain its pause-adjustment QA.');
 assert(manifest.assets.find(item => item.id === 'QL02-B')?.qa?.pauseAdjustment?.includes('wording'), 'QL02-B must record its pause adjustment QA.');
 assert(manifest.assets.find(item => item.id === 'QL02-C')?.qa?.tempoCorrection?.includes('141 wpm'), 'QL02-C must record its tempo correction QA.');
 assert(manifest.assets.find(item => item.id === 'QL04-C')?.qa?.tempoCorrection?.includes('151 wpm'), 'QL04-C must record its tempo correction QA.');
@@ -149,8 +165,8 @@ assert(manifest.assets.find(item => item.id === 'QL06-B')?.qa?.durationContract?
 assert(new Set(manifest.assets.map(asset => asset.id)).size === manifest.assets.length, 'Audio manifest asset IDs must be unique.');
 assert(new Set(manifest.assets.map(asset => asset.path)).size === manifest.assets.length, 'Audio manifest paths must be unique.');
 
-console.log('✓ ML01, ML02 and all 12 QL production MP3 files exist at their runtime paths');
+console.log('✓ ML01–ML04 and all 12 QL production MP3 files exist at their runtime paths');
 console.log('✓ Audio file sizes and SHA-256 checksums match the QA-approved assets');
-console.log('✓ Tempo, pause and duration-exception processing records are documented and validated');
+console.log('✓ ML03 / ML04 duration, pacing and pause-processing contracts are enforced');
 console.log('✓ Production-ready and production-live status rules are enforced');
 console.log('✓ Audio provenance, format metadata and canonical transcript policy remain valid');
