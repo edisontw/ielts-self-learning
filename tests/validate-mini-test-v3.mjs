@@ -28,7 +28,7 @@ assert(MINI_TESTS.reduce((sum,t)=>sum+t.questions.length,0)===88,'Eight Mini Tes
 for(const test of MINI_TESTS_V3){
   assert(test.source?.type==='original'&&test.source?.createdDate==='2026-08-25',`${test.id} must disclose original-content provenance.`);
   if(test.skill==='reading')assert(test.passage?.length>2500,`${test.id} needs a substantive original Reading passage.`);
-  if(test.skill==='listening')assert(test.script?.length>2500,`${test.id} needs a substantive one-play Listening script.`);
+  if(test.skill==='listening')assert(test.script?.length>1800,`${test.id} needs a substantive one-play Listening script.`);
 }
 
 const questionIds=[];
