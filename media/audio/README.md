@@ -8,17 +8,14 @@ Runtime policy:
 
 ## Production-live Mini Test audio
 
-The following files are present in the repository and have owner-confirmed deployed playback:
+The following files are present in the repository and have deployed public playback verification:
 
 - `mini-tests/ml01-research-skills-workshops.mp3`
 - `mini-tests/ml02-community-photography-walk.mp3`
-
-## Production-ready Mini Test audio
-
-The following QA-approved files are present in the repository and wired to the Mini Test runtime, but remain `production-ready` until deployed public playback is verified:
-
 - `mini-tests/ml03-community-food-photography-workshop.mp3`
 - `mini-tests/ml04-river-monitoring-field-briefing.mp3`
+
+ML03 and ML04 were verified on the public GitHub Pages deployment on 2026-08-25 by downloading the deployed files and matching their exact QA-approved file sizes and SHA-256 checksums.
 
 Their status, provenance, duration, format and SHA-256 values are recorded in [`manifest-v1.json`](manifest-v1.json).
 
