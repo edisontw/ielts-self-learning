@@ -1,0 +1,45 @@
+name: Materialize ML03 ML04 audio
+
+on:
+  push:
+    branches: [audio/ml03-ml04-production]
+    paths:
+      - .github/workflows/materialize-mini-test-audio.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audio/ml03-ml04-production
+      - name: Download QA-approved final MP3 files
+        run: |
+          set -euo pipefail
+          mkdir -p media/audio/mini-tests
+          curl --fail --location --retry 3 \
+            'https://drive.google.com/uc?export=download&id=1BavALr9cHagqgTF1aHDHI8vYQlB_Bqwt' \
+            --output media/audio/mini-tests/ml03-community-food-photography-workshop.mp3
+          curl --fail --location --retry 3 \
+            'https://drive.google.com/uc?export=download&id=1c-Pvk4IXHz_LFDY2T_SEq2QEfHa0Gmx3' \
+            --output media/audio/mini-tests/ml04-river-monitoring-field-briefing.mp3
+      - name: Verify exact approved bytes and audio container
+        run: |
+          set -euo pipefail
+          echo 'c9705737b834d012e7b73a1242d3426cd496463afd96db5fc15ddb91a5577d20  media/audio/mini-tests/ml03-community-food-photography-workshop.mp3' | sha256sum --check
+          echo 'c24bb2b7542f65e349ee487eac853aa4bbcaccf680f566863b3299e23d251662  media/audio/mini-tests/ml04-river-monitoring-field-briefing.mp3' | sha256sum --check
+          ffprobe -v error -show_entries format=duration,bit_rate -show_entries stream=sample_rate,channels -of default=noprint_wrappers=1 media/audio/mini-tests/ml03-community-food-photography-workshop.mp3
+          ffprobe -v error -show_entries format=duration,bit_rate -show_entries stream=sample_rate,channels -of default=noprint_wrappers=1 media/audio/mini-tests/ml04-river-monitoring-field-briefing.mp3
+      - name: Commit production files and remove one-time workflow
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add media/audio/mini-tests/ml03-community-food-photography-workshop.mp3 media/audio/mini-tests/ml04-river-monitoring-field-briefing.mp3
+          git rm .github/workflows/materialize-mini-test-audio.yml
+          git commit -m 'Media: add ML03 and ML04 production audio'
+          git push origin HEAD:audio/ml03-ml04-production
