@@ -198,7 +198,7 @@ function injectIELTSStageNav(main, head) {
       ${[
         ['strategy','1','Strategy','3 lessons'],
         ['lab','2','Question Types','12 labs'],
-        ['mini','3','Mini Tests','4 tests'],
+        ['mini','3','Mini Tests','8 tests'],
         ['mock','4','Full Mock','L / R / W / S']
       ].map(([key,n,label,meta]) => `<button class="ielts-stage-tab" role="tab" data-ielts-stage="${key}" aria-selected="false"><span>${n}</span><strong>${label}</strong><small>${meta}</small></button>`).join('')}
     </div>`;

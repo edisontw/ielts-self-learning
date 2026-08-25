@@ -35,21 +35,26 @@ function upgradePlayerCopy() {
     paragraph.textContent = 'The transcript stays hidden until submission. Production audio is used when available; browser voice is only a fallback.';
   }
   const status = sourceStatusNode(button);
-  if (status && !status.textContent) status.textContent = 'Production MP3 preferred · browser voice fallback if the file is unavailable';
+  if (status && !status.textContent) {
+    status.textContent = miniTestAudioSrc(activeTestId)
+      ? 'Production MP3 preferred · browser voice fallback if the file is unavailable'
+      : 'Browser voice fallback · production recording pending';
+  }
 }
 
 async function handlePlay(button) {
   if (!activeTestId || attemptPlayed || playInFlight) return;
   const test = testById(activeTestId);
   if (!test || test.skill !== 'listening') return;
+  const src = miniTestAudioSrc(test.id);
   playInFlight = true;
   button.disabled = true;
   button.textContent = 'Loading recording…';
   const status = sourceStatusNode(button);
-  if (status) status.textContent = 'Checking production audio…';
+  if (status) status.textContent = src ? 'Checking production audio…' : 'Production recording pending · starting browser voice fallback…';
   try {
     const result = await playListeningMedia({
-      src: miniTestAudioSrc(test.id),
+      src,
       script: test.script,
       lang: 'en-US',
       rate: 1,
@@ -61,7 +66,7 @@ async function handlePlay(button) {
     button.textContent = result.mode === 'production' ? 'Recording played · production audio' : 'Recording played · browser voice fallback';
     if (status) status.textContent = result.mode === 'production'
       ? 'Production audio asset'
-      : 'Browser voice fallback · not production IELTS audio';
+      : (src ? 'Browser voice fallback · production MP3 unavailable' : 'Browser voice fallback · production recording pending');
   } catch (error) {
     button.disabled = false;
     button.textContent = 'Play recording once';

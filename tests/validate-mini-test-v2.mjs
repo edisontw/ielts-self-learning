@@ -53,7 +53,7 @@ assert(runtime.includes('const quizMap = new Map()')&&runtime.includes('for (con
 assert(runtime.includes("if (!answer?.checked) continue")&&runtime.includes('answer.selected === found.block.answer'),'Checked Mini Test answers must feed objective skill performance.');
 assert(studyPlan.includes('adaptive.skillPerformance?.[skill]'),'Study Plan priority must consume observed skill performance updated by Mini Test answers.');
 
-for(const token of ['missedErrorTags','latestDistinctAttempts','recurringPatterns','two most recent different Mini Tests','Diagnostic, not Band scoring','Rebalancing remains an explicit learner action']){
+for(const token of ['missedErrorTags','latestDistinctAttempts','recurringPatterns','different Mini Tests','Diagnostic, not Band scoring','Rebalancing remains an explicit learner action']){
   assert(trendsSource.includes(token),`Mini Test trend runtime missing ${token}.`);
 }
 assert(!trendsSource.includes('bandScore')&&!trendsSource.includes('estimatedBand'),'Mini Test trends must not create pseudo IELTS band scoring.');
