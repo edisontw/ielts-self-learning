@@ -1,0 +1,84 @@
+name: Prepare QL production-live promotion
+
+on:
+  push:
+    branches: [release/ql-production-live]
+    paths:
+      - .github/workflows/prepare-ql-production-live.yml
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: github.event.head_commit.message == 'Ops: prepare QL production-live promotion'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/ql-production-live
+      - name: Promote QL assets and refresh docs
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+
+          const manifestPath = 'media/audio/manifest-v1.json';
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          const ql = manifest.assets.filter(a => /^QL\d{2}-[BC]$/.test(a.id));
+          if (ql.length !== 12) throw new Error(`Expected 12 QL assets, found ${ql.length}`);
+          for (const asset of ql) {
+            asset.status = 'production-live';
+            asset.qa.technicalPlayback = 'passed — public GitHub Pages bytes verified on 2026-08-26 via release gate';
+          }
+          manifest.updatedAt = '2026-08-26';
+          fs.writeFileSync(manifestPath, JSON.stringify(manifest) + '\n');
+
+          const readmePath = 'README.md';
+          let readme = fs.readFileSync(readmePath, 'utf8');
+          const replacements = [
+            [
+              '- 12 Question Type Labs: Reading 6 + Listening 6;\n  - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;\n  - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;\n  - new Listening B/C scripts use the shared labelled browser-voice practice fallback until production MP3 replaces them;',
+              '- 12 Question Type Labs: Reading 6 + Listening 6;\n  - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;\n  - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;\n  - all 12 Listening Set B/C production MP3 assets are live; browser voice remains only as a labelled playback fallback.'
+            ],
+            [
+              '- four timed Mini Tests:\n  - MR01 / MR02 Reading — 12 questions / 12 minutes\n  - ML01 / ML02 Listening — 10 questions / 9 minutes;\n- production MP3 audio live for ML01 and ML02;',
+              '- eight timed Mini Tests:\n  - MR01–MR04 Reading — 12 questions / 12 minutes each\n  - ML01–ML04 Listening — 10 questions / 9 minutes each;\n- production MP3 audio live for ML01–ML04;'
+            ],
+            [
+              'ML01 and ML02 use one successful playback per attempt. The transcript remains hidden until submission. Production MP3 is preferred; browser speech is only a labelled fallback if the MP3 cannot be played.',
+              'ML01–ML04 use one successful playback per attempt. The transcript remains hidden until submission. Production MP3 is preferred; browser speech is only a labelled fallback if the MP3 cannot be played.'
+            ],
+            [
+              'Current production-live assets:\n\n- `media/audio/mini-tests/ml01-research-skills-workshops.mp3`\n- `media/audio/mini-tests/ml02-community-photography-walk.mp3`\n- Full Mock Listening production media\n\nThe 12 new QL01–QL06 Set B/C scripts are content-ready and wired to the shared practice fallback; they remain candidates for the next production-audio batch.',
+              'Current production-live assets:\n\n- Mini Tests: ML01–ML04\n- Question Type Labs: all 12 QL01–QL06 Set B/C recordings\n- Full Mock Listening production media\n\nCore lesson / Placement recordings remain the next production-audio gap; browser speech is retained only as a labelled fallback where a production file does not yet exist.'
+            ],
+            [
+              '1. produce and QA production MP3 for the 12 new QL01–QL06 Set B/C scripts, then continue Quick Placement and L01–L05 audio coverage;\n2. build a complete Academic Writing Task 1 path plus roughly 12 reusable Task 1 prompts;\n3. add a Speaking Practice Bank with Part 1, Part 2 cue cards and linked Part 3 follow-up questions;\n4. expand timed practice with MR03 / MR04 and ML03 / ML04 after the Lab retry bank is stable;\n5. expand Vocabulary / Grammar Repair from real recurring Error Notebook tags rather than adding generic grammar lessons blindly;\n6. perform direct deployed desktop and mobile QA for Placement → Study Plan → lesson → Lab A/B/C → Mini Test → Repair → retry → Full Mock → backup / restore;\n7. reduce progressive DOM-patching technical debt by consolidating mature UI enhancements into the base renderer;\n8. evaluate account sync or PWA only after the content, media and learner-data model is stable.',
+              '1. produce and QA Quick Placement plus L01–L05 production Listening audio;\n2. expand Vocabulary / Grammar Repair from real recurring Error Notebook tags rather than adding generic grammar lessons blindly;\n3. perform direct deployed desktop and mobile QA for Placement → Study Plan → lesson → Lab A/B/C → Mini Test → Repair → retry → Full Mock → backup / restore;\n4. reduce progressive DOM-patching technical debt by consolidating mature UI enhancements into the base renderer;\n5. evaluate account sync or PWA only after the content, media and learner-data model is stable.'
+            ]
+          ];
+          for (const [from, to] of replacements) {
+            if (!readme.includes(from)) throw new Error(`README replacement source not found: ${from.slice(0, 80)}`);
+            readme = readme.replace(from, to);
+          }
+          fs.writeFileSync(readmePath, readme);
+
+          const audioReadmePath = 'media/audio/README.md';
+          let audioReadme = fs.readFileSync(audioReadmePath, 'utf8');
+          const marker = '## Remaining production paths\n';
+          const section = '## Production-live Question Type Lab audio\n\nAll 12 QL01–QL06 Set B/C recordings are present at `question-type-labs/` and were verified against the public GitHub Pages deployment on 2026-08-26 using exact file-size and SHA-256 checks. Their runtime paths, durations, provenance and checksums are recorded in [`manifest-v1.json`](manifest-v1.json).\n\nThe Lab runtime prefers these production MP3 files and uses the labelled browser voice only if production playback is unavailable.\n\n';
+          if (!audioReadme.includes(marker)) throw new Error('Audio README insertion marker not found');
+          if (!audioReadme.includes('## Production-live Question Type Lab audio')) {
+            audioReadme = audioReadme.replace(marker, section + marker);
+          }
+          fs.writeFileSync(audioReadmePath, audioReadme);
+          NODE
+
+          rm .github/workflows/prepare-ql-production-live.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md media/audio/README.md media/audio/manifest-v1.json .github/workflows/prepare-ql-production-live.yml
+          git commit -m 'Media: promote QL production audio live'
+          git push origin HEAD:release/ql-production-live
