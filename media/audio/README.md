@@ -21,6 +21,12 @@ Their status, provenance, duration, format and SHA-256 values are recorded in [`
 
 The website uses these exact case-sensitive paths. ML01 through ML04 allow one successful playback per attempt and keep the transcript hidden until submission.
 
+## Production-live Question Type Lab audio
+
+All 12 QL01–QL06 Set B/C recordings are present at `question-type-labs/` and were verified against the public GitHub Pages deployment on 2026-08-26 using exact file-size and SHA-256 checks. Their runtime paths, durations, provenance and checksums are recorded in [`manifest-v1.json`](manifest-v1.json).
+
+The Lab runtime prefers these production MP3 files and uses the labelled browser voice only if production playback is unavailable.
+
 ## Remaining production paths
 
 Core / Placement files still to be produced and approved:

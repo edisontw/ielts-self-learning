@@ -34,11 +34,11 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
 - 12 Question Type Labs: Reading 6 + Listening 6;
   - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;
   - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;
-  - new Listening B/C scripts use the shared labelled browser-voice practice fallback until production MP3 replaces them;
-- four timed Mini Tests:
-  - MR01 / MR02 Reading — 12 questions / 12 minutes
-  - ML01 / ML02 Listening — 10 questions / 9 minutes;
-- production MP3 audio live for ML01 and ML02;
+  - all 12 Listening Set B/C production MP3 assets are live; browser voice remains only as a labelled playback fallback.
+- eight timed Mini Tests:
+  - MR01–MR04 Reading — 12 questions / 12 minutes each
+  - ML01–ML04 Listening — 10 questions / 9 minutes each;
+- production MP3 audio live for ML01–ML04;
 - Full Mock Test Center with 40 Listening + 40 Academic Reading + 2 Writing tasks + 3 Speaking parts;
 - prerequisite-safe Adaptive Today recommendations;
 - configurable Study Plan using Placement, observed performance, due review, productive retry evidence and available time;
@@ -103,7 +103,7 @@ Test Mode rule:
 
 `TIMED → ONE SUBMISSION → NO HINTS → SUBMIT → ITEM REVIEW → ERROR NOTEBOOK → REPAIR`
 
-ML01 and ML02 use one successful playback per attempt. The transcript remains hidden until submission. Production MP3 is preferred; browser speech is only a labelled fallback if the MP3 cannot be played.
+ML01–ML04 use one successful playback per attempt. The transcript remains hidden until submission. Production MP3 is preferred; browser speech is only a labelled fallback if the MP3 cannot be played.
 
 ## Adaptive Today
 
@@ -152,11 +152,11 @@ Runtime policy:
 
 Current production-live assets:
 
-- `media/audio/mini-tests/ml01-research-skills-workshops.mp3`
-- `media/audio/mini-tests/ml02-community-photography-walk.mp3`
+- Mini Tests: ML01–ML04
+- Question Type Labs: all 12 QL01–QL06 Set B/C recordings
 - Full Mock Listening production media
 
-The 12 new QL01–QL06 Set B/C scripts are content-ready and wired to the shared practice fallback; they remain candidates for the next production-audio batch.
+Core lesson / Placement recordings remain the next production-audio gap; browser speech is retained only as a labelled fallback where a production file does not yet exist.
 
 ## Local data and privacy
 
@@ -202,11 +202,8 @@ Implementation hierarchy:
 
 ## Next implementation priorities
 
-1. produce and QA production MP3 for the 12 new QL01–QL06 Set B/C scripts, then continue Quick Placement and L01–L05 audio coverage;
-2. build a complete Academic Writing Task 1 path plus roughly 12 reusable Task 1 prompts;
-3. add a Speaking Practice Bank with Part 1, Part 2 cue cards and linked Part 3 follow-up questions;
-4. expand timed practice with MR03 / MR04 and ML03 / ML04 after the Lab retry bank is stable;
-5. expand Vocabulary / Grammar Repair from real recurring Error Notebook tags rather than adding generic grammar lessons blindly;
-6. perform direct deployed desktop and mobile QA for Placement → Study Plan → lesson → Lab A/B/C → Mini Test → Repair → retry → Full Mock → backup / restore;
-7. reduce progressive DOM-patching technical debt by consolidating mature UI enhancements into the base renderer;
-8. evaluate account sync or PWA only after the content, media and learner-data model is stable.
+1. produce and QA Quick Placement plus L01–L05 production Listening audio;
+2. expand Vocabulary / Grammar Repair from real recurring Error Notebook tags rather than adding generic grammar lessons blindly;
+3. perform direct deployed desktop and mobile QA for Placement → Study Plan → lesson → Lab A/B/C → Mini Test → Repair → retry → Full Mock → backup / restore;
+4. reduce progressive DOM-patching technical debt by consolidating mature UI enhancements into the base renderer;
+5. evaluate account sync or PWA only after the content, media and learner-data model is stable.
