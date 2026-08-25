@@ -13,9 +13,16 @@ The following files are present in the repository and have owner-confirmed deplo
 - `mini-tests/ml01-research-skills-workshops.mp3`
 - `mini-tests/ml02-community-photography-walk.mp3`
 
+## Production-ready Mini Test audio
+
+The following QA-approved files are present in the repository and wired to the Mini Test runtime, but remain `production-ready` until deployed public playback is verified:
+
+- `mini-tests/ml03-community-food-photography-workshop.mp3`
+- `mini-tests/ml04-river-monitoring-field-briefing.mp3`
+
 Their status, provenance, duration, format and SHA-256 values are recorded in [`manifest-v1.json`](manifest-v1.json).
 
-The website uses these exact case-sensitive paths. ML01 and ML02 allow one successful playback per attempt and keep the transcript hidden until submission.
+The website uses these exact case-sensitive paths. ML01 through ML04 allow one successful playback per attempt and keep the transcript hidden until submission.
 
 ## Remaining production paths
 
@@ -30,12 +37,13 @@ Core / Placement files still to be produced and approved:
 
 Until one of these files exists, the corresponding activity may use browser speech synthesis as a clearly labelled fallback.
 
-## ML01 / ML02 preparation references
+## Mini Test preparation references
 
-- `mini-tests/production-audio-spec-v1.json` — speaker turns, pause targets, pace/duration ranges and question-dependent correction/distractor timing.
-- `../../docs/mini-test-production-audio-pack-v1.md` — generation prompts, voice direction, post-production QA and provenance requirements.
+- `mini-tests/production-audio-spec-v1.json` — ML01 / ML02 speaker turns, pause targets, pace/duration ranges and question-dependent correction/distractor timing.
+- `mini-tests/ML03-ML04-PRODUCTION-PLAN.md` — ML03 / ML04 canonical generation blocks, speaker direction, duration targets and answer-bearing QA.
+- `../../docs/mini-test-production-audio-pack-v1.md` — generation prompts, voice direction, post-production QA and provenance requirements for the earlier production pack.
 
-`tests/validate-mini-test-audio-prep.mjs` reconstructs both transcripts from the production segments and compares them with the current Mini Test scripts. `tests/validate-audio-manifest.mjs` verifies that both production MP3 files exist at the runtime paths and remain consistent with the manifest.
+`tests/validate-mini-test-audio-prep.mjs` reconstructs the ML01 / ML02 transcripts from the production segments and compares them with the current Mini Test scripts. `tests/validate-listening-media.mjs` enforces the ML01–ML04 runtime map. `tests/validate-audio-manifest.mjs` verifies that QA-approved production MP3 files exist at their runtime paths and match the manifest checksum, size and duration contracts.
 
 ## Production requirements
 
