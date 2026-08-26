@@ -24,7 +24,7 @@ for _ in {1..20}; do
   sleep 0.25
 done
 
-for asset in index.html app.js data.js boot-guard-v1.js styles.css repair-extension-v14.js question-type-lab-depth-v1.js question-type-lab-depth-runtime-v1.js writing-task1-v1.js writing-task1-portability-v1.js writing-task1-runtime-v1.js writing-task1-v1.css speaking-practice-bank-v1.js speaking-practice-bank-runtime-v1.js speaking-practice-bank-bootstrap-v1.js speaking-practice-bank-v1.css mini-test-data-v3.js mock-test-runtime-v1.js mock-test-audio-upgrade-v1.js mock-integration-fix-v1.js data-portability-v1.js diagnostics-v1.js content/placement/quick-placement-v1.json; do
+for asset in index.html app.js data.js boot-guard-v1.js styles.css repair-extension-v14.js repair-registry-v15.js render-lifecycle-v15.js repair-route-v15.js learn-repair-index-v15.js question-type-lab-depth-v1.js question-type-lab-depth-runtime-v1.js writing-task1-v1.js writing-task1-portability-v1.js writing-task1-runtime-v1.js writing-task1-v1.css speaking-practice-bank-v1.js speaking-practice-bank-runtime-v1.js speaking-practice-bank-bootstrap-v1.js speaking-practice-bank-v1.css mini-test-data-v3.js mock-test-runtime-v1.js mock-test-audio-upgrade-v1.js mock-integration-fix-v1.js data-portability-v1.js diagnostics-v1.js content/placement/quick-placement-v1.json; do
   curl -fsS "$BASE/$asset" >/dev/null || { echo "Missing asset: $asset" >&2; exit 1; }
 done
 
@@ -111,4 +111,4 @@ smoke_route '#/lesson/WT1-05' 'Renewable electricity in four countries' wt1-work
 smoke_route '#/lesson/SPB01' 'Random Part 1 question' spb-workspace
 smoke_route '#/ielts' 'Full Mock' ielts-mobile '390,844'
 
-echo "Browser smoke passed across core desktop routes, V1.4 Repair extensions, V1.3 Lab depth routes, eight Mini Tests, Academic Writing Task 1, Speaking Practice Bank and mobile IELTS navigation."
+echo "Browser smoke passed across core desktop routes, V1.5 Repair lifecycle, V1.3 Lab depth routes, eight Mini Tests, Academic Writing Task 1, Speaking Practice Bank and mobile IELTS navigation."
