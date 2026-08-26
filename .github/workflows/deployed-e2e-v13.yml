@@ -35,6 +35,10 @@ jobs:
             (
               "  await clickDatasetValue(page.locator(`[data-quiz=\"${rq.id}\"] [data-quiz-option]`),'data-value',rq.answer);",
               "  await page.locator(`[data-quiz=\"${rq.id}\"] button.option`).filter({hasText:rq.answer}).first().click();"
+            ),
+            (
+              "  const fb=fallbackPage.locator('[data-listening-fallback-controls]');",
+              "  const fb=fallbackPage.locator('[data-listening-fallback-controls]').first();"
             )
           ]
           for old, new in replacements:
