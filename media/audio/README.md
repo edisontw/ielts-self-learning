@@ -27,9 +27,9 @@ All 12 QL01–QL06 Set B/C recordings are present at `question-type-labs/` and w
 
 The Lab runtime prefers these production MP3 files and uses the labelled browser voice only if production playback is unavailable.
 
-## Remaining production paths
+## Production-ready Placement and Core Lesson audio
 
-Core / Placement files still to be produced and approved:
+The following QA-approved files are present at their existing runtime paths:
 
 - `placement-listening.mp3`
 - `l01-listen-for-meaning.mp3`
@@ -38,7 +38,9 @@ Core / Placement files still to be produced and approved:
 - `l04-distractors.mp3`
 - `l05-predict.mp3`
 
-Until one of these files exists, the corresponding activity may use browser speech synthesis as a clearly labelled fallback.
+All six are standardized to mono 44.1 kHz / 192 kbps MP3, aligned with the canonical repository scripts and registered in [`manifest-v1.json`](manifest-v1.json) with exact sizes and SHA-256 checksums.
+
+They remain `production-ready` until the merged GitHub Pages deployment is downloaded and verified byte-for-byte. The labelled browser-voice fallback remains available only if production playback fails.
 
 ## Mini Test preparation references
 
@@ -46,7 +48,7 @@ Until one of these files exists, the corresponding activity may use browser spee
 - `mini-tests/ML03-ML04-PRODUCTION-PLAN.md` — ML03 / ML04 canonical generation blocks, speaker direction, duration targets and answer-bearing QA.
 - `../../docs/mini-test-production-audio-pack-v1.md` — generation prompts, voice direction, post-production QA and provenance requirements for the earlier production pack.
 
-`tests/validate-mini-test-audio-prep.mjs` reconstructs the ML01 / ML02 transcripts from the production segments and compares them with the current Mini Test scripts. `tests/validate-listening-media.mjs` enforces the ML01–ML04 runtime map. `tests/validate-audio-manifest.mjs` verifies that QA-approved production MP3 files exist at their runtime paths and match the manifest checksum, size and duration contracts.
+`tests/validate-mini-test-audio-prep.mjs` reconstructs the ML01 / ML02 transcripts from the production segments and compares them with the current Mini Test scripts. `tests/validate-listening-media.mjs` enforces production-first playback and the fallback scripts. `tests/validate-audio-manifest.mjs` verifies all 22 QA-approved production MP3 files at their runtime paths and checks manifest checksum, size, duration, format, status and provenance contracts.
 
 ## Production requirements
 
