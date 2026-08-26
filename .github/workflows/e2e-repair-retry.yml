@@ -1,0 +1,37 @@
+name: Apply E2E repair retry patch
+
+on:
+  push:
+    branches: [qa/e2e-repair-retry]
+    paths: ['.github/workflows/e2e-repair-retry.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: qa/e2e-repair-retry
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply audited patch
+        run: |
+          cat .github/e2e-patch/part-* | base64 -d > /tmp/e2e.patch
+          git apply --check /tmp/e2e.patch
+          git apply /tmp/e2e.patch
+      - name: Validate full suite
+        run: npm test
+      - name: Browser smoke
+        run: bash tests/browser-smoke.sh
+      - name: Commit clean feature branch
+        run: |
+          rm -rf .github/e2e-patch .github/workflows/e2e-repair-retry.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Fix Practice and Repair retry loop'
+          git push origin HEAD:qa/e2e-repair-retry
