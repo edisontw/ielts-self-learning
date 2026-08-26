@@ -39,6 +39,14 @@ jobs:
             (
               "  const fb=fallbackPage.locator('[data-listening-fallback-controls]');",
               "  const fb=fallbackPage.locator('[data-listening-fallback-controls]').first();"
+            ),
+            (
+              "  await goto(page,'ielts');\n  const mrStart=page.locator('[data-mini-action=\"start\"][data-test-id=\"MR01\"]');",
+              "  await goto(page,'ielts');\n  await page.locator('[data-ielts-stage=\"mini\"]').click();\n  await page.waitForTimeout(150);\n  const mrStart=page.locator('[data-mini-action=\"start\"][data-test-id=\"MR01\"]');"
+            ),
+            (
+              "  await goto(page,'ielts');\n  await page.locator('[data-mock-start=\"full\"]').waitFor({timeout:15000});",
+              "  await goto(page,'ielts');\n  await page.locator('[data-ielts-stage=\"mock\"]').click();\n  await page.waitForTimeout(150);\n  await page.locator('[data-mock-start=\"full\"]').waitFor({timeout:15000});"
             )
           ]
           for old, new in replacements:
