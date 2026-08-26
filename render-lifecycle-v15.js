@@ -20,6 +20,9 @@ export function registerRenderEnhancement(callback) {
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  // DOMContentLoaded waits for module scripts (including top-level await), so
+  // this is the deterministic initial pass after the base app has rendered.
+  document.addEventListener('DOMContentLoaded', scheduleEnhancementPass, { once:true });
   window.addEventListener('hashchange', scheduleEnhancementPass);
   window.addEventListener('ielts-adaptive-state-change', scheduleEnhancementPass);
   document.addEventListener('click', scheduleEnhancementPass);
