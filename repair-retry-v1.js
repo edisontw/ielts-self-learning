@@ -52,3 +52,10 @@ export function resetRepairAnswer(progress, index) {
   }
   return progress;
 }
+
+// learning-runtime-v3 uses these helpers as global runtime bindings. Keep the
+// bindings explicit until that runtime is consolidated into a direct import.
+if (typeof globalThis !== 'undefined') {
+  globalThis.repairReadyToComplete = repairReadyToComplete;
+  globalThis.resetRepairAnswer = resetRepairAnswer;
+}
