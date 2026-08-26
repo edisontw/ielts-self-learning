@@ -26,5 +26,6 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   window.addEventListener('hashchange', scheduleEnhancementPass);
   window.addEventListener('ielts-adaptive-state-change', scheduleEnhancementPass);
   document.addEventListener('click', scheduleEnhancementPass);
-  document.addEventListener('input', scheduleEnhancementPass);
+  // Do not schedule on every input event. Repair notes are persisted by the
+  // interaction runtime and must keep the active textarea/focus stable while typing.
 }
