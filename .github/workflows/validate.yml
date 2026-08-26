@@ -2,7 +2,7 @@ name: Validate prototype
 
 on:
   push:
-    branches: [main]
+    branches: [main, refactor/v15-render-lifecycle]
   pull_request:
 
 permissions:
