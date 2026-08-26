@@ -31,6 +31,9 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
   - Speaking 5
   - Vocabulary / Grammar Repair 3
   - IELTS Strategy 3
+- V1.4 error-driven Repair extensions outside the core 30-unit denominator:
+  - `VG04` Paraphrase: Same Meaning, Different Form
+  - `VG05` Use Grammar to Predict the Answer Type
 - 12 Question Type Labs: Reading 6 + Listening 6;
   - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;
   - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;
@@ -198,12 +201,13 @@ Implementation hierarchy:
 1. V1.0 — product principles
 2. V1.1 — UX / architecture / curriculum specification
 3. V1.2 — prototype content pack
-4. V1.3 — content depth expansion and current implementation
-5. regression tests
+4. V1.3 — content depth expansion and production E2E baseline
+5. V1.4 — error-driven Vocabulary / Grammar Repair extensions
+6. V1.5 — progressive DOM-patching consolidation
+7. regression tests
 
 ## Next implementation priorities
 
-1. expand Vocabulary / Grammar Repair from real recurring Error Notebook tags rather than adding generic grammar lessons blindly;
-2. perform direct deployed desktop and mobile QA for Placement → Study Plan → lesson → Lab A/B/C → Mini Test → Repair → retry → Full Mock → backup / restore;
-3. reduce progressive DOM-patching technical debt by consolidating mature UI enhancements into the base renderer;
-4. evaluate account sync or PWA only after the content, media and learner-data model is stable.
+1. complete V1.5 by replacing the remaining document-wide observer / one-second polling in `adaptive.js` and `learning-runtime-v3.js` with explicit render lifecycle hooks;
+2. run deployed regression QA after the consolidation, preserving learner state, lesson URLs, backup schema, Repair mastery gates and the core 30-unit denominator;
+3. evaluate account sync or PWA only after the content, media, learner-data model and consolidated runtime remain stable in production.
