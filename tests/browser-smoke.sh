@@ -95,6 +95,7 @@ smoke_route() {
 
 smoke_route '#/today' "Today's study" today
 smoke_route '#/learn' 'Learn by skill' learn
+smoke_route '#/learn' 'Paraphrase: Same Meaning, Different Form' learn-repair
 smoke_route '#/ielts' 'IELTS practice' ielts
 smoke_route '#/ielts' '5 lessons + 12 full practice prompts' wt1-ielts
 smoke_route '#/ielts' 'Speaking Practice Bank' spb-ielts
@@ -103,6 +104,8 @@ smoke_route '#/improve' 'Errors are learning data.' improve
 smoke_route '#/progress' 'Your profile should guide the next step' progress
 smoke_route '#/placement' 'Quick Placement' placement
 smoke_route '#/lesson/LB01' 'Practice Is Not the Same as Testing' lesson
+smoke_route '#/lesson/VG01' 'Learn Collocations, Not Isolated Words' vg01
+smoke_route '#/lesson/VG03' 'Complex Sentences Without Losing Control' vg03
 smoke_route '#/lesson/VG04' 'Paraphrase: Same Meaning, Different Form' vg04
 smoke_route '#/lesson/VG05' 'Use Grammar to Predict the Answer Type' vg05
 smoke_route '#/lesson/QR01' 'Set B — Independent' qr01-depth
@@ -111,4 +114,4 @@ smoke_route '#/lesson/WT1-05' 'Renewable electricity in four countries' wt1-work
 smoke_route '#/lesson/SPB01' 'Random Part 1 question' spb-workspace
 smoke_route '#/ielts' 'Full Mock' ielts-mobile '390,844'
 
-echo "Browser smoke passed across core desktop routes, V1.5 Repair lifecycle, V1.3 Lab depth routes, eight Mini Tests, Academic Writing Task 1, Speaking Practice Bank and mobile IELTS navigation."
+echo "Browser smoke passed across core desktop routes, unified VG01–VG05 Repair routes, Learn Repair index, V1.3 Lab depth routes, eight Mini Tests, Academic Writing Task 1, Speaking Practice Bank and mobile IELTS navigation."
