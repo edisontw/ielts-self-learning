@@ -27,6 +27,7 @@ assert(runtime.includes("localStorage.getItem(ADAPTIVE_KEY) !== next"), 'Runtime
 assert(repairIndex.includes('data-lesson="${lesson.id}"'), 'Learn Repair cards must use the standard data-lesson route contract.');
 assert(repairIndex.includes('registerRenderEnhancement'), 'Learn Repair index must use the shared V1.5 lifecycle.');
 assert(!repairIndex.includes('setInterval') && !repairIndex.includes('MutationObserver'), 'Learn Repair index must not poll or observe the whole DOM.');
+assert(lifecycle.includes("document.addEventListener('DOMContentLoaded'"), 'V1.5 lifecycle must run once after all startup module rendering completes.');
 assert(lifecycle.includes("window.addEventListener('hashchange'"), 'V1.5 lifecycle must react to route renders.');
 assert(lifecycle.includes("document.addEventListener('click'"), 'V1.5 lifecycle must react after app click renders.');
 assert(!lifecycle.includes('setInterval') && !lifecycle.includes('MutationObserver'), 'V1.5 lifecycle itself must remain event-driven.');
@@ -35,6 +36,7 @@ assert(css.includes('env(safe-area-inset-bottom)'), 'Mobile bottom navigation sh
 
 console.log('✓ Stable throttled learning runtime v3 is mounted');
 console.log('✓ Learn Repair index moved from polling to the shared V1.5 render lifecycle');
+console.log('✓ Initial enhancement pass waits for startup module rendering to settle');
 console.log(`✓ Vocabulary Review: ${VOCABULARY_ITEMS.length} lesson-based items`);
 console.log('✓ Skill performance feeds adaptive profile without redundant storage writes');
 console.log('✓ Mobile QA guardrails present');
