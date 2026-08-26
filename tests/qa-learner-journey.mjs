@@ -7,6 +7,7 @@ const root=path.resolve(here,'..');
 const CORE_KEY='ielts-self-learning-v1';
 const ADAPTIVE_KEY='ielts-adaptive-v1';
 const PLAN_KEY='ielts-study-plan-v1';
+const MOCK_KEY='ielts-mock-v1';
 const store=new Map();
 
 class MemoryStorage {
@@ -67,6 +68,7 @@ const { adaptiveCandidates, prerequisitesMet, recentSkillCounts, skillLabel }=aw
 const { generatePlan }=await import(`../study-plan-v1.js?journey=${Date.now()}`);
 const { collectBackup, validateBackup, applyBackup, APP_VERSION }=await import('../data-portability-v1.js');
 const { runDiagnostics }=await import('../diagnostics-v1.js');
+const { resetLessonErrorForRetry, resolveSavedErrorsForCorrectAnswer, repairReadyToComplete }=await import('../repair-retry-v1.js');
 
 const placementCore={
   profile:{targetBand:7,placementSections:{reading:2,listening:5,vocabulary:5,grammar:4},recommendedDifficulty:3},
@@ -108,11 +110,27 @@ const plannedContentIds=plan.weeks.flatMap(w=>w.sessions).filter(t=>t.kind==='le
 const prerequisiteContext={...evidenceCore,completedLessons:[...new Set([...evidenceCore.completedLessons,...plannedContentIds])]};
 assert(plan.weeks.flatMap(w=>w.sessions).every(s=>s.kind!=='lab'||prerequisitesMet(prerequisiteContext,evidenceAdaptive,s.sourceId,LESSONS)),'Planned Labs must correspond to prerequisite work represented in the planned/core path.');
 
-// 5. Productive + AI feedback state survives local backup / restore.
+// 5. Saved lesson error → retry → correction, while Repair completion requires guided-practice evidence.
+const lb01=LESSONS.find(x=>x.id==='LB01');
+const lbQuiz=lb01.sections.flatMap(section=>section.blocks||[]).find(x=>x?.type==='quiz');
+const retryError={id:'err-retry-1',questionId:lbQuiz.id,lessonId:lb01.id,skill:lb01.skill};
+evidenceCore.errors=[...(evidenceCore.errors||[]),retryError];
+evidenceCore.lessonAnswers[lbQuiz.id]={selected:'wrong',checked:true};
+assert(resetLessonErrorForRetry(evidenceCore,retryError,LESSONS),'Saved lesson evidence must be unlockable for Practice Mode retry.');
+evidenceCore.lessonAnswers[lbQuiz.id]={selected:lbQuiz.answer,checked:true};
+resolveSavedErrorsForCorrectAnswer(evidenceCore,lbQuiz.id);
+assert(evidenceCore.fixedErrors.includes(retryError.id),'Correct retry must close the matching Error Notebook item.');
+const repair=REPAIR_LESSONS[0];
+const repairProgress={answers:Object.fromEntries(repair.questions.map((q,i)=>[i,{selected:q.answer,checked:true}]))};
+assert(repairReadyToComplete(repair,repairProgress),'Repair completion must require all guided-practice checks to be correct.');
+evidenceAdaptive.repairProgress[repair.id]={...repairProgress,completed:true,completedAt:Date.now()};
+
+// 6. Productive + AI feedback + Full Mock state survives local backup / restore.
 evidenceAdaptive.productiveEvidence={writing:[{id:'pe-w1',ts:Date.now(),skill:'writing',lessonId:'W05',attemptKind:'first',criteria:['task','position'],score:.4,wordCount:270}],speaking:[]};
 evidenceAdaptive.aiFeedbackReturns={writing:[{id:'fb-w1',ts:Date.now(),skill:'writing',lessonId:'W05',sourceEvidenceId:'pe-w1',priorities:['Develop body paragraph 2','Check article use'],retryEvidenceId:null}],speaking:[]};
 write(ADAPTIVE_KEY,evidenceAdaptive);
 write(PLAN_KEY,plan);
+write(MOCK_KEY,{history:[{id:'mock-journey-1',ts:Date.now(),testId:'MA01',mode:'Full L/R/W',listening:{raw:30,band:7},reading:{raw:30,band:7}}]});
 localStorage.setItem('ielts-theme','dark');
 const backup=collectBackup(localStorage);
 validateBackup(backup);
@@ -123,14 +141,16 @@ const restoredAdaptive=JSON.parse(restored.getItem(ADAPTIVE_KEY));
 assert(restoredAdaptive.productiveEvidence.writing.length===1,'Writing productive evidence must survive backup/restore.');
 assert(restoredAdaptive.aiFeedbackReturns.writing.length===1,'AI feedback return must survive backup/restore.');
 assert(JSON.parse(restored.getItem(PLAN_KEY)).weeks.length===8,'Study Plan must survive backup/restore.');
+assert(JSON.parse(restored.getItem(MOCK_KEY)).history.length===1,'Full Mock history must survive backup/restore.');
+assert(restoredAdaptive.repairProgress[repair.id].completed===true,'Repair completion evidence must survive backup/restore.');
 
-// 6. Restored journey state remains structurally healthy.
+// 7. Restored journey state remains structurally healthy.
 const diagnostics=runDiagnostics(restored);
 assert(diagnostics.status!=='error',`Restored learner journey should not produce a diagnostic data error: ${diagnostics.errors.join(' | ')}`);
 assert(diagnostics.counts.miniAttempts===1,'Diagnostics must retain the Mini Test attempt after restore.');
 assert(diagnostics.counts.productiveAttempts===1&&diagnostics.counts.feedbackReturns===1,'Diagnostics must retain productive and AI-feedback counts after restore.');
 
-// 7. Release wiring and completion fallback guardrails.
+// 8. Release wiring and completion fallback guardrails.
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const guardSource=fs.readFileSync(path.join(root,'adaptive-today-guardrails-v1.js'),'utf8');
 const oldRuntime=fs.readFileSync(path.join(root,'learning-runtime-v3.js'),'utf8');
@@ -142,6 +162,8 @@ console.log('✓ Placement → Adaptive Today excludes locked lessons and Labs')
 console.log('✓ Reading prerequisites unlock QR03 while later Labs remain locked');
 console.log('✓ IELTS Strategy participates in recent skill-balance accounting');
 console.log('✓ Weak Mini Test evidence rebalances Study Plan toward Reading');
-console.log('✓ Productive evidence + AI feedback + Study Plan survive backup/restore');
+console.log('✓ Saved lesson error supports retry and closes only after a correct checked answer');
+console.log('✓ Repair completion requires correct guided-practice evidence');
+console.log('✓ Productive evidence + AI feedback + Study Plan + Full Mock survive backup/restore');
 console.log('✓ Restored learner state remains healthy in Diagnostics');
 console.log('✓ Full-completion Today fallback cannot crash on an empty candidate pool');
