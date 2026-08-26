@@ -24,7 +24,7 @@ for _ in {1..20}; do
   sleep 0.25
 done
 
-for asset in index.html app.js data.js boot-guard-v1.js styles.css question-type-lab-depth-v1.js question-type-lab-depth-runtime-v1.js writing-task1-v1.js writing-task1-portability-v1.js writing-task1-runtime-v1.js writing-task1-v1.css speaking-practice-bank-v1.js speaking-practice-bank-runtime-v1.js speaking-practice-bank-bootstrap-v1.js speaking-practice-bank-v1.css mini-test-data-v3.js mock-test-runtime-v1.js mock-test-audio-upgrade-v1.js mock-integration-fix-v1.js data-portability-v1.js diagnostics-v1.js content/placement/quick-placement-v1.json; do
+for asset in index.html app.js data.js boot-guard-v1.js styles.css repair-extension-v14.js question-type-lab-depth-v1.js question-type-lab-depth-runtime-v1.js writing-task1-v1.js writing-task1-portability-v1.js writing-task1-runtime-v1.js writing-task1-v1.css speaking-practice-bank-v1.js speaking-practice-bank-runtime-v1.js speaking-practice-bank-bootstrap-v1.js speaking-practice-bank-v1.css mini-test-data-v3.js mock-test-runtime-v1.js mock-test-audio-upgrade-v1.js mock-integration-fix-v1.js data-portability-v1.js diagnostics-v1.js content/placement/quick-placement-v1.json; do
   curl -fsS "$BASE/$asset" >/dev/null || { echo "Missing asset: $asset" >&2; exit 1; }
 done
 
@@ -35,26 +35,42 @@ smoke_route() {
   local size="${4:-1280,800}"
   local dom="/tmp/ielts-dom-${slug}.html"
   local log="/tmp/ielts-chrome-${slug}.log"
+  local rendered=0
 
-  set +e
-  timeout 20s "$CHROME" \
-    --headless=new \
-    --no-sandbox \
-    --disable-gpu \
-    --disable-dev-shm-usage \
-    --disable-background-networking \
-    --disable-component-update \
-    --window-size="$size" \
-    --virtual-time-budget=5000 \
-    --dump-dom "$BASE/$route" >"$dom" 2>"$log"
-  local status=$?
-  set -e
+  for attempt in 1 2; do
+    local profile="/tmp/ielts-chrome-profile-${slug}-${attempt}"
+    rm -rf "$profile" "$dom" "$log"
+    set +e
+    timeout 30s "$CHROME" \
+      --headless=new \
+      --no-sandbox \
+      --disable-gpu \
+      --disable-dev-shm-usage \
+      --disable-background-networking \
+      --disable-component-update \
+      --disable-crash-reporter \
+      --user-data-dir="$profile" \
+      --window-size="$size" \
+      --virtual-time-budget=5000 \
+      --dump-dom "$BASE/$route" >"$dom" 2>"$log"
+    local status=$?
+    set -e
 
-  if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
-    echo "Chrome exited with status $status on $route" >&2
-  fi
-  if ! grep -q 'class="app-shell"' "$dom"; then
-    echo "Browser smoke failed: app-shell was not rendered for $route." >&2
+    if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
+      echo "Chrome exited with status $status on $route (attempt $attempt)" >&2
+    fi
+    if grep -q 'class="app-shell"' "$dom" 2>/dev/null; then
+      rendered=1
+      break
+    fi
+    if [[ "$attempt" -eq 1 ]]; then
+      echo "Browser smoke startup retry: app-shell missing for $route on first attempt." >&2
+      sleep 0.5
+    fi
+  done
+
+  if [[ "$rendered" -ne 1 ]]; then
+    echo "Browser smoke failed: app-shell was not rendered for $route after two attempts." >&2
     cat "$log" >&2 || true
     exit 1
   fi
@@ -66,6 +82,11 @@ smoke_route() {
   fi
   if grep -Fq 'The page could not start normally.' "$dom"; then
     echo "Browser smoke failed: boot recovery screen appeared for $route." >&2
+    cat "$dom" >&2 || true
+    exit 1
+  fi
+  if grep -Fq 'Lesson not found' "$dom"; then
+    echo "Browser smoke failed: lesson fallback appeared for $route." >&2
     cat "$dom" >&2 || true
     exit 1
   fi
@@ -82,10 +103,12 @@ smoke_route '#/improve' 'Errors are learning data.' improve
 smoke_route '#/progress' 'Your profile should guide the next step' progress
 smoke_route '#/placement' 'Quick Placement' placement
 smoke_route '#/lesson/LB01' 'Practice Is Not the Same as Testing' lesson
+smoke_route '#/lesson/VG04' 'Paraphrase: Same Meaning, Different Form' vg04
+smoke_route '#/lesson/VG05' 'Use Grammar to Predict the Answer Type' vg05
 smoke_route '#/lesson/QR01' 'Set B — Independent' qr01-depth
 smoke_route '#/lesson/QL01' 'Play practice audio' ql01-depth
 smoke_route '#/lesson/WT1-05' 'Renewable electricity in four countries' wt1-workspace
 smoke_route '#/lesson/SPB01' 'Random Part 1 question' spb-workspace
 smoke_route '#/ielts' 'Full Mock' ielts-mobile '390,844'
 
-echo "Browser smoke passed across core desktop routes, V1.3 Lab depth routes, eight Mini Tests, Academic Writing Task 1, Speaking Practice Bank and mobile IELTS navigation."
+echo "Browser smoke passed across core desktop routes, V1.4 Repair extensions, V1.3 Lab depth routes, eight Mini Tests, Academic Writing Task 1, Speaking Practice Bank and mobile IELTS navigation."
