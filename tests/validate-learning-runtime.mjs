@@ -30,6 +30,7 @@ assert(!repairIndex.includes('setInterval') && !repairIndex.includes('MutationOb
 assert(lifecycle.includes("document.addEventListener('DOMContentLoaded'"), 'V1.5 lifecycle must run once after all startup module rendering completes.');
 assert(lifecycle.includes("window.addEventListener('hashchange'"), 'V1.5 lifecycle must react to route renders.');
 assert(lifecycle.includes("document.addEventListener('click'"), 'V1.5 lifecycle must react after app click renders.');
+assert(!lifecycle.includes("document.addEventListener('input', scheduleEnhancementPass"), 'Repair note typing must not trigger a whole enhancement rerender and replace the active textarea.');
 assert(!lifecycle.includes('setInterval') && !lifecycle.includes('MutationObserver'), 'V1.5 lifecycle itself must remain event-driven.');
 assert(css.includes('min-height:44px'), 'Mobile QA CSS must preserve 44px primary tap targets.');
 assert(css.includes('env(safe-area-inset-bottom)'), 'Mobile bottom navigation should respect safe-area inset.');
@@ -37,6 +38,7 @@ assert(css.includes('env(safe-area-inset-bottom)'), 'Mobile bottom navigation sh
 console.log('✓ Stable throttled learning runtime v3 is mounted');
 console.log('✓ Learn Repair index moved from polling to the shared V1.5 render lifecycle');
 console.log('✓ Initial enhancement pass waits for startup module rendering to settle');
+console.log('✓ Repair note typing stays render-stable and preserves the active textarea');
 console.log(`✓ Vocabulary Review: ${VOCABULARY_ITEMS.length} lesson-based items`);
 console.log('✓ Skill performance feeds adaptive profile without redundant storage writes');
 console.log('✓ Mobile QA guardrails present');
