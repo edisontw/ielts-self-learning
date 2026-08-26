@@ -1,4 +1,5 @@
 import { NAV, SKILL_META, LESSONS, IELTS_GUIDES, PROMPT_TEMPLATES, FIRST_PATH } from './data.js';
+import { retriableLessonError, resetLessonErrorForRetry, resolveSavedErrorsForCorrectAnswer } from './repair-retry-v1.js';
 
 const STORAGE_KEY = 'ielts-self-learning-v1';
 const THEME_KEY = 'ielts-theme';
@@ -207,7 +208,7 @@ function renderImprove() {
   return `<section class="page-head"><div><div class="eyebrow">Improve</div><h1>Errors are learning data.</h1><p class="lede">A wrong answer should create a repair decision, not only a red mark.</p></div><div><button class="btn soft" data-action="open-error-prompt">Error Analysis Prompt</button></div></section>
     <div class="grid three" style="margin-bottom:18px"><div class="card stat"><div class="stat-value">${state.errors.length}</div><div class="stat-label">errors saved</div></div><div class="card stat"><div class="stat-value">${state.fixedErrors.length}</div><div class="stat-label">errors corrected</div></div><div class="card stat"><div class="stat-value">${Math.max(0,state.errors.length-state.fixedErrors.length)}</div><div class="stat-label">still to review</div></div></div>
     <section class="card"><div class="cluster" style="justify-content:space-between"><div><div class="eyebrow">Error Notebook</div><h2 style="margin-top:6px">Review the cause, then retry.</h2></div>${state.errors.length?'<button class="btn ghost small-btn" data-action="clear-errors">Clear notebook</button>':''}</div>
-      ${errors.length ? errors.map(e => `<article class="error-item"><div class="cluster"><span class="chip">${formatSkill(e.skill)}</span><span class="chip warning">${esc(e.errorTag || 'error')}</span><span class="small muted">${new Date(e.ts).toLocaleDateString()}</span></div><strong>${esc(e.question)}</strong><div class="error-answer"><div><span class="small muted">Your answer</span><br>${esc(e.myAnswer)}</div><div><span class="small muted">Correct answer</span><br>${esc(e.correctAnswer)}</div></div><p class="muted">${esc(e.rationale || '')}</p><div class="cluster"><button class="btn soft small-btn" data-action="mark-fixed" data-error-id="${e.id}" ${state.fixedErrors.includes(e.id)?'disabled':''}>${state.fixedErrors.includes(e.id)?'Corrected':'Mark corrected after retry'}</button><button class="btn ghost small-btn" data-error-prompt="${e.id}">Build repair prompt</button></div></article>`).join('') : '<div class="empty-state"><strong>No saved errors yet.</strong><p>When you miss a lesson question, the site can save the item, your answer, the correct answer and the error tag here.</p></div>'}
+      ${errors.length ? errors.map(e => { const fixed=state.fixedErrors.includes(e.id); const retriable=retriableLessonError(e,LESSONS); return `<article class="error-item"><div class="cluster"><span class="chip">${formatSkill(e.skill)}</span><span class="chip warning">${esc(e.errorTag || 'error')}</span><span class="small muted">${new Date(e.ts).toLocaleDateString()}</span></div><strong>${esc(e.question)}</strong><div class="error-answer"><div><span class="small muted">Your answer</span><br>${esc(e.myAnswer)}</div><div><span class="small muted">Correct answer</span><br>${esc(e.correctAnswer)}</div></div><p class="muted">${esc(e.rationale || '')}</p><div class="cluster">${retriable&&!fixed?`<button class="btn primary small-btn" data-action="retry-error" data-error-id="${e.id}">Retry question</button>`:''}<button class="btn soft small-btn" data-action="mark-fixed" data-error-id="${e.id}" ${fixed||retriable?'disabled':''}>${fixed?'Corrected':retriable?'Retry required':'Mark corrected after retry'}</button><button class="btn ghost small-btn" data-error-prompt="${e.id}">Build repair prompt</button></div>${retriable&&!fixed?'<p class="small muted" style="margin-top:8px">A saved lesson error is corrected automatically only after a successful retry.</p>':''}</article>`; }).join('') : '<div class="empty-state"><strong>No saved errors yet.</strong><p>When you miss a lesson question, the site can save the item, your answer, the correct answer and the error tag here.</p></div>'}
     </section>`;
 }
 
@@ -264,7 +265,7 @@ function renderQuizBlock(q, lesson) {
   return `<div class="quiz-card" data-quiz="${q.id}"><div class="q-title">${esc(q.prompt)}</div><div class="options">${q.options.map((o,i)=>{
     const cls = checked ? (o===q.answer?'correct':(o===selected?'wrong':'')) : (o===selected?'selected':'');
     return `<button class="option ${cls}" data-quiz-option="${q.id}" data-value="${esc(o)}" ${checked?'disabled':''}><span class="option-letter">${String.fromCharCode(65+i)}</span><span>${esc(o)}</span></button>`;
-  }).join('')}</div><div class="cluster" style="margin-top:12px"><button class="btn small-btn ${checked?'soft':'primary'}" data-check-quiz="${q.id}" ${!selected||checked?'disabled':''}>${checked?'Checked':'Check'}</button>${checked&&!correct?`<button class="btn ghost small-btn" data-save-error="${q.id}">${state.errors.some(e=>e.questionId===q.id)?'Saved to Error Notebook':'Save error'}</button>`:''}</div>${checked?`<div class="feedback ${correct?'correct':'wrong'}"><strong>${correct?'Correct':'Not yet'}</strong><br>${esc(q.rationale)}</div>`:''}</div>`;
+  }).join('')}</div><div class="cluster" style="margin-top:12px"><button class="btn small-btn ${checked?'soft':'primary'}" data-check-quiz="${q.id}" ${!selected||checked?'disabled':''}>${checked?'Checked':'Check'}</button>${checked&&!correct?`<button class="btn primary small-btn" data-retry-quiz="${q.id}">Retry</button><button class="btn ghost small-btn" data-save-error="${q.id}">${state.errors.some(e=>e.questionId===q.id)?'Saved to Error Notebook':'Save error'}</button>`:''}</div>${checked?`<div class="feedback ${correct?'correct':'wrong'}"><strong>${correct?'Correct':'Not yet'}</strong><br>${esc(q.rationale)}</div>`:''}</div>`;
 }
 
 function renderPlacement() {
@@ -410,7 +411,17 @@ function handleClick(e) {
   const qopt = e.target.closest('[data-quiz-option]');
   if (qopt) { const id=qopt.dataset.quizOption; state.lessonAnswers[id] = { selected:qopt.dataset.value, checked:false }; saveState(); return render(); }
   const qcheck = e.target.closest('[data-check-quiz]');
-  if (qcheck) { const id=qcheck.dataset.checkQuiz; state.lessonAnswers[id].checked=true; saveState(); return render(); }
+  if (qcheck) {
+    const id=qcheck.dataset.checkQuiz;
+    const q=findLessonQuiz(id);
+    const answer=state.lessonAnswers[id];
+    answer.checked=true;
+    if (q && answer.selected===q.answer) resolveSavedErrorsForCorrectAnswer(state,id);
+    saveState();
+    return render();
+  }
+  const retryQuiz=e.target.closest('[data-retry-quiz]');
+  if (retryQuiz) { delete state.lessonAnswers[retryQuiz.dataset.retryQuiz]; saveState(); showToast('Retry unlocked'); return render(); }
   const saveErr = e.target.closest('[data-save-error]'); if (saveErr) return saveErrorFromQuiz(saveErr.dataset.saveError);
 
   const popt = e.target.closest('[data-placement-option]');
@@ -446,6 +457,11 @@ function handleAction(action, el) {
   }
   if (action==='show-last-placement') { const r=state.placement; if(r){placementSession={done:true,result:r,answers:{},index:24};return render();} }
   if (action==='clear-errors') { if(confirm('Clear the Error Notebook in this browser?')){state.errors=[];state.fixedErrors=[];saveState();render();} return; }
+  if (action==='retry-error') {
+    const error=state.errors.find(item=>item.id===el.dataset.errorId);
+    if (!error || !resetLessonErrorForRetry(state,error,LESSONS)) return showToast('This source requires a full practice/test retry');
+    saveState(); showToast('Retry unlocked'); return go(`lesson/${error.lessonId}`);
+  }
   if (action==='mark-fixed') { if(!state.fixedErrors.includes(el.dataset.errorId)) state.fixedErrors.push(el.dataset.errorId); saveState(); showToast('Marked corrected'); return render(); }
   if (action==='open-error-prompt') { modal={type:'prompt',title:'Error Analysis Coach',text:PROMPT_TEMPLATES['error-analysis']}; return render(); }
   if (action==='preview-writing-prompt') { modal={type:'prompt',title:'Writing feedback prompt',text:buildWritingPrompt(el.dataset.promptType, el.dataset.task, el.dataset.writingId)}; return render(); }
