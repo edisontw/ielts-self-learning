@@ -35,26 +35,42 @@ smoke_route() {
   local size="${4:-1280,800}"
   local dom="/tmp/ielts-dom-${slug}.html"
   local log="/tmp/ielts-chrome-${slug}.log"
+  local rendered=0
 
-  set +e
-  timeout 20s "$CHROME" \
-    --headless=new \
-    --no-sandbox \
-    --disable-gpu \
-    --disable-dev-shm-usage \
-    --disable-background-networking \
-    --disable-component-update \
-    --window-size="$size" \
-    --virtual-time-budget=5000 \
-    --dump-dom "$BASE/$route" >"$dom" 2>"$log"
-  local status=$?
-  set -e
+  for attempt in 1 2; do
+    local profile="/tmp/ielts-chrome-profile-${slug}-${attempt}"
+    rm -rf "$profile" "$dom" "$log"
+    set +e
+    timeout 30s "$CHROME" \
+      --headless=new \
+      --no-sandbox \
+      --disable-gpu \
+      --disable-dev-shm-usage \
+      --disable-background-networking \
+      --disable-component-update \
+      --disable-crash-reporter \
+      --user-data-dir="$profile" \
+      --window-size="$size" \
+      --virtual-time-budget=5000 \
+      --dump-dom "$BASE/$route" >"$dom" 2>"$log"
+    local status=$?
+    set -e
 
-  if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
-    echo "Chrome exited with status $status on $route" >&2
-  fi
-  if ! grep -q 'class="app-shell"' "$dom"; then
-    echo "Browser smoke failed: app-shell was not rendered for $route." >&2
+    if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
+      echo "Chrome exited with status $status on $route (attempt $attempt)" >&2
+    fi
+    if grep -q 'class="app-shell"' "$dom" 2>/dev/null; then
+      rendered=1
+      break
+    fi
+    if [[ "$attempt" -eq 1 ]]; then
+      echo "Browser smoke startup retry: app-shell missing for $route on first attempt." >&2
+      sleep 0.5
+    fi
+  done
+
+  if [[ "$rendered" -ne 1 ]]; then
+    echo "Browser smoke failed: app-shell was not rendered for $route after two attempts." >&2
     cat "$log" >&2 || true
     exit 1
   fi
