@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { REPAIR_LESSONS } from '../adaptive-data.js';
 import { ERROR_TAG_FAMILIES, V14_REPAIR_LESSONS } from '../repair-extension-v14.js';
+import { repairReadyToComplete, resetRepairAnswer } from '../repair-retry-v1.js';
 
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const index = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -37,6 +38,18 @@ assert(vg04.questions.length >= 3 && vg05.questions.length >= 3, 'Each V1.4 Repa
 for (const lesson of V14_REPAIR_LESSONS) {
   assert(lesson.questions.every(q => q.options.includes(q.answer) && q.rationale?.length >= 30), `${lesson.id} guided practice is incomplete.`);
   assert(lesson.learn.length >= 3 && lesson.examples.length >= 3, `${lesson.id} teaching content is too thin.`);
+
+  const progress = { answers:{} };
+  lesson.questions.forEach((q, index) => {
+    progress.answers[index] = { selected:q.answer, checked:true };
+  });
+  assert(repairReadyToComplete(lesson, progress), `${lesson.id} should become finishable only after every guided item is correct.`);
+  progress.answers[0] = { selected:lesson.questions[0].options.find(option => option !== lesson.questions[0].answer), checked:true };
+  assert(!repairReadyToComplete(lesson, progress), `${lesson.id} must block Finish after a checked wrong answer.`);
+  progress.completed = true;
+  progress.completedAt = Date.now();
+  resetRepairAnswer(progress, 0);
+  assert(!progress.answers[0] && !progress.completed && !progress.completedAt, `${lesson.id} Retry must clear the wrong answer and revoke premature completion.`);
 }
 
 const extensionIndex = index.indexOf('./repair-extension-v14.js');
@@ -50,4 +63,5 @@ console.log('✓ V1.4 adds VG04 paraphrase repair from 32 audited question signa
 console.log('✓ V1.4 adds VG05 answer-type grammar repair from 14 audited question signals');
 console.log('✓ Real prefixed Error Notebook tags route to the intended Repair extension');
 console.log('✓ High-frequency IELTS skill errors remain outside Vocabulary/Grammar Repair');
+console.log('✓ VG04/VG05 reuse the wrong → Retry → all-correct → Finish mastery gate');
 console.log('✓ First 30-unit curriculum remains a separate completion scope');
