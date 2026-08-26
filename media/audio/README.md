@@ -27,7 +27,7 @@ All 12 QL01–QL06 Set B/C recordings are present at `question-type-labs/` and w
 
 The Lab runtime prefers these production MP3 files and uses the labelled browser voice only if production playback is unavailable.
 
-## Production-ready Placement and Core Lesson audio
+## Production-live Placement and Core Lesson audio
 
 The following QA-approved files are present at their existing runtime paths:
 
@@ -40,7 +40,7 @@ The following QA-approved files are present at their existing runtime paths:
 
 All six are standardized to mono 44.1 kHz / 192 kbps MP3, aligned with the canonical repository scripts and registered in [`manifest-v1.json`](manifest-v1.json) with exact sizes and SHA-256 checksums.
 
-They remain `production-ready` until the merged GitHub Pages deployment is downloaded and verified byte-for-byte. The labelled browser-voice fallback remains available only if production playback fails.
+All six were verified against the GitHub Pages deployment on 2026-08-26 using exact file-size and SHA-256 checks. They are now `production-live`. The labelled browser-voice fallback remains available only if production playback fails.
 
 ## Mini Test preparation references
 

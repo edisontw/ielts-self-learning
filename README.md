@@ -154,9 +154,10 @@ Current production-live assets:
 
 - Mini Tests: ML01–ML04
 - Question Type Labs: all 12 QL01–QL06 Set B/C recordings
+- Quick Placement and Core Lessons: Placement + L01–L05
 - Full Mock Listening production media
 
-Core lesson / Placement recordings remain the next production-audio gap; browser speech is retained only as a labelled fallback where a production file does not yet exist.
+Quick Placement and L01–L05 production MP3 assets are live; browser speech is retained only as a labelled fallback if production playback fails.
 
 ## Local data and privacy
 
@@ -202,8 +203,7 @@ Implementation hierarchy:
 
 ## Next implementation priorities
 
-1. produce and QA Quick Placement plus L01–L05 production Listening audio;
-2. expand Vocabulary / Grammar Repair from real recurring Error Notebook tags rather than adding generic grammar lessons blindly;
-3. perform direct deployed desktop and mobile QA for Placement → Study Plan → lesson → Lab A/B/C → Mini Test → Repair → retry → Full Mock → backup / restore;
-4. reduce progressive DOM-patching technical debt by consolidating mature UI enhancements into the base renderer;
-5. evaluate account sync or PWA only after the content, media and learner-data model is stable.
+1. expand Vocabulary / Grammar Repair from real recurring Error Notebook tags rather than adding generic grammar lessons blindly;
+2. perform direct deployed desktop and mobile QA for Placement → Study Plan → lesson → Lab A/B/C → Mini Test → Repair → retry → Full Mock → backup / restore;
+3. reduce progressive DOM-patching technical debt by consolidating mature UI enhancements into the base renderer;
+4. evaluate account sync or PWA only after the content, media and learner-data model is stable.
