@@ -1,3 +1,4 @@
+import './repair-registry-v15.js';
 import { REPAIR_LESSONS } from './adaptive-data.js';
 import { repairReadyToComplete } from './repair-retry-v1.js';
 import { registerRenderEnhancement } from './render-lifecycle-v15.js';
