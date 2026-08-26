@@ -1,11 +1,14 @@
 import fs from 'node:fs';
 import { REPAIR_LESSONS } from '../adaptive-data.js';
-import { ERROR_TAG_FAMILIES, V14_REPAIR_LESSONS } from '../repair-extension-v14.js';
+import { ERROR_TAG_FAMILIES, V14_REPAIR_LESSONS } from '../repair-registry-v15.js';
 import { repairReadyToComplete, resetRepairAnswer } from '../repair-retry-v1.js';
 
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const index = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const runtime = fs.readFileSync(new URL('../repair-extension-v14.js', import.meta.url), 'utf8');
+const registry = fs.readFileSync(new URL('../repair-registry-v15.js', import.meta.url), 'utf8');
+const routeRuntime = fs.readFileSync(new URL('../repair-route-v15.js', import.meta.url), 'utf8');
+const lifecycle = fs.readFileSync(new URL('../render-lifecycle-v15.js', import.meta.url), 'utf8');
+const legacyRuntime = fs.readFileSync(new URL('../repair-extension-v14.js', import.meta.url), 'utf8');
 
 const ids = REPAIR_LESSONS.map(lesson => lesson.id);
 assert(ids.join(',') === 'VG01,VG02,VG03,VG04,VG05', `V1.4 Repair registry mismatch: ${ids.join(',')}`);
@@ -52,16 +55,26 @@ for (const lesson of V14_REPAIR_LESSONS) {
   assert(!progress.answers[0] && !progress.completed && !progress.completedAt, `${lesson.id} Retry must clear the wrong answer and revoke premature completion.`);
 }
 
-const extensionIndex = index.indexOf('./repair-extension-v14.js');
+const registryIndex = index.indexOf('./repair-registry-v15.js');
 const adaptiveIndex = index.indexOf('./adaptive.js');
 const learningRuntimeIndex = index.indexOf('./learning-runtime-v3.js');
-assert(extensionIndex >= 0 && extensionIndex < adaptiveIndex && extensionIndex < learningRuntimeIndex, 'V1.4 Repair registry must load before adaptive recommendation/runtime consumers.');
-assert(runtime.includes("location.hash.match(/^#\\/lesson\\/(VG04|VG05)$/)"), 'VG04/VG05 need standard hash lesson routes.');
-assert(runtime.includes('data-lrv="repair-option"') && runtime.includes('data-lrv="repair-complete"'), 'V1.4 routes must reuse the stable Repair interaction contract.');
+const routeIndex = index.indexOf('./repair-route-v15.js');
+assert(registryIndex >= 0 && registryIndex < adaptiveIndex && registryIndex < learningRuntimeIndex, 'Repair registry must load before adaptive recommendation/runtime consumers.');
+assert(routeIndex > learningRuntimeIndex, 'V1.5 Repair route renderer should load after the stable interaction runtime.');
+assert(!index.includes('./repair-extension-v14.js'), 'Legacy observer-based Repair extension must not load in production.');
+assert(registry.includes("REPAIR_LESSONS.push(lesson)"), 'V1.5 registry must continue registering VG04/VG05 for existing consumers.');
+assert(routeRuntime.includes("location.hash.match(/^#\\/lesson\\/(VG04|VG05)$/)"), 'VG04/VG05 need standard hash lesson routes.');
+assert(routeRuntime.includes('data-lrv="repair-option"') && routeRuntime.includes('data-lrv="repair-complete"'), 'V1.5 routes must reuse the stable Repair interaction contract.');
+assert(routeRuntime.includes('registerRenderEnhancement'), 'VG04/VG05 route rendering must use the shared V1.5 lifecycle.');
+assert(!routeRuntime.includes('MutationObserver') && !routeRuntime.includes('setInterval'), 'VG04/VG05 route renderer must not continuously scan the DOM.');
+assert(!lifecycle.includes('MutationObserver') && !lifecycle.includes('setInterval'), 'V1.5 lifecycle must remain event-driven.');
+assert(legacyRuntime.includes("export { ERROR_TAG_FAMILIES, V14_REPAIR_LESSONS }"), 'Legacy V1.4 filename should remain only as a compatibility re-export.');
+assert(!legacyRuntime.includes('MutationObserver') && !legacyRuntime.includes('setInterval'), 'Legacy compatibility file must not recreate the retired observer runtime.');
 
 console.log('✓ V1.4 adds VG04 paraphrase repair from 32 audited question signals');
 console.log('✓ V1.4 adds VG05 answer-type grammar repair from 14 audited question signals');
 console.log('✓ Real prefixed Error Notebook tags route to the intended Repair extension');
 console.log('✓ High-frequency IELTS skill errors remain outside Vocabulary/Grammar Repair');
 console.log('✓ VG04/VG05 reuse the wrong → Retry → all-correct → Finish mastery gate');
+console.log('✓ V1.5 retires the VG04/VG05 MutationObserver route patch in favour of the shared render lifecycle');
 console.log('✓ First 30-unit curriculum remains a separate completion scope');
