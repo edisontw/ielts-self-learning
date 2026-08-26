@@ -24,4 +24,6 @@ function renderRepairIndex() {
   else main.insertAdjacentHTML('beforeend', html);
 }
 
+// Initial #/learn loads should render immediately; subsequent app renders use the shared lifecycle.
+renderRepairIndex();
 registerRenderEnhancement(renderRepairIndex);
