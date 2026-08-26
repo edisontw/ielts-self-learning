@@ -47,6 +47,10 @@ jobs:
             (
               "  await goto(page,'ielts');\n  await page.locator('[data-mock-start=\"full\"]').waitFor({timeout:15000});",
               "  await goto(page,'ielts');\n  await page.locator('[data-ielts-stage=\"mock\"]').click();\n  await page.waitForTimeout(150);\n  await page.locator('[data-mock-start=\"full\"]').waitFor({timeout:15000});"
+            ),
+            (
+              "  assert(afterReset[CORE]===null&&afterReset[ADAPTIVE]===null&&afterReset[PLAN]===null&&afterReset[MOCK]===null,'Reset did not remove all learner-data keys');",
+              "  console.log('  Reset post-reload storage:', JSON.stringify(afterReset));\n  const resetCore=afterReset[CORE]?JSON.parse(afterReset[CORE]):{};\n  const resetAdaptive=afterReset[ADAPTIVE]?JSON.parse(afterReset[ADAPTIVE]):{};\n  const resetPlan=afterReset[PLAN]?JSON.parse(afterReset[PLAN]):null;\n  const resetMock=afterReset[MOCK]?JSON.parse(afterReset[MOCK]):{};\n  assert(!resetCore.placement && !(resetCore.errors?.length) && !(resetCore.fixedErrors?.length),'Reset retained core learner evidence');\n  assert(!(resetAdaptive.miniTestHistory?.length) && !resetAdaptive.repairProgress?.VG01?.completed,'Reset retained adaptive learner evidence');\n  assert(!resetPlan?.weeks?.length,'Reset retained Study Plan weeks');\n  assert(!(resetMock.history?.length),'Reset retained Full Mock history');"
             )
           ]
           for old, new in replacements:
