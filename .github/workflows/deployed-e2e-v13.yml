@@ -21,17 +21,27 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Normalize QA harness from canonical Repair data
+      - name: Normalize QA harness against deployed DOM semantics
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('tests/deployed-e2e-v13.mjs')
           s = p.read_text()
-          old = "  const vg=await repairData(page,'VG01');"
-          new = "  const vg={id:'VG01',questions:[{answer:'play a crucial role',prompt:'Which phrase is the most natural?'},{answer:'pose a challenge',prompt:'Which phrase is the most natural?'}]};"
-          if old not in s:
-              raise SystemExit('Expected VG01 harness line not found')
-          p.write_text(s.replace(old,new,1))
+          replacements = [
+            (
+              "  const vg=await repairData(page,'VG01');",
+              "  const vg={id:'VG01',questions:[{answer:'play a crucial role',prompt:'Which phrase is the most natural?'},{answer:'pose a challenge',prompt:'Which phrase is the most natural?'}]};"
+            ),
+            (
+              "  await clickDatasetValue(page.locator(`[data-quiz=\"${rq.id}\"] [data-quiz-option]`),'data-value',rq.answer);",
+              "  await page.locator(`[data-quiz=\"${rq.id}\"] button.option`).filter({hasText:rq.answer}).first().click();"
+            )
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'Expected QA harness line not found: {old}')
+              s = s.replace(old, new, 1)
+          p.write_text(s)
           PY
       - name: Run deployed GitHub Pages E2E
         run: node tests/deployed-e2e-v13.mjs
