@@ -20,14 +20,15 @@ const ids = error => {
   return rec ? [rec.primary.id, rec.transfer.id] : null;
 };
 
-assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 10, 'Batch 5 must expose ten audited existing-practice families');
+assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 11, 'Batch 5 must expose eleven existing-practice family/subtype cards');
 assert(EXISTING_PRACTICE_FAMILIES['reading-detail'].auditedQuestions === 21, 'Reading detail count must remain 21');
 assert(EXISTING_PRACTICE_FAMILIES['listening-detail'].auditedQuestions === 16, 'Listening detail count must remain 16');
 assert(EXISTING_PRACTICE_FAMILIES['listening-distractor'].auditedQuestions === 14, 'Listening distractor count must remain 14');
 assert(EXISTING_PRACTICE_FAMILIES['listening-correction'].auditedQuestions === 11, 'Listening correction count must remain 11');
 assert(EXISTING_PRACTICE_FAMILIES['reading-scope'].auditedQuestions === 10, 'Reading scope count must remain 10');
 assert(EXISTING_PRACTICE_FAMILIES['reading-information-function'].auditedQuestions === 10, 'Reading information-function count must remain 10');
-assert(EXISTING_PRACTICE_FAMILIES['reading-evidence'].auditedQuestions === 9, 'Reading evidence count must remain 9');
+assert(EXISTING_PRACTICE_FAMILIES['reading-evidence-tfng'].auditedQuestions === 2, 'Reading evidence TFNG subtype count must be 2 Mini Test items');
+assert(EXISTING_PRACTICE_FAMILIES['reading-evidence-mcq'].auditedQuestions === 3, 'Reading evidence MCQ subtype count must be 3 Mini Test items');
 assert(EXISTING_PRACTICE_FAMILIES['reading-contradiction'].auditedQuestions === 7, 'Reading contradiction count must remain 7');
 assert(EXISTING_PRACTICE_FAMILIES['reading-not-given'].auditedQuestions === 7, 'Reading Not Given count must remain 7');
 assert(EXISTING_PRACTICE_FAMILIES['reading-summary-logic'].auditedQuestions === 7, 'Reading summary-logic count must remain 7');
@@ -88,7 +89,7 @@ assert(index.includes('existing-practice-routing-runtime-v16.js'), 'Production i
 assert(index.indexOf('skill-repair-runtime-v16.js') < index.indexOf('existing-practice-routing-runtime-v16.js'), 'Existing-practice surface must render after Skill Repair so the two recommendation types stay distinct');
 
 console.log('✓ V1.6 Batch 5 classifies the five non-retriable Reading evidence Mini Test items by actual question type');
+console.log('✓ Improve keeps TFNG evidence and MCQ evidence as separate subtype cards instead of collapsing two transfer routes');
 console.log('✓ TFNG evidence → R04/QR01; MCQ evidence → R02/QR03; unknown evidence remains unrouted');
 console.log('✓ Existing saved errors work from stable questionId values without learner-state or backup migration');
 console.log('✓ Core R02/R04 evidence keeps direct lesson Retry and RR01/RR02/LR01 ownership remains unchanged');
-console.log('✓ Existing-practice routing remains read-only and reuses the V1.5 event-driven lifecycle');
