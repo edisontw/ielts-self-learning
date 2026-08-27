@@ -46,6 +46,7 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
   - Batch 1 production closure passed **5/5 deployed E2E scenarios** covering skill-aware Improve routing, RR01/LR01 mastery, production MP3 delivery, and completed-state refresh;
   - Batch 2 coverage-overlap audit found five larger error families already adequately taught by Core/Labs and identified **Reading inference (9 signals)** as the only current untreated instructional gap;
   - `RR02` Infer Only What the Evidence Supports — adds a focused evidence → limited conclusion → overclaim rejection Repair loop without adding a new runtime layer;
+  - Batch 2 production closure passed **5/5 deployed E2E scenarios** covering skill-aware `inference` routing, RR02 direct-route integrity, RR02 mastery, LR01 production-MP3 regression, and Learn completion refresh;
   - generic Full Mock tags are always matched with the question skill, so `main-idea`, `number`, and `inference` cannot cross-route between Reading and Listening;
   - LR01 reuses two existing QA-approved production Question Type Lab MP3s in Practice Mode rather than substituting text-only pseudo-listening;
 - 12 Question Type Labs: Reading 6 + Listening 6;
@@ -237,7 +238,7 @@ V1.5 production closure is documented in [`V1.5-DOM-CONSOLIDATION.md`](V1.5-DOM-
 
 V1.6 Batch 1 design, evidence and production closure are documented in [`V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md`](V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md). Production commit `1ef32e7ed779f701228e4458af6c126ec02e9bb1` passed main Validate #275, Pages #187, and deployed Skill Repair E2E **5/5** in Run `33068400626` with artifact `9644712452`.
 
-V1.6 Batch 2 coverage rationale is documented in [`V1.6-BATCH2-COVERAGE-AUDIT.md`](V1.6-BATCH2-COVERAGE-AUDIT.md).
+V1.6 Batch 2 coverage rationale is documented in [`V1.6-BATCH2-COVERAGE-AUDIT.md`](V1.6-BATCH2-COVERAGE-AUDIT.md). Production closure is documented in [`V1.6-BATCH2-PRODUCTION-CLOSURE.md`](V1.6-BATCH2-PRODUCTION-CLOSURE.md): production commit `50b1f600d4db1f6c5035cf6937700685dd2d2a97` passed main Validate #285, Pages #189, and deployed Batch 2 Skill Repair E2E **5/5** in Run `33070911893` with artifact `9645757604`.
 
 ## Source of truth
 
@@ -256,8 +257,8 @@ Implementation hierarchy:
 
 ## Next implementation priorities
 
-1. finish V1.6 Batch 2 regression / deployed validation for RR02 while preserving the Batch 1 production baseline;
-2. improve routing for already-covered transfer failures instead of duplicating content: Reading detail → R02/R05/QR02/QR03; Listening detail → L02/L03/L05/QL05; Listening distractor/correction → L04/QL01/QL06; Reading scope → R04/QR01/QR03;
+1. improve routing for already-covered transfer failures instead of duplicating content: Reading detail → R02/R05/QR02/QR03; Listening detail → L02/L03/L05/QL05; Listening distractor/correction → L04/QL01/QL06; Reading scope → R04/QR01/QR03;
+2. make Error Notebook / Improve recommendations distinguish clearly between **new Skill Repair** and **return to existing Core/Lab practice**;
 3. re-run the coverage-overlap audit before any later RR/LR extension;
 4. keep the 30-unit core denominator, learner-state keys, and backup schema stable;
 5. defer account sync / PWA unless a concrete product need outweighs the current local-first model.
