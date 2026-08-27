@@ -1,4 +1,5 @@
 import { CORE_LESSON_META, REPAIR_LESSONS, RECOMMENDATION_WEIGHTS, REVIEW_RATINGS } from './adaptive-data.js';
+import { registerRenderEnhancement } from './render-lifecycle-v15.js';
 
 const STORAGE_KEY = 'ielts-self-learning-v1';
 const ADAPTIVE_STORAGE_KEY = 'ielts-adaptive-v1';
@@ -248,7 +249,8 @@ function injectAdaptiveUI() {
 }
 
 function writeAdaptiveStateSilently(adaptive) {
-  localStorage.setItem(ADAPTIVE_STORAGE_KEY, JSON.stringify(adaptive));
+  const next = JSON.stringify(adaptive);
+  if (localStorage.getItem(ADAPTIVE_STORAGE_KEY) !== next) localStorage.setItem(ADAPTIVE_STORAGE_KEY, next);
 }
 
 function rateReview(errorId, rating) {
@@ -283,7 +285,6 @@ function showMiniToast(text) {
 
 function forceAppRefresh() {
   window.dispatchEvent(new Event('hashchange'));
-  setTimeout(injectAdaptiveUI, 0);
 }
 
 function handleAdaptiveClick(event) {
@@ -334,12 +335,4 @@ function handleAdaptiveClick(event) {
 }
 
 document.addEventListener('click', handleAdaptiveClick);
-window.addEventListener('hashchange', () => setTimeout(injectAdaptiveUI, 0));
-window.addEventListener('ielts-adaptive-state-change', () => setTimeout(injectAdaptiveUI, 0));
-
-const observer = new MutationObserver(() => {
-  if (!applying) queueMicrotask(injectAdaptiveUI);
-});
-observer.observe(document.documentElement, { childList: true, subtree: true });
-
-injectAdaptiveUI();
+registerRenderEnhancement(injectAdaptiveUI);

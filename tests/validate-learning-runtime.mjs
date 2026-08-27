@@ -5,12 +5,13 @@ import { REPAIR_LESSONS } from '../adaptive-data.js';
 const index = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../learning-extension.css', import.meta.url), 'utf8');
 const runtime = fs.readFileSync(new URL('../learning-runtime-v3.js', import.meta.url), 'utf8');
+const adaptiveRuntime = fs.readFileSync(new URL('../adaptive.js', import.meta.url), 'utf8');
 const repairIndex = fs.readFileSync(new URL('../learn-repair-index-v15.js', import.meta.url), 'utf8');
 const lifecycle = fs.readFileSync(new URL('../render-lifecycle-v15.js', import.meta.url), 'utf8');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
 assert(index.includes('./learning-extension.css'), 'Learning extension CSS must be loaded.');
-assert(index.includes('./learning-runtime-v3.js'), 'Stable learning runtime v3 must be loaded.');
+assert(index.includes('./learning-runtime-v3.js'), 'Learning runtime v3 must be loaded.');
 assert(index.includes('./learn-repair-index-v15.js'), 'Learn index must load the V1.5 Repair renderer.');
 assert(!index.includes('./learn-repair-cards.js'), 'Legacy polling Learn Repair shim must not load in production.');
 assert(!index.includes('./learning-runtime-v2.js'), 'Superseded runtime v2 must not be loaded.');
@@ -24,6 +25,14 @@ assert(runtime.includes('skillPerformance'), 'Runtime must calculate observed sk
 assert(runtime.includes('Placement starts the profile'), 'Today recommendation must explain placement-to-performance transition.');
 assert(runtime.includes('previous?.answered === stat.answered'), 'Runtime must avoid rewriting unchanged performance state.');
 assert(runtime.includes("localStorage.getItem(ADAPTIVE_KEY) !== next"), 'Runtime must avoid redundant localStorage writes.');
+assert(runtime.includes("from './repair-retry-v1.js'"), 'Repair interaction helpers must be imported explicitly instead of relying on global bindings.');
+assert(runtime.includes('registerRenderEnhancement(apply)'), 'Learning runtime must use the shared V1.5 lifecycle.');
+assert(!runtime.includes('setInterval'), 'Learning runtime must not use one-second polling.');
+assert(!runtime.includes("window.addEventListener('hashchange'"), 'Learning runtime route refresh must come from the shared lifecycle.');
+assert(adaptiveRuntime.includes('registerRenderEnhancement(injectAdaptiveUI)'), 'Adaptive UI must use the shared V1.5 lifecycle.');
+assert(!adaptiveRuntime.includes('MutationObserver'), 'Adaptive UI must not observe the whole document.');
+assert(!adaptiveRuntime.includes("window.addEventListener('hashchange'"), 'Adaptive route refresh must come from the shared lifecycle.');
+assert(adaptiveRuntime.includes("localStorage.getItem(ADAPTIVE_STORAGE_KEY) !== next"), 'Adaptive silent writes must avoid redundant localStorage writes.');
 assert(repairIndex.includes('data-lesson="${lesson.id}"'), 'Learn Repair cards must use the standard data-lesson route contract.');
 assert(repairIndex.includes('registerRenderEnhancement'), 'Learn Repair index must use the shared V1.5 lifecycle.');
 assert(!repairIndex.includes('setInterval') && !repairIndex.includes('MutationObserver'), 'Learn Repair index must not poll or observe the whole DOM.');
@@ -35,9 +44,11 @@ assert(!lifecycle.includes('setInterval') && !lifecycle.includes('MutationObserv
 assert(css.includes('min-height:44px'), 'Mobile QA CSS must preserve 44px primary tap targets.');
 assert(css.includes('env(safe-area-inset-bottom)'), 'Mobile bottom navigation should respect safe-area inset.');
 
-console.log('✓ Stable throttled learning runtime v3 is mounted');
-console.log('✓ Learn Repair index moved from polling to the shared V1.5 render lifecycle');
-console.log('✓ Initial enhancement pass waits for app.js top-level-await startup to settle');
+console.log('✓ Adaptive UI and learning runtime use one shared event-driven render lifecycle');
+console.log('✓ Document-wide MutationObserver and one-second learning polling are retired');
+console.log('✓ Lifecycle waits for app.js top-level-await startup before enhancement rendering');
+console.log('✓ Learn Repair index uses the shared V1.5 render lifecycle');
+console.log('✓ Repair helpers are explicit module dependencies');
 console.log('✓ Repair note typing stays render-stable and preserves the active textarea');
 console.log(`✓ Vocabulary Review: ${VOCABULARY_ITEMS.length} lesson-based items`);
 console.log('✓ Skill performance feeds adaptive profile without redundant storage writes');
