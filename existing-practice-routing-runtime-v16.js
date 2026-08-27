@@ -1,5 +1,7 @@
+import { LESSONS } from './data.js';
+import { retriableLessonError } from './repair-retry-v1.js';
 import { registerRenderEnhancement } from './render-lifecycle-v15.js';
-import { EXISTING_PRACTICE_FAMILIES, existingPracticeRecommendationFor } from './existing-practice-routing-v16.js';
+import { existingPracticeRecommendationFor } from './existing-practice-routing-v16.js';
 
 const CORE_KEY = 'ielts-self-learning-v1';
 
@@ -15,6 +17,10 @@ function esc(value = '') {
 function activeErrors(core) {
   const fixed = new Set(core.fixedErrors || []);
   return (core.errors || []).filter(error => error?.id && !fixed.has(error.id));
+}
+
+function transferErrors(core) {
+  return activeErrors(core).filter(error => !retriableLessonError(error, LESSONS));
 }
 
 function aggregateExistingPractice(errors) {
@@ -44,7 +50,7 @@ function aggregateExistingPractice(errors) {
 function improveHTML(rows, fingerprint) {
   return `<section class="card adaptive-card" data-v16-existing-practice-improve data-runtime-fingerprint="${esc(fingerprint)}">
     <div class="adaptive-top"><div><div class="eyebrow">Return to existing practice</div><h2>These errors are already taught</h2></div><span class="chip success">Reuse Core + Lab</span></div>
-    <p class="muted">These patterns are recurring, but the coverage audit found that the teaching already exists. Review one focused Core lesson first, then use the linked Lab for transfer practice instead of adding another Repair unit.</p>
+    <p class="muted">These test-transfer patterns are recurring, but the coverage audit found that the teaching already exists. Review one focused Core lesson first, then use the linked Lab for transfer practice instead of adding another Repair unit.</p>
     <div class="repair-grid">${rows.map(row => {
       const rec = row.preferred;
       return `<article class="repair-card" data-existing-practice-family="${esc(row.family)}"><div class="cluster"><span class="chip">${esc(row.familyData.label)}</span><span class="chip warning">${row.matches} active match${row.matches === 1 ? '' : 'es'}</span></div><h3>${esc(rec.primary.id)} → ${esc(rec.transfer.id)}</h3><p class="muted">${esc(row.familyData.reason)}</p><div class="meta"><span>${row.familyData.auditedQuestions} audit signals</span><span>Coverage: ${esc(row.familyData.coverage.join(' · '))}</span></div><div class="cluster"><button class="btn primary" data-lesson="${esc(rec.primary.id)}">Review ${esc(rec.primary.id)}</button><button class="btn soft" data-lesson="${esc(rec.transfer.id)}">Then practise ${esc(rec.transfer.id)}</button></div></article>`;
@@ -54,7 +60,7 @@ function improveHTML(rows, fingerprint) {
 
 function renderImproveRouting(core) {
   if (!location.hash.includes('/improve')) return;
-  const rows = aggregateExistingPractice(activeErrors(core));
+  const rows = aggregateExistingPractice(transferErrors(core));
   const fingerprint = rows.map(row => `${row.family}:${row.matches}:${row.preferred?.id || ''}`).join('|');
   const existing = document.querySelector('[data-v16-existing-practice-improve]');
   if (!rows.length) { existing?.remove(); return; }
