@@ -68,6 +68,7 @@ assert(routeRuntime.includes("location.hash.match(/^#\\/lesson\\/(VG\\d+)$/)"), 
 assert(routeRuntime.includes("REPAIR_LESSONS.find(item => item.id === match[1])"), 'Repair route rendering must resolve lessons from the shared registry.');
 assert(routeRuntime.includes('data-lrv="repair-option"') && routeRuntime.includes('data-lrv="repair-complete"'), 'Repair routes must reuse the stable interaction contract.');
 assert(routeRuntime.includes('registerRenderEnhancement'), 'Repair route rendering must use the shared V1.5 lifecycle.');
+assert(routeRuntime.includes('data-v15-repair-route') && routeRuntime.includes('&& liveRoute'), 'Repair fingerprint short-circuit must verify that the rendered route DOM still exists after later startup renders.');
 assert(!routeRuntime.includes('MutationObserver') && !routeRuntime.includes('setInterval'), 'Repair route renderer must not continuously scan the DOM.');
 assert(!learningRuntime.includes('VG0[1-3]'), 'Learning runtime must no longer hard-code a second VG01–VG03 renderer.');
 assert(!lifecycle.includes('MutationObserver') && !lifecycle.includes('setInterval'), 'V1.5 lifecycle must remain event-driven.');
@@ -80,4 +81,5 @@ console.log('✓ Real prefixed Error Notebook tags route to the intended Repair 
 console.log('✓ High-frequency IELTS skill errors remain outside Vocabulary/Grammar Repair');
 console.log('✓ VG04/VG05 reuse the wrong → Retry → all-correct → Finish mastery gate');
 console.log('✓ V1.5 uses one data-driven VG01–VG05 Repair route renderer');
+console.log('✓ V1.5 Repair fingerprint guard survives later startup DOM replacement');
 console.log('✓ First 30-unit curriculum remains a separate completion scope');
