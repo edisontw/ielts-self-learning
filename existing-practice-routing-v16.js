@@ -1,3 +1,5 @@
+import { readingEvidenceQuestionType } from './reading-evidence-routing-v16.js';
+
 export const EXISTING_PRACTICE_FAMILIES = {
   'reading-detail': {
     label: 'Reading detail',
@@ -40,6 +42,20 @@ export const EXISTING_PRACTICE_FAMILIES = {
     auditedQuestions: 10,
     coverage: ['R02', 'QR05'],
     reason: 'R02 teaches sentence/paragraph roles, while QR05 directly practises locating a finding, criticism, reason, example, or other requested information function.'
+  },
+  'reading-evidence-tfng': {
+    label: 'Reading evidence · TFNG',
+    skill: 'reading',
+    auditedQuestions: 2,
+    coverage: ['R04', 'QR01'],
+    reason: 'These Mini Test evidence items ask whether the exact statement is supported. R04 and QR01 directly practise evidence-based True / False / Not Given decisions.'
+  },
+  'reading-evidence-mcq': {
+    label: 'Reading evidence · MCQ',
+    skill: 'reading',
+    auditedQuestions: 3,
+    coverage: ['R02', 'QR03'],
+    reason: 'These Mini Test evidence items ask which statement or example is supported. R02 teaches claim/evidence roles and QR03 practises evidence-first option comparison.'
   },
   'reading-contradiction': {
     label: 'Reading contradiction',
@@ -133,6 +149,24 @@ export const EXISTING_PRACTICE_RULES = [
     transfer: lesson('QR05', 'Question Type Lab: Matching Information')
   },
   {
+    id: 'reading-evidence-tfng',
+    family: 'reading-evidence-tfng',
+    skills: ['reading'],
+    tags: ['reading-evidence'],
+    questionTypes: ['true-false-not-given'],
+    primary: lesson('R04', 'True, False or Not Given?'),
+    transfer: lesson('QR01', 'Question Type Lab: True / False / Not Given')
+  },
+  {
+    id: 'reading-evidence-mcq',
+    family: 'reading-evidence-mcq',
+    skills: ['reading'],
+    tags: ['reading-evidence'],
+    questionTypes: ['multiple-choice'],
+    primary: lesson('R02', 'Read for Structure, Not Just Words'),
+    transfer: lesson('QR03', 'Question Type Lab: Reading Multiple Choice')
+  },
+  {
     id: 'reading-contradiction',
     family: 'reading-contradiction',
     skills: ['reading'],
@@ -161,7 +195,12 @@ export const EXISTING_PRACTICE_RULES = [
 export function existingPracticeRuleFor(error = {}) {
   const skill = String(error.skill || '').toLowerCase();
   const tag = String(error.errorTag || '');
-  return EXISTING_PRACTICE_RULES.find(rule => rule.skills.includes(skill) && rule.tags.includes(tag)) || null;
+  const evidenceType = readingEvidenceQuestionType(error);
+  return EXISTING_PRACTICE_RULES.find(rule => {
+    if (!rule.skills.includes(skill) || !rule.tags.includes(tag)) return false;
+    if (rule.questionTypes?.length && !rule.questionTypes.includes(evidenceType)) return false;
+    return true;
+  }) || null;
 }
 
 export function existingPracticeRecommendationFor(error = {}) {
