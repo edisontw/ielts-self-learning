@@ -1,4 +1,5 @@
 import { readingEvidenceQuestionType } from './reading-evidence-routing-v16.js';
+import { readingStructureQuestionType } from './reading-structure-routing-v16.js';
 
 export const EXISTING_PRACTICE_FAMILIES = {
   'reading-detail': {
@@ -42,6 +43,20 @@ export const EXISTING_PRACTICE_FAMILIES = {
     auditedQuestions: 10,
     coverage: ['R02', 'QR05'],
     reason: 'R02 teaches sentence/paragraph roles, while QR05 directly practises locating a finding, criticism, reason, example, or other requested information function.'
+  },
+  'reading-structure-matching-information': {
+    label: 'Reading structure · Matching Information',
+    skill: 'reading',
+    auditedQuestions: 1,
+    coverage: ['R02', 'QR05'],
+    reason: 'MR01-Q10 asks which paragraph performs a specific structural job: objection followed by response. R02 teaches structural roles and QR05 practises locating requested information functions.'
+  },
+  'reading-structure-mcq': {
+    label: 'Reading structure · MCQ',
+    skill: 'reading',
+    auditedQuestions: 1,
+    coverage: ['R02', 'QR03'],
+    reason: 'MA01-R08 asks why examples are mentioned inside an argument. R02 teaches structural roles and QR03 practises evidence-first option comparison for Reading MCQ.'
   },
   'reading-evidence-tfng': {
     label: 'Reading evidence · TFNG',
@@ -149,6 +164,24 @@ export const EXISTING_PRACTICE_RULES = [
     transfer: lesson('QR05', 'Question Type Lab: Matching Information')
   },
   {
+    id: 'reading-structure-matching-information',
+    family: 'reading-structure-matching-information',
+    skills: ['reading'],
+    tags: ['reading-structure', 'structure'],
+    questionTypes: ['matching-information'],
+    primary: lesson('R02', 'Read for Structure, Not Just Words'),
+    transfer: lesson('QR05', 'Question Type Lab: Matching Information')
+  },
+  {
+    id: 'reading-structure-mcq',
+    family: 'reading-structure-mcq',
+    skills: ['reading'],
+    tags: ['reading-structure', 'structure'],
+    questionTypes: ['multiple-choice'],
+    primary: lesson('R02', 'Read for Structure, Not Just Words'),
+    transfer: lesson('QR03', 'Question Type Lab: Reading Multiple Choice')
+  },
+  {
     id: 'reading-evidence-tfng',
     family: 'reading-evidence-tfng',
     skills: ['reading'],
@@ -195,10 +228,10 @@ export const EXISTING_PRACTICE_RULES = [
 export function existingPracticeRuleFor(error = {}) {
   const skill = String(error.skill || '').toLowerCase();
   const tag = String(error.errorTag || '');
-  const evidenceType = readingEvidenceQuestionType(error);
+  const routedQuestionType = readingEvidenceQuestionType(error) || readingStructureQuestionType(error);
   return EXISTING_PRACTICE_RULES.find(rule => {
     if (!rule.skills.includes(skill) || !rule.tags.includes(tag)) return false;
-    if (rule.questionTypes?.length && !rule.questionTypes.includes(evidenceType)) return false;
+    if (rule.questionTypes?.length && !rule.questionTypes.includes(routedQuestionType)) return false;
     return true;
   }) || null;
 }

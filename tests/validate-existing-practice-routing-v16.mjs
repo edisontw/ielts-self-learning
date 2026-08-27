@@ -12,6 +12,10 @@ import {
   READING_EVIDENCE_QUESTION_TYPES,
   readingEvidenceQuestionType
 } from '../reading-evidence-routing-v16.js';
+import {
+  READING_STRUCTURE_QUESTION_TYPES,
+  readingStructureQuestionType
+} from '../reading-structure-routing-v16.js';
 
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const route = error => existingPracticeRecommendationFor(error);
@@ -20,13 +24,15 @@ const ids = error => {
   return rec ? [rec.primary.id, rec.transfer.id] : null;
 };
 
-assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 11, 'Batch 5 must expose eleven existing-practice family/subtype cards');
+assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 13, 'Post-Batch 5 semantics review must expose thirteen existing-practice family/subtype cards');
 assert(EXISTING_PRACTICE_FAMILIES['reading-detail'].auditedQuestions === 21, 'Reading detail count must remain 21');
 assert(EXISTING_PRACTICE_FAMILIES['listening-detail'].auditedQuestions === 16, 'Listening detail count must remain 16');
 assert(EXISTING_PRACTICE_FAMILIES['listening-distractor'].auditedQuestions === 14, 'Listening distractor count must remain 14');
 assert(EXISTING_PRACTICE_FAMILIES['listening-correction'].auditedQuestions === 11, 'Listening correction count must remain 11');
 assert(EXISTING_PRACTICE_FAMILIES['reading-scope'].auditedQuestions === 10, 'Reading scope count must remain 10');
 assert(EXISTING_PRACTICE_FAMILIES['reading-information-function'].auditedQuestions === 10, 'Reading information-function count must remain 10');
+assert(EXISTING_PRACTICE_FAMILIES['reading-structure-matching-information'].auditedQuestions === 1, 'Reading structure Matching Information subtype must contain the one audited Mini Test transfer item');
+assert(EXISTING_PRACTICE_FAMILIES['reading-structure-mcq'].auditedQuestions === 1, 'Reading structure MCQ subtype must contain the one audited Full Mock transfer item');
 assert(EXISTING_PRACTICE_FAMILIES['reading-evidence-tfng'].auditedQuestions === 2, 'Reading evidence TFNG subtype count must be 2 Mini Test items');
 assert(EXISTING_PRACTICE_FAMILIES['reading-evidence-mcq'].auditedQuestions === 3, 'Reading evidence MCQ subtype count must be 3 Mini Test items');
 assert(EXISTING_PRACTICE_FAMILIES['reading-contradiction'].auditedQuestions === 7, 'Reading contradiction count must remain 7');
@@ -49,6 +55,18 @@ assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-contradiction' })
 assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-not-given' })) === JSON.stringify(['R04','QR01']), 'Reading Not Given must route to R04 → QR01');
 assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-summary-logic' })) === JSON.stringify(['R02','QR06']), 'Reading summary logic must route to R02 → QR06');
 
+const structureIds = Object.keys(READING_STRUCTURE_QUESTION_TYPES).sort();
+assert(JSON.stringify(structureIds) === JSON.stringify(['MA01-R08','MR01-Q10']), 'Reading structure registry must contain exactly the two non-retriable transfer items');
+assert(readingStructureQuestionType({ skill:'reading', errorTag:'reading-structure', questionId:'MR01-Q10' }) === 'matching-information', 'MR01-Q10 must be classified as Matching Information structure');
+assert(readingStructureQuestionType({ skill:'reading', errorTag:'structure', questionId:'MA01-R08' }) === 'multiple-choice', 'MA01-R08 must be classified as MCQ structure');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-structure', questionId:'MR01-Q10' })) === JSON.stringify(['R02','QR05']), 'Mini Test structure must route to R02 → QR05');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'structure', questionId:'MA01-R08' })) === JSON.stringify(['R02','QR03']), 'Full Mock structure must route to R02 → QR03');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-structure', questionType:'matching-information' })) === JSON.stringify(['R02','QR05']), 'Explicit future Matching Information structure metadata must route to R02 → QR05');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'structure', questionType:'multiple-choice' })) === JSON.stringify(['R02','QR03']), 'Explicit future Reading MCQ structure metadata must route to R02 → QR03');
+assert(route({ skill:'reading', errorTag:'reading-structure', questionId:'UNKNOWN-STRUCTURE' }) === null, 'Unknown Reading structure must remain unrouted instead of guessing a transfer Lab');
+assert(route({ skill:'reading', errorTag:'reading-structure', questionId:'R02-Q3' }) === null, 'Core R02-Q3 structure keeps direct lesson Retry');
+assert(route({ skill:'reading', errorTag:'reading-structure', questionId:'R02-Q7' }) === null, 'Core R02-Q7 structure keeps direct lesson Retry');
+
 const evidenceIds = Object.keys(READING_EVIDENCE_QUESTION_TYPES).sort();
 assert(JSON.stringify(evidenceIds) === JSON.stringify(['MR01-Q1','MR02-Q5','MR02-Q6','MR03-Q5','MR04-Q5']), 'Reading evidence question-type registry must cover exactly the five non-retriable Mini Test evidence items');
 assert(readingEvidenceQuestionType({ skill:'reading', errorTag:'reading-evidence', questionId:'MR01-Q1' }) === 'true-false-not-given', 'MR01-Q1 must be classified as TFNG evidence');
@@ -63,6 +81,14 @@ assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-evidence', questi
 assert(route({ skill:'reading', errorTag:'reading-evidence', questionId:'UNKNOWN-EVIDENCE' }) === null, 'Unknown Reading evidence must remain unrouted instead of guessing a transfer Lab');
 assert(route({ skill:'reading', errorTag:'reading-evidence', questionId:'R02-Q1' }) === null, 'Core R02 evidence keeps direct lesson Retry and must not be forced into Mini Test transfer routing');
 assert(route({ skill:'reading', errorTag:'reading-evidence', questionId:'R04-Q3' }) === null, 'Core R04 evidence keeps direct lesson Retry and must not be forced into Mini Test transfer routing');
+
+// Semantics-first guardrails from the post-Batch 5 review: these are taught and directly retriable,
+// or lack a semantically exact Core → Lab pair, so frequency alone must not create a reuse route.
+assert(route({ skill:'reading', errorTag:'reading-paragraph-purpose', questionId:'R02-Q6' }) === null, 'Reading paragraph-purpose must remain direct-Retry only');
+assert(route({ skill:'reading', errorTag:'reading-heading-purpose', questionId:'R05-Q1' }) === null, 'Reading heading-purpose must remain direct-Retry only');
+assert(route({ skill:'listening', errorTag:'listening-attitude', questionId:'QL04-Q2' }) === null, 'Listening attitude must remain direct-Retry only');
+assert(route({ skill:'listening', errorTag:'listening-direction', questionId:'QL03-Q1' }) === null, 'Listening direction must remain direct-Retry only');
+assert(route({ skill:'reading', errorTag:'reading-word-limit', questionId:'QR04-Q1' }) === null, 'Reading word-limit must remain direct-Retry only');
 
 assert(route({ skill:'reading', errorTag:'number' }) === null, 'Reading number must not enter existing-practice routing');
 assert(route({ skill:'listening', errorTag:'main-idea' }) === null, 'Listening main idea must not enter existing-practice routing');
@@ -88,8 +114,7 @@ assert(runtime.includes('data-action="retry-error"'), 'Error Notebook routing mu
 assert(index.includes('existing-practice-routing-runtime-v16.js'), 'Production index must load the existing-practice routing runtime');
 assert(index.indexOf('skill-repair-runtime-v16.js') < index.indexOf('existing-practice-routing-runtime-v16.js'), 'Existing-practice surface must render after Skill Repair so the two recommendation types stay distinct');
 
-console.log('✓ V1.6 Batch 5 classifies the five non-retriable Reading evidence Mini Test items by actual question type');
-console.log('✓ Improve keeps TFNG evidence and MCQ evidence as separate subtype cards instead of collapsing two transfer routes');
-console.log('✓ TFNG evidence → R04/QR01; MCQ evidence → R02/QR03; unknown evidence remains unrouted');
-console.log('✓ Existing saved errors work from stable questionId values without learner-state or backup migration');
-console.log('✓ Core R02/R04 evidence keeps direct lesson Retry and RR01/RR02/LR01 ownership remains unchanged');
+console.log('✓ Post-Batch 5 semantics review routes only the two non-retriable Reading structure transfer items');
+console.log('✓ MR01-Q10 structure → R02/QR05; MA01-R08 structure → R02/QR03; unknown structure remains unrouted');
+console.log('✓ Paragraph-purpose, heading-purpose, Listening attitude/direction, and Reading word-limit remain direct-Retry or Lab-owned without synthetic reuse routes');
+console.log('✓ Batch 5 Reading evidence routing and RR01/RR02/LR01 ownership remain unchanged');
