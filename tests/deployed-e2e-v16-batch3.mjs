@@ -24,10 +24,9 @@ async function goto(page, route) {
   assert(!text?.includes('Lesson not found'), `${route} showed Lesson not found`);
 }
 
-async function errorCardState(page, id) {
-  return page.evaluate(errorId => {
-    const anchor = document.querySelector(`[data-error-id="${errorId}"]`);
-    const card = anchor?.closest('.error-item');
+async function errorCardState(page, questionText) {
+  return page.evaluate(text => {
+    const card = [...document.querySelectorAll('#main .error-item')].find(item => (item.textContent || '').includes(text));
     if (!card) return null;
     const route = card.querySelector('[data-v16-existing-practice-error-route]');
     return {
@@ -37,7 +36,11 @@ async function errorCardState(page, id) {
       routeText:route?.textContent || '',
       routeFingerprint:route?.dataset.routeFingerprint || ''
     };
-  }, id);
+  }, questionText);
+}
+
+function errorCardLocator(page, questionText) {
+  return page.locator('#main .error-item').filter({ hasText:questionText }).first();
 }
 
 async function improveFamilyState(page) {
@@ -107,10 +110,10 @@ try {
   pass('V1.6-B3-A deployed Improve separates existing-practice transfer routes from RR02 Skill Repair', { families });
   await shot(page, 'v16-b3-a-improve-routing');
 
-  const readingDetail = await errorCardState(page, 'qa-reading-detail');
-  const listeningDetail = await errorCardState(page, 'qa-listening-detail');
-  const miniInitial = await errorCardState(page, 'qa-reading-scope-mini');
-  const inference = await errorCardState(page, 'qa-reading-inference');
+  const readingDetail = await errorCardState(page, 'Reading detail deployed QA');
+  const listeningDetail = await errorCardState(page, 'Listening detail deployed QA');
+  const miniInitial = await errorCardState(page, 'Mini Test Reading scope deployed QA');
+  const inference = await errorCardState(page, 'Reading inference Skill Repair control');
   assert(readingDetail?.hasExistingRoute && readingDetail.routeText.includes('Review R02') && readingDetail.routeText.includes('Practise QR03'), `Reading detail Error Notebook route wrong: ${JSON.stringify(readingDetail)}`);
   assert(listeningDetail?.hasExistingRoute && listeningDetail.routeText.includes('Review L05') && listeningDetail.routeText.includes('Practise QL05'), `Listening detail Error Notebook route wrong: ${JSON.stringify(listeningDetail)}`);
   assert(miniInitial?.hasExistingRoute && miniInitial.routeText.includes('Review R04') && miniInitial.routeText.includes('Practise QR01'), `Mini Test scope existing-practice route missing: ${JSON.stringify(miniInitial)}`);
@@ -121,7 +124,7 @@ try {
 
   await goto(page, 'learn');
   await goto(page, 'improve');
-  const miniAfterRerender = await errorCardState(page, 'qa-reading-scope-mini');
+  const miniAfterRerender = await errorCardState(page, 'Mini Test Reading scope deployed QA');
   assert(miniAfterRerender && !miniAfterRerender.hasRetry, `Mini Test became falsely retriable after Learn → Improve rerender: ${JSON.stringify(miniAfterRerender)}`);
   assert(miniAfterRerender.hasExistingRoute && miniAfterRerender.routeText.includes('Review R04') && miniAfterRerender.routeText.includes('Practise QR01'), `Mini Test lost R04 → QR01 routing after rerender: ${JSON.stringify(miniAfterRerender)}`);
   const coreAfterRerender = await page.evaluate(key => JSON.parse(localStorage.getItem(key) || '{}'), CORE);
@@ -129,7 +132,7 @@ try {
   pass('V1.6-B3-C Mini Test stays Test Mode after production registry registration and rerender');
   await shot(page, 'v16-b3-c-mini-test-boundary');
 
-  const standardRetry = await errorCardState(page, 'qa-retriable-heading');
+  const standardRetry = await errorCardState(page, 'Why is heading “Replacing books completely” a trap for Paragraph C?');
   assert(standardRetry?.hasRetry, `Standard R05 lesson error lost direct Retry: ${JSON.stringify(standardRetry)}`);
   assert(!standardRetry?.hasExistingRoute, `Existing-practice CTA competed with direct R05 Retry: ${JSON.stringify(standardRetry)}`);
   const familiesAfter = await improveFamilyState(page);
@@ -137,13 +140,13 @@ try {
   pass('V1.6-B3-D direct lesson Retry remains higher priority and excluded from reuse aggregation');
   await shot(page, 'v16-b3-d-direct-retry-priority');
 
-  const miniRoute = page.locator('[data-error-id="qa-reading-scope-mini"]').first().locator('xpath=ancestor::article[contains(@class,"error-item")]').locator('[data-v16-existing-practice-error-route]');
+  const miniRoute = errorCardLocator(page, 'Mini Test Reading scope deployed QA').locator('[data-v16-existing-practice-error-route]');
   await miniRoute.locator('[data-lesson="R04"]').click();
   await page.waitForFunction(() => location.hash === '#/lesson/R04');
   await page.waitForTimeout(500);
   assert((await page.locator('#main').textContent()).includes('True / False / Not Given: Evidence, Not Assumptions'), 'R04 routed lesson did not render');
   await goto(page, 'improve');
-  const miniRouteAgain = page.locator('[data-error-id="qa-reading-scope-mini"]').first().locator('xpath=ancestor::article[contains(@class,"error-item")]').locator('[data-v16-existing-practice-error-route]');
+  const miniRouteAgain = errorCardLocator(page, 'Mini Test Reading scope deployed QA').locator('[data-v16-existing-practice-error-route]');
   await miniRouteAgain.locator('[data-lesson="QR01"]').click();
   await page.waitForFunction(() => location.hash === '#/lesson/QR01');
   await page.waitForTimeout(700);
