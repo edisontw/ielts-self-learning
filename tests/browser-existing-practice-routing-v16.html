@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>V1.6 Existing Practice Routing QA</title></head>
+<body>
+<pre id="result">V16_EXISTING_PRACTICE_PENDING</pre>
+<iframe id="app" title="IELTS app" style="width:1280px;height:900px;border:0"></iframe>
+<script type="module">
+const out = document.querySelector('#result');
+const frame = document.querySelector('#app');
+const CORE = 'ielts-self-learning-v1';
+const ADAPTIVE = 'ielts-adaptive-v1';
+const GUIDE = 'ielts-site-guide-dismissed-v1';
+const wait = async (fn, label, timeout = 12000) => {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    try { const value = fn(); if (value) return value; } catch {}
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  throw new Error(`Timed out waiting for ${label}`);
+};
+const textIncludes = (node, text) => Boolean(node?.textContent?.includes(text));
+try {
+  localStorage.clear();
+  localStorage.setItem(GUIDE, 'true');
+  const now = Date.now();
+  localStorage.setItem(CORE, JSON.stringify({
+    errors: [
+      { id:'qa-reading-detail', ts:now, questionId:'MA01-R02', lessonId:'MA01', skill:'reading', errorTag:'detail', question:'Reading detail QA', myAnswer:'A', correctAnswer:'B', rationale:'QA' },
+      { id:'qa-listening-detail', ts:now, questionId:'MA01-L04', lessonId:'MA01', skill:'listening', errorTag:'detail', question:'Listening detail QA', myAnswer:'A', correctAnswer:'B', rationale:'QA' },
+      { id:'qa-listening-distractor', ts:now, questionId:'MA01-L05', lessonId:'MA01', skill:'listening', errorTag:'distractor', question:'Listening distractor QA', myAnswer:'A', correctAnswer:'B', rationale:'QA' },
+      { id:'qa-reading-scope', ts:now, questionId:'MR02-Q7', lessonId:'MR02', skill:'reading', errorTag:'reading-scope', question:'Reading scope QA', myAnswer:'A', correctAnswer:'B', rationale:'QA' },
+      { id:'qa-reading-inference', ts:now, questionId:'MA01-R05', lessonId:'MA01', skill:'reading', errorTag:'inference', question:'Reading inference Skill Repair control', myAnswer:'A', correctAnswer:'B', rationale:'QA' },
+      { id:'qa-retriable-heading', ts:now, questionId:'R05-Q6', lessonId:'R05', skill:'reading', errorTag:'reading-detail-confusion', question:'Why is heading “Replacing books completely” a trap for Paragraph C?', myAnswer:'A', correctAnswer:'B', rationale:'QA' }
+    ],
+    fixedErrors: [], lessonAnswers: { 'R05-Q6': { selected:'A', checked:true } }, studyHistory: [], completedLessons: [],
+    profile: { targetBand:7, placementSections:{ vocabulary:3, grammar:3, reading:3, listening:3 }, recommendedDifficulty:3 },
+    study: { preferredMinutes:20 }, ui:{ chineseHelp:false }
+  }));
+  localStorage.setItem(ADAPTIVE, JSON.stringify({ repairProgress:{}, learningHistory:[], reviewSchedule:{} }));
+
+  frame.src = '../index.html#/improve';
+  await new Promise(resolve => frame.addEventListener('load', resolve, { once:true }));
+  const doc = frame.contentDocument;
+  const surface = await wait(() => doc.querySelector('[data-v16-existing-practice-improve]'), 'existing-practice Improve surface');
+  if (!textIncludes(surface, 'These errors are already taught')) throw new Error('Improve surface heading missing');
+  for (const marker of ['R02 → QR03', 'L05 → QL05', 'L04 → QL01', 'R04 → QR01']) {
+    if (!textIncludes(surface, marker)) throw new Error(`Improve route missing: ${marker}`);
+  }
+
+  const skillSurface = await wait(() => doc.querySelector('[data-v16-skill-repair-improve]'), 'Skill Repair surface');
+  const rr02 = [...skillSurface.querySelectorAll('.repair-card')].find(card => card.textContent.includes('RR02'));
+  if (!textIncludes(rr02, '1 active match')) throw new Error('Reading inference was not retained by RR02 Skill Repair');
+
+  const cardFor = id => doc.querySelector(`[data-error-id="${id}"]`)?.closest('.error-item');
+  const expected = {
+    'qa-reading-detail': ['Review R02', 'Practise QR03'],
+    'qa-listening-detail': ['Review L05', 'Practise QL05'],
+    'qa-listening-distractor': ['Review L04', 'Practise QL01'],
+    'qa-reading-scope': ['Review R04', 'Practise QR01']
+  };
+  for (const [id, labels] of Object.entries(expected)) {
+    const card = await wait(() => cardFor(id), id);
+    const route = card.querySelector('[data-v16-existing-practice-error-route]');
+    if (!route) throw new Error(`${id}: existing-practice route missing`);
+    for (const label of labels) if (!textIncludes(route, label)) throw new Error(`${id}: missing ${label}`);
+  }
+  if (cardFor('qa-reading-inference')?.querySelector('[data-v16-existing-practice-error-route]')) throw new Error('RR02 inference incorrectly duplicated as existing-practice route');
+
+  const retriable = await wait(() => cardFor('qa-retriable-heading'), 'retriable lesson error');
+  if (!retriable.querySelector('[data-action="retry-error"]')) throw new Error('Original lesson Retry action missing');
+  if (retriable.querySelector('[data-v16-existing-practice-error-route]')) throw new Error('Existing-practice route should not compete with original lesson Retry');
+
+  cardFor('qa-reading-detail').querySelector('[data-v16-existing-practice-error-route] [data-lesson="R02"]').click();
+  await wait(() => frame.contentWindow.location.hash === '#/lesson/R02', 'R02 navigation');
+  await wait(() => frame.contentDocument.querySelector('#main')?.textContent.includes('Read for Structure, Not Just Words'), 'R02 lesson render');
+  out.textContent = 'V16_EXISTING_PRACTICE_PASS';
+} catch (error) {
+  out.textContent = `V16_EXISTING_PRACTICE_FAIL: ${error.stack || error}`;
+}
+</script>
+</body>
+</html>
