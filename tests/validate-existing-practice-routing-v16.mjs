@@ -8,6 +8,10 @@ import {
   EXISTING_PRACTICE_RULES,
   existingPracticeRecommendationFor
 } from '../existing-practice-routing-v16.js';
+import {
+  READING_EVIDENCE_QUESTION_TYPES,
+  readingEvidenceQuestionType
+} from '../reading-evidence-routing-v16.js';
 
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const route = error => existingPracticeRecommendationFor(error);
@@ -16,13 +20,14 @@ const ids = error => {
   return rec ? [rec.primary.id, rec.transfer.id] : null;
 };
 
-assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 9, 'Batch 4 must expose nine audited existing-practice families');
+assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 10, 'Batch 5 must expose ten audited existing-practice families');
 assert(EXISTING_PRACTICE_FAMILIES['reading-detail'].auditedQuestions === 21, 'Reading detail count must remain 21');
 assert(EXISTING_PRACTICE_FAMILIES['listening-detail'].auditedQuestions === 16, 'Listening detail count must remain 16');
 assert(EXISTING_PRACTICE_FAMILIES['listening-distractor'].auditedQuestions === 14, 'Listening distractor count must remain 14');
 assert(EXISTING_PRACTICE_FAMILIES['listening-correction'].auditedQuestions === 11, 'Listening correction count must remain 11');
 assert(EXISTING_PRACTICE_FAMILIES['reading-scope'].auditedQuestions === 10, 'Reading scope count must remain 10');
 assert(EXISTING_PRACTICE_FAMILIES['reading-information-function'].auditedQuestions === 10, 'Reading information-function count must remain 10');
+assert(EXISTING_PRACTICE_FAMILIES['reading-evidence'].auditedQuestions === 9, 'Reading evidence count must remain 9');
 assert(EXISTING_PRACTICE_FAMILIES['reading-contradiction'].auditedQuestions === 7, 'Reading contradiction count must remain 7');
 assert(EXISTING_PRACTICE_FAMILIES['reading-not-given'].auditedQuestions === 7, 'Reading Not Given count must remain 7');
 assert(EXISTING_PRACTICE_FAMILIES['reading-summary-logic'].auditedQuestions === 7, 'Reading summary-logic count must remain 7');
@@ -43,9 +48,20 @@ assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-contradiction' })
 assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-not-given' })) === JSON.stringify(['R04','QR01']), 'Reading Not Given must route to R04 → QR01');
 assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-summary-logic' })) === JSON.stringify(['R02','QR06']), 'Reading summary logic must route to R02 → QR06');
 
-// Evidence is intentionally deferred: the same tag currently spans TFNG and MCQ
-// decisions, so one fixed Lab transfer would over-route part of the evidence.
-assert(route({ skill:'reading', errorTag:'reading-evidence' }) === null, 'Reading evidence must stay unrouted until question-type-aware transfer is available');
+const evidenceIds = Object.keys(READING_EVIDENCE_QUESTION_TYPES).sort();
+assert(JSON.stringify(evidenceIds) === JSON.stringify(['MR01-Q1','MR02-Q5','MR02-Q6','MR03-Q5','MR04-Q5']), 'Reading evidence question-type registry must cover exactly the five non-retriable Mini Test evidence items');
+assert(readingEvidenceQuestionType({ skill:'reading', errorTag:'reading-evidence', questionId:'MR01-Q1' }) === 'true-false-not-given', 'MR01-Q1 must be classified as TFNG evidence');
+assert(readingEvidenceQuestionType({ skill:'reading', errorTag:'reading-evidence', questionId:'MR03-Q5' }) === 'multiple-choice', 'MR03-Q5 must be classified as MCQ evidence');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-evidence', questionId:'MR01-Q1' })) === JSON.stringify(['R04','QR01']), 'TFNG Reading evidence must route to R04 → QR01');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-evidence', questionId:'MR02-Q6' })) === JSON.stringify(['R04','QR01']), 'Second TFNG Reading evidence item must route to R04 → QR01');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-evidence', questionId:'MR02-Q5' })) === JSON.stringify(['R02','QR03']), 'MCQ Reading evidence must route to R02 → QR03');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-evidence', questionId:'MR03-Q5' })) === JSON.stringify(['R02','QR03']), 'Supported-statement MCQ evidence must route to R02 → QR03');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-evidence', questionId:'MR04-Q5' })) === JSON.stringify(['R02','QR03']), 'Supporting-example MCQ evidence must route to R02 → QR03');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-evidence', questionType:'true-false-not-given' })) === JSON.stringify(['R04','QR01']), 'Explicit future TFNG metadata must route without a question-id registry entry');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-evidence', questionType:'multiple-choice' })) === JSON.stringify(['R02','QR03']), 'Explicit future MCQ metadata must route without a question-id registry entry');
+assert(route({ skill:'reading', errorTag:'reading-evidence', questionId:'UNKNOWN-EVIDENCE' }) === null, 'Unknown Reading evidence must remain unrouted instead of guessing a transfer Lab');
+assert(route({ skill:'reading', errorTag:'reading-evidence', questionId:'R02-Q1' }) === null, 'Core R02 evidence keeps direct lesson Retry and must not be forced into Mini Test transfer routing');
+assert(route({ skill:'reading', errorTag:'reading-evidence', questionId:'R04-Q3' }) === null, 'Core R04 evidence keeps direct lesson Retry and must not be forced into Mini Test transfer routing');
 
 assert(route({ skill:'reading', errorTag:'number' }) === null, 'Reading number must not enter existing-practice routing');
 assert(route({ skill:'listening', errorTag:'main-idea' }) === null, 'Listening main idea must not enter existing-practice routing');
@@ -71,8 +87,8 @@ assert(runtime.includes('data-action="retry-error"'), 'Error Notebook routing mu
 assert(index.includes('existing-practice-routing-runtime-v16.js'), 'Production index must load the existing-practice routing runtime');
 assert(index.indexOf('skill-repair-runtime-v16.js') < index.indexOf('existing-practice-routing-runtime-v16.js'), 'Existing-practice surface must render after Skill Repair so the two recommendation types stay distinct');
 
-console.log('✓ V1.6 Batch 4 expands existing-practice routing to four semantically clear taught-but-unrouted Reading families');
-console.log('✓ Information function → R02/QR05; contradiction + Not Given → R04/QR01; summary logic → R02/QR06');
-console.log('✓ Heterogeneous Reading evidence remains deliberately unrouted instead of forcing one incorrect Lab transfer');
-console.log('✓ Direct lesson Retry and RR01/RR02/LR01 ownership remain higher-priority contracts');
+console.log('✓ V1.6 Batch 5 classifies the five non-retriable Reading evidence Mini Test items by actual question type');
+console.log('✓ TFNG evidence → R04/QR01; MCQ evidence → R02/QR03; unknown evidence remains unrouted');
+console.log('✓ Existing saved errors work from stable questionId values without learner-state or backup migration');
+console.log('✓ Core R02/R04 evidence keeps direct lesson Retry and RR01/RR02/LR01 ownership remains unchanged');
 console.log('✓ Existing-practice routing remains read-only and reuses the V1.5 event-driven lifecycle');
