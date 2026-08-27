@@ -33,11 +33,14 @@ try {
       { id:'qa-contradiction', ts:now, questionId:'MR01-Q3', lessonId:'MR01', skill:'reading', errorTag:'reading-contradiction', question:'Contradiction QA', myAnswer:'TRUE', correctAnswer:'FALSE', rationale:'QA' },
       { id:'qa-not-given', ts:now, questionId:'MR01-Q2', lessonId:'MR01', skill:'reading', errorTag:'reading-not-given', question:'Not Given QA', myAnswer:'FALSE', correctAnswer:'NOT GIVEN', rationale:'QA' },
       { id:'qa-summary-logic', ts:now, questionId:'MR03-Q11', lessonId:'MR03', skill:'reading', errorTag:'reading-summary-logic', question:'Summary logic QA', myAnswer:'public path', correctAnswer:'storage capacity', rationale:'QA' },
-      { id:'qa-reading-evidence-deferred', ts:now, questionId:'MR03-Q5', lessonId:'MR03', skill:'reading', errorTag:'reading-evidence', question:'Evidence deferred control', myAnswer:'B', correctAnswer:'A', rationale:'QA' },
+      { id:'qa-evidence-tfng', ts:now, questionId:'MR01-Q1', lessonId:'MR01', skill:'reading', errorTag:'reading-evidence', question:'TFNG evidence QA', myAnswer:'FALSE', correctAnswer:'TRUE', rationale:'QA' },
+      { id:'qa-evidence-mcq', ts:now, questionId:'MR03-Q5', lessonId:'MR03', skill:'reading', errorTag:'reading-evidence', question:'MCQ evidence QA', myAnswer:'B', correctAnswer:'A', rationale:'QA' },
+      { id:'qa-evidence-unknown', ts:now, questionId:'UNKNOWN-EVIDENCE', lessonId:'MR99', skill:'reading', errorTag:'reading-evidence', question:'Unknown evidence control', myAnswer:'A', correctAnswer:'B', rationale:'QA' },
       { id:'qa-reading-inference', ts:now, questionId:'MA01-R05', lessonId:'MA01', skill:'reading', errorTag:'inference', question:'Reading inference Skill Repair control', myAnswer:'A', correctAnswer:'B', rationale:'QA' },
+      { id:'qa-core-evidence', ts:now, questionId:'R04-Q3', lessonId:'R04', skill:'reading', errorTag:'reading-evidence', question:'Restoring urban wetlands can reduce the load on city drainage infrastructure after heavy rain.', myAnswer:'FALSE', correctAnswer:'TRUE', rationale:'QA' },
       { id:'qa-retriable-heading', ts:now, questionId:'R05-Q6', lessonId:'R05', skill:'reading', errorTag:'reading-detail-confusion', question:'Why is heading “Replacing books completely” a trap for Paragraph C?', myAnswer:'A', correctAnswer:'B', rationale:'QA' }
     ],
-    fixedErrors: [], lessonAnswers: { 'R05-Q6': { selected:'A', checked:true }, 'MR02-Q7': { selected:'A', checked:true } }, studyHistory: [], completedLessons: [],
+    fixedErrors: [], lessonAnswers: { 'R04-Q3': { selected:'FALSE', checked:true }, 'R05-Q6': { selected:'A', checked:true }, 'MR02-Q7': { selected:'A', checked:true } }, studyHistory: [], completedLessons: [],
     profile: { targetBand:7, placementSections:{ vocabulary:3, grammar:3, reading:3, listening:3 }, recommendedDifficulty:3 },
     study: { preferredMinutes:20 }, ui:{ chineseHelp:false }
   }));
@@ -52,12 +55,13 @@ try {
     if (!textIncludes(surface, marker)) throw new Error(`Improve route missing: ${marker}`);
   }
   const familyMatch = family => surface.querySelector(`[data-existing-practice-family="${family}"]`);
-  for (const family of ['reading-information-function','reading-contradiction','reading-not-given','reading-summary-logic']) {
+  for (const family of ['reading-information-function','reading-contradiction','reading-not-given','reading-summary-logic','reading-evidence-tfng','reading-evidence-mcq']) {
     if (!textIncludes(familyMatch(family), '1 active match')) throw new Error(`${family}: expected one active routed match`);
   }
+  if (!textIncludes(familyMatch('reading-evidence-tfng'), 'R04 → QR01')) throw new Error('TFNG evidence subtype did not retain R04 → QR01 on Improve');
+  if (!textIncludes(familyMatch('reading-evidence-mcq'), 'R02 → QR03')) throw new Error('MCQ evidence subtype did not retain R02 → QR03 on Improve');
   const readingDetailFamily = familyMatch('reading-detail');
   if (!textIncludes(readingDetailFamily, '1 active match')) throw new Error('Retriable R05 lesson error was incorrectly counted in existing-practice aggregation');
-  if (familyMatch('reading-evidence')) throw new Error('Heterogeneous Reading evidence should remain deferred, not appear as a fixed reuse route');
 
   const skillSurface = await wait(() => doc.querySelector('[data-v16-skill-repair-improve]'), 'Skill Repair surface');
   const rr02 = [...skillSurface.querySelectorAll('.repair-card')].find(card => card.textContent.includes('RR02'));
@@ -72,7 +76,9 @@ try {
     'qa-information-function': ['Review R02', 'Practise QR05'],
     'qa-contradiction': ['Review R04', 'Practise QR01'],
     'qa-not-given': ['Review R04', 'Practise QR01'],
-    'qa-summary-logic': ['Review R02', 'Practise QR06']
+    'qa-summary-logic': ['Review R02', 'Practise QR06'],
+    'qa-evidence-tfng': ['Review R04', 'Practise QR01'],
+    'qa-evidence-mcq': ['Review R02', 'Practise QR03']
   };
   for (const [id, labels] of Object.entries(expected)) {
     const card = await wait(() => cardFor(id), id);
@@ -80,15 +86,17 @@ try {
     if (!route) throw new Error(`${id}: existing-practice route missing`);
     for (const label of labels) if (!textIncludes(route, label)) throw new Error(`${id}: missing ${label}`);
   }
-  if (cardFor('qa-reading-evidence-deferred')?.querySelector('[data-v16-existing-practice-error-route]')) throw new Error('Heterogeneous Reading evidence was over-routed to one Lab');
+  if (cardFor('qa-evidence-unknown')?.querySelector('[data-v16-existing-practice-error-route]')) throw new Error('Unknown Reading evidence was guessed into a transfer route');
   if (cardFor('qa-reading-inference')?.querySelector('[data-v16-existing-practice-error-route]')) throw new Error('RR02 inference incorrectly duplicated as existing-practice route');
 
-  const retriable = await wait(() => cardFor('qa-retriable-heading'), 'retriable lesson error');
-  if (!retriable.querySelector('[data-action="retry-error"]')) throw new Error('Original lesson Retry action missing');
-  if (retriable.querySelector('[data-v16-existing-practice-error-route]')) throw new Error('Existing-practice route should not compete with original lesson Retry');
+  for (const id of ['qa-core-evidence','qa-retriable-heading']) {
+    const retriable = await wait(() => cardFor(id), `${id} retriable lesson error`);
+    if (!retriable.querySelector('[data-action="retry-error"]')) throw new Error(`${id}: original lesson Retry action missing`);
+    if (retriable.querySelector('[data-v16-existing-practice-error-route]')) throw new Error(`${id}: existing-practice route should not compete with original lesson Retry`);
+  }
 
-  const miniInitial = await wait(() => cardFor('qa-reading-scope'), 'Mini Test scope error initial render');
-  if (miniInitial.querySelector('[data-action="retry-error"]')) throw new Error('Mini Test error exposed fake single-question Retry on initial render');
+  const miniInitial = await wait(() => cardFor('qa-evidence-mcq'), 'Mini Test evidence error initial render');
+  if (miniInitial.querySelector('[data-action="retry-error"]')) throw new Error('Mini Test evidence error exposed fake single-question Retry on initial render');
 
   // Revisit Improve after all production module side effects have completed. This
   // catches the historical timing bug where Mini Tests entered LESSONS after the
@@ -99,14 +107,22 @@ try {
   await wait(() => frame.contentWindow.location.hash === '#/improve' && frame.contentDocument.querySelector('[data-v16-existing-practice-improve]'), 'Improve rerender');
   doc = frame.contentDocument;
   cardFor = id => doc.querySelector(`[data-error-id="${id}"]`)?.closest('.error-item');
-  const miniAfterRerender = await wait(() => cardFor('qa-summary-logic'), 'Mini Test summary error after rerender');
-  if (miniAfterRerender.querySelector('[data-action="retry-error"]')) throw new Error('Mini Test error became falsely retriable after production registry registration');
+  const miniAfterRerender = await wait(() => cardFor('qa-evidence-mcq'), 'Mini Test evidence error after rerender');
+  if (miniAfterRerender.querySelector('[data-action="retry-error"]')) throw new Error('Mini Test evidence error became falsely retriable after production registry registration');
   const miniRoute = miniAfterRerender.querySelector('[data-v16-existing-practice-error-route]');
-  if (!textIncludes(miniRoute, 'Review R02') || !textIncludes(miniRoute, 'Practise QR06')) throw new Error('Mini Test summary error lost Batch 4 routing after rerender');
+  if (!textIncludes(miniRoute, 'Review R02') || !textIncludes(miniRoute, 'Practise QR03')) throw new Error('Mini Test MCQ evidence lost question-type-aware routing after rerender');
 
-  cardFor('qa-reading-detail').querySelector('[data-v16-existing-practice-error-route] [data-lesson="R02"]').click();
-  await wait(() => frame.contentWindow.location.hash === '#/lesson/R02', 'R02 navigation');
-  await wait(() => frame.contentDocument.querySelector('#main')?.textContent.includes('Read for Structure, Not Just Words'), 'R02 lesson render');
+  cardFor('qa-evidence-tfng').querySelector('[data-v16-existing-practice-error-route] [data-lesson="R04"]').click();
+  await wait(() => frame.contentWindow.location.hash === '#/lesson/R04', 'R04 navigation');
+  await wait(() => frame.contentDocument.querySelector('#main')?.textContent.includes('True, False or Not Given?'), 'R04 lesson render');
+
+  frame.contentWindow.location.hash = '#/improve';
+  await wait(() => frame.contentWindow.location.hash === '#/improve' && frame.contentDocument.querySelector('[data-v16-existing-practice-improve]'), 'Improve before QR03 transfer');
+  doc = frame.contentDocument;
+  cardFor = id => doc.querySelector(`[data-error-id="${id}"]`)?.closest('.error-item');
+  cardFor('qa-evidence-mcq').querySelector('[data-v16-existing-practice-error-route] [data-lesson="QR03"]').click();
+  await wait(() => frame.contentWindow.location.hash === '#/lesson/QR03', 'QR03 navigation');
+  await wait(() => frame.contentDocument.querySelector('#main')?.textContent.includes('Question Type Lab: Reading Multiple Choice'), 'QR03 lesson render');
 
   frame.contentWindow.location.hash = '#/improve';
   await wait(() => frame.contentWindow.location.hash === '#/improve' && frame.contentDocument.querySelector('[data-v16-existing-practice-improve]'), 'Improve before QR05 transfer');
