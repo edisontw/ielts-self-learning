@@ -43,9 +43,11 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
 - V1.6 evidence-driven Reading / Listening Skill Repair extensions outside the core 30-unit denominator:
   - `RR01` Main Idea vs Supporting Detail — selected from **23 Reading main-idea** audit signals;
   - `LR01` Track the Final Number — selected from **27 Listening number** audit signals;
-  - generic Full Mock tags are matched with the question skill so `main-idea` / `number` cannot cross-route between Reading and Listening;
+  - Batch 1 production closure passed **5/5 deployed E2E scenarios** covering skill-aware Improve routing, RR01/LR01 mastery, production MP3 delivery, and completed-state refresh;
+  - Batch 2 coverage-overlap audit found five larger error families already adequately taught by Core/Labs and identified **Reading inference (9 signals)** as the only current untreated instructional gap;
+  - `RR02` Infer Only What the Evidence Supports — adds a focused evidence → limited conclusion → overclaim rejection Repair loop without adding a new runtime layer;
+  - generic Full Mock tags are always matched with the question skill, so `main-idea`, `number`, and `inference` cannot cross-route between Reading and Listening;
   - LR01 reuses two existing QA-approved production Question Type Lab MP3s in Practice Mode rather than substituting text-only pseudo-listening;
-  - production closure passed **5/5 deployed E2E scenarios** covering skill-aware Improve routing, RR01/LR01 mastery, production MP3 delivery, and completed-state refresh;
 - 12 Question Type Labs: Reading 6 + Listening 6;
   - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;
   - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;
@@ -74,6 +76,7 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
 - Learner data is local-first and no account is required.
 - A wrong answer should lead to explanation, repair, retry and later review.
 - Reading / Listening process errors stay separate from Vocabulary / Grammar language-system repair unless the evidence genuinely overlaps.
+- High error frequency alone does not justify another lesson: existing Core/Lab coverage must be audited first.
 
 ## Learning layers
 
@@ -97,6 +100,7 @@ Vocabulary / Grammar:
 Reading / Listening Skill Repair:
 
 - `RR01` Main Idea vs Supporting Detail
+- `RR02` Infer Only What the Evidence Supports
 - `LR01` Track the Final Number
 
 All Repair extensions reuse the same mastery rule:
@@ -153,6 +157,8 @@ Positive recommendation factors:
 Recent repetition applies a negative penalty. Due Error Notebook or Vocabulary Review retrieval takes priority over new material. Locked lessons are not recommended before their prerequisites, and completed lessons are not treated as new work.
 
 V1.6 Skill Repair does not silently enter the older Vocabulary / Grammar ranking. It has a separate Improve surface and requires matching active error evidence.
+
+Batch 2 also distinguishes an **instruction gap** from a **transfer failure**. Reading detail, Listening detail, Listening distractor, Listening correction, and Reading scope are already taught directly by existing Core/Lab units, so those families should route learners back to the relevant lesson / Lab instead of creating duplicate Repair content.
 
 ## Writing and Speaking
 
@@ -223,13 +229,15 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour, the V1.5 event-driven render lifecycle, and V1.6 skill-aware Repair routing.
+Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour, the V1.5 event-driven render lifecycle, V1.6 skill-aware Repair routing, and the Batch 2 Core/Lab coverage-overlap audit.
 
-Browser smoke additionally performs a real RR01 interaction loop — wrong → Retry → correct all → Finish — and verifies that both LR01 production MP3s can be read from the served site.
+Browser smoke performs real RR01 and RR02 interaction loops — wrong → Retry → correct all → Finish — and verifies that both LR01 production MP3s can be read from the served site.
 
 V1.5 production closure is documented in [`V1.5-DOM-CONSOLIDATION.md`](V1.5-DOM-CONSOLIDATION.md).
 
-V1.6 design, evidence and production closure are documented in [`V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md`](V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md). Production commit `1ef32e7ed779f701228e4458af6c126ec02e9bb1` passed main Validate #275, Pages #187, and deployed Skill Repair E2E **5/5** in Run `33068400626` with artifact `9644712452`.
+V1.6 Batch 1 design, evidence and production closure are documented in [`V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md`](V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md). Production commit `1ef32e7ed779f701228e4458af6c126ec02e9bb1` passed main Validate #275, Pages #187, and deployed Skill Repair E2E **5/5** in Run `33068400626` with artifact `9644712452`.
+
+V1.6 Batch 2 coverage rationale is documented in [`V1.6-BATCH2-COVERAGE-AUDIT.md`](V1.6-BATCH2-COVERAGE-AUDIT.md).
 
 ## Source of truth
 
@@ -248,8 +256,8 @@ Implementation hierarchy:
 
 ## Next implementation priorities
 
-1. treat V1.6 Batch 1 as production-closed; keep RR01/LR01 and the skill-aware matching contract stable;
-2. start V1.6 Batch 2 with a coverage-overlap audit before adding another Skill Repair unit; strongest remaining evidence families are Reading detail (21), Listening detail (16), Listening distractor (14), Listening correction (11), Reading scope (10), and Reading inference (9);
-3. add a new Repair unit only where Core / Lab coverage does not already teach the same decision sufficiently; prefer transfer practice or better routing when existing content already covers the skill;
+1. finish V1.6 Batch 2 regression / deployed validation for RR02 while preserving the Batch 1 production baseline;
+2. improve routing for already-covered transfer failures instead of duplicating content: Reading detail → R02/R05/QR02/QR03; Listening detail → L02/L03/L05/QL05; Listening distractor/correction → L04/QL01/QL06; Reading scope → R04/QR01/QR03;
+3. re-run the coverage-overlap audit before any later RR/LR extension;
 4. keep the 30-unit core denominator, learner-state keys, and backup schema stable;
 5. defer account sync / PWA unless a concrete product need outweighs the current local-first model.
