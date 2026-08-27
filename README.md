@@ -34,6 +34,11 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
 - V1.4 error-driven Repair extensions outside the core 30-unit denominator:
   - `VG04` Paraphrase: Same Meaning, Different Form
   - `VG05` Use Grammar to Predict the Answer Type
+- V1.5 consolidated event-driven render lifecycle:
+  - no full-document Repair / Adaptive `MutationObserver`;
+  - no one-second Learn / learning-runtime polling;
+  - one data-driven Repair route renderer for `VG01–VG05`;
+  - explicit app-startup barrier, Repair liveness guard and render-stable note input;
 - 12 Question Type Labs: Reading 6 + Listening 6;
   - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;
   - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;
@@ -190,7 +195,7 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails and Site Guide behaviour.
+Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour and the V1.5 event-driven Repair / adaptive render lifecycle.
 
 ## Source of truth
 
@@ -208,6 +213,6 @@ Implementation hierarchy:
 
 ## Next implementation priorities
 
-1. complete V1.5 by replacing the remaining document-wide observer / one-second polling in `adaptive.js` and `learning-runtime-v3.js` with explicit render lifecycle hooks;
-2. run deployed regression QA after the consolidation, preserving learner state, lesson URLs, backup schema, Repair mastery gates and the core 30-unit denominator;
-3. evaluate account sync or PWA only after the content, media, learner-data model and consolidated runtime remain stable in production.
+1. run deployed V1.5 regression QA with emphasis on Today refresh, Improve ordering, VG01–VG05 Retry / Finish, Repair note focus, Error Notebook routing, backup / restore and 390px mobile behaviour;
+2. keep the consolidated lifecycle stable in production before adding another runtime layer;
+3. evaluate account sync / PWA or the next evidence-driven content expansion only after the deployed V1.5 regression is green.
