@@ -1,3 +1,7 @@
+// Startup barrier: app.js uses top-level await for Placement data, so any
+// enhancement lifecycle must wait for the base app's first render to finish.
+import './app.js';
+
 const callbacks = new Set();
 let scheduled = false;
 
@@ -20,8 +24,8 @@ export function registerRenderEnhancement(callback) {
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-  // DOMContentLoaded waits for module scripts (including top-level await), so
-  // this is the deterministic initial pass after the base app has rendered.
+  // registerRenderEnhancement() provides the deterministic initial pass after
+  // the app.js startup barrier. These events cover later base/UI renders.
   document.addEventListener('DOMContentLoaded', scheduleEnhancementPass, { once:true });
   window.addEventListener('hashchange', scheduleEnhancementPass);
   window.addEventListener('ielts-adaptive-state-change', scheduleEnhancementPass);
