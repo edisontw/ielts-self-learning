@@ -39,6 +39,7 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
   - no one-second Learn / learning-runtime polling;
   - one data-driven Repair route renderer for `VG01–VG05`;
   - explicit app-startup barrier, Repair liveness guard and render-stable note input;
+  - deployed production regression closed with the complete V1.3 journey **6/6 PASS** plus V1.5 lifecycle checks **5/5 PASS**;
 - 12 Question Type Labs: Reading 6 + Listening 6;
   - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;
   - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;
@@ -197,6 +198,8 @@ npm test
 
 Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour and the V1.5 event-driven Repair / adaptive render lifecycle.
 
+Production closure for V1.5 is documented in [`V1.5-DOM-CONSOLIDATION.md`](V1.5-DOM-CONSOLIDATION.md). The final deployed E2E run revalidated the original V1.3 six-scenario production journey and added five V1.5 lifecycle-specific scenarios.
+
 ## Source of truth
 
 See [`docs/SOURCE_OF_TRUTH.md`](docs/SOURCE_OF_TRUTH.md).
@@ -213,6 +216,7 @@ Implementation hierarchy:
 
 ## Next implementation priorities
 
-1. run deployed V1.5 regression QA with emphasis on Today refresh, Improve ordering, VG01–VG05 Retry / Finish, Repair note focus, Error Notebook routing, backup / restore and 390px mobile behaviour;
-2. keep the consolidated lifecycle stable in production before adding another runtime layer;
-3. evaluate account sync / PWA or the next evidence-driven content expansion only after the deployed V1.5 regression is green.
+1. start V1.6 as an evidence-driven Reading / Listening repair-content cycle using the existing error-tag audit rather than adding another runtime layer;
+2. prioritise recurring non-language-form error families with the strongest evidence — especially detail, number, main idea, distractor, scope, correction and inference — while keeping them separate from Vocabulary / Grammar Repair;
+3. preserve the 30-unit core denominator and existing learner-state / backup contracts; add targeted repair or transfer units only where repeated error evidence justifies them;
+4. defer account sync / PWA unless a concrete product need outweighs the current local-first model.
