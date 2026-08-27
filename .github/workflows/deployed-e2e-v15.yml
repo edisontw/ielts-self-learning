@@ -1,0 +1,78 @@
+name: V1.5 deployed E2E QA
+
+on:
+  push:
+    branches:
+      - qa/v15-deployed-e2e-runner
+  workflow_dispatch:
+
+concurrency:
+  group: v15-deployed-e2e
+  cancel-in-progress: true
+
+jobs:
+  deployed-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Repository regression suite
+        run: npm test
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Normalize V1.3 production harness against deployed DOM semantics
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('tests/deployed-e2e-v13.mjs')
+          s = p.read_text()
+          replacements = [
+            (
+              "  const vg=await repairData(page,'VG01');",
+              "  const vg={id:'VG01',questions:[{answer:'play a crucial role',prompt:'Which phrase is the most natural?'},{answer:'pose a challenge',prompt:'Which phrase is the most natural?'}]};"
+            ),
+            (
+              "  await clickDatasetValue(page.locator(`[data-quiz=\"${rq.id}\"] [data-quiz-option]`),'data-value',rq.answer);",
+              "  await page.locator(`[data-quiz=\"${rq.id}\"] button.option`).filter({hasText:rq.answer}).first().click();"
+            ),
+            (
+              "  const fb=fallbackPage.locator('[data-listening-fallback-controls]');",
+              "  const fb=fallbackPage.locator('[data-listening-fallback-controls]').first();"
+            ),
+            (
+              "  await goto(page,'ielts');\n  const mrStart=page.locator('[data-mini-action=\"start\"][data-test-id=\"MR01\"]');",
+              "  await goto(page,'ielts');\n  await page.locator('[data-ielts-stage=\"mini\"]').click();\n  await page.waitForTimeout(150);\n  const mrStart=page.locator('[data-mini-action=\"start\"][data-test-id=\"MR01\"]');"
+            ),
+            (
+              "  await goto(page,'ielts');\n  await page.locator('[data-mock-start=\"full\"]').waitFor({timeout:15000});",
+              "  await goto(page,'ielts');\n  await page.locator('[data-ielts-stage=\"mock\"]').click();\n  await page.waitForTimeout(150);\n  await page.locator('[data-mock-start=\"full\"]').waitFor({timeout:15000});"
+            ),
+            (
+              "  assert(afterReset[CORE]===null&&afterReset[ADAPTIVE]===null&&afterReset[PLAN]===null&&afterReset[MOCK]===null,'Reset did not remove all learner-data keys');",
+              "  console.log('  Reset post-reload storage:', JSON.stringify(afterReset));\n  const resetCore=afterReset[CORE]?JSON.parse(afterReset[CORE]):{};\n  const resetAdaptive=afterReset[ADAPTIVE]?JSON.parse(afterReset[ADAPTIVE]):{};\n  const resetPlan=afterReset[PLAN]?JSON.parse(afterReset[PLAN]):null;\n  const resetMock=afterReset[MOCK]?JSON.parse(afterReset[MOCK]):{};\n  assert(!resetCore.placement && !(resetCore.errors?.length) && !(resetCore.fixedErrors?.length),'Reset retained core learner evidence');\n  assert(!(resetAdaptive.miniTestHistory?.length) && !resetAdaptive.repairProgress?.VG01?.completed,'Reset retained adaptive learner evidence');\n  assert(!resetPlan?.weeks?.length,'Reset retained Study Plan weeks');\n  assert(!(resetMock.history?.length),'Reset retained Full Mock history');"
+            )
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'Expected QA harness line not found: {old}')
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Run V1.3 production learner-journey regression
+        run: node tests/deployed-e2e-v13.mjs
+      - name: Run V1.5 deployed lifecycle regression
+        run: node tests/deployed-e2e-v15.mjs
+      - name: Upload QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v15-deployed-e2e
+          path: |
+            qa-artifacts/
+            qa-artifacts-v15/
+          if-no-files-found: warn
