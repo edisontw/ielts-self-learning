@@ -31,15 +31,20 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
   - Speaking 5
   - Vocabulary / Grammar Repair 3
   - IELTS Strategy 3
-- V1.4 error-driven Repair extensions outside the core 30-unit denominator:
+- V1.4 error-driven Vocabulary / Grammar Repair extensions outside the core 30-unit denominator:
   - `VG04` Paraphrase: Same Meaning, Different Form
   - `VG05` Use Grammar to Predict the Answer Type
 - V1.5 consolidated event-driven render lifecycle:
   - no full-document Repair / Adaptive `MutationObserver`;
   - no one-second Learn / learning-runtime polling;
-  - one data-driven Repair route renderer for `VG01–VG05`;
+  - one data-driven Repair route renderer;
   - explicit app-startup barrier, Repair liveness guard and render-stable note input;
   - deployed production regression closed with the complete V1.3 journey **6/6 PASS** plus V1.5 lifecycle checks **5/5 PASS**;
+- V1.6 evidence-driven Reading / Listening Skill Repair extensions outside the core 30-unit denominator:
+  - `RR01` Main Idea vs Supporting Detail — selected from **23 Reading main-idea** audit signals;
+  - `LR01` Track the Final Number — selected from **27 Listening number** audit signals;
+  - generic Full Mock tags are matched with the question skill so `main-idea` / `number` cannot cross-route between Reading and Listening;
+  - LR01 reuses two existing QA-approved production Question Type Lab MP3s in Practice Mode rather than substituting text-only pseudo-listening;
 - 12 Question Type Labs: Reading 6 + Listening 6;
   - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;
   - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;
@@ -51,7 +56,7 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
 - Full Mock Test Center with 40 Listening + 40 Academic Reading + 2 Writing tasks + 3 Speaking parts;
 - prerequisite-safe Adaptive Today recommendations;
 - configurable Study Plan using Placement, observed performance, due review, productive retry evidence and available time;
-- Error Notebook, Repair lessons, spaced Review Queue and lesson-derived Vocabulary Review;
+- Error Notebook, Vocabulary / Grammar Repair, Reading / Listening Skill Repair, spaced Review Queue and lesson-derived Vocabulary Review;
 - Writing / Speaking productive evidence and revision comparison;
 - portable external-AI prompt workflow without importing AI band scores;
 - local learner-data export, import and reset, including Full Mock history;
@@ -67,6 +72,7 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
 - AI is a coach, not an examiner.
 - Learner data is local-first and no account is required.
 - A wrong answer should lead to explanation, repair, retry and later review.
+- Reading / Listening process errors stay separate from Vocabulary / Grammar language-system repair unless the evidence genuinely overlaps.
 
 ## Learning layers
 
@@ -79,6 +85,22 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
 - `S01–S05` Speaking
 - `VG01–VG03` Vocabulary / Grammar Repair
 - `I01–I03` IELTS Strategy
+
+### Evidence-driven Repair extensions — outside `/30`
+
+Vocabulary / Grammar:
+
+- `VG04` Paraphrase: Same Meaning, Different Form
+- `VG05` Use Grammar to Predict the Answer Type
+
+Reading / Listening Skill Repair:
+
+- `RR01` Main Idea vs Supporting Detail
+- `LR01` Track the Final Number
+
+All Repair extensions reuse the same mastery rule:
+
+`WRONG → RETRY → CORRECT ALL GUIDED CHECKS → FINISH`
 
 ### Question Type Lab — 12 units × 3 sets
 
@@ -129,6 +151,8 @@ Positive recommendation factors:
 
 Recent repetition applies a negative penalty. Due Error Notebook or Vocabulary Review retrieval takes priority over new material. Locked lessons are not recommended before their prerequisites, and completed lessons are not treated as new work.
 
+V1.6 Skill Repair does not silently enter the older Vocabulary / Grammar ranking. It has a separate Improve surface and requires matching active error evidence.
+
 ## Writing and Speaking
 
 Productive skills use a separate process signal rather than multiple-choice accuracy:
@@ -166,6 +190,8 @@ Current production-live assets:
 - Quick Placement and Core Lessons: Placement + L01–L05
 - Full Mock Listening production media
 
+LR01 reuses the production-live QL02-B and QL06-C recordings as Repair practice. No duplicate audio asset is created.
+
 Quick Placement and L01–L05 production MP3 assets are live; browser speech is retained only as a labelled fallback if production playback fails.
 
 ## Local data and privacy
@@ -196,9 +222,13 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour and the V1.5 event-driven Repair / adaptive render lifecycle.
+Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour, the V1.5 event-driven render lifecycle, and V1.6 skill-aware Repair routing.
 
-Production closure for V1.5 is documented in [`V1.5-DOM-CONSOLIDATION.md`](V1.5-DOM-CONSOLIDATION.md). The final deployed E2E run revalidated the original V1.3 six-scenario production journey and added five V1.5 lifecycle-specific scenarios.
+Browser smoke additionally performs a real RR01 interaction loop — wrong → Retry → correct all → Finish — and verifies that both LR01 production MP3s can be read from the served site.
+
+V1.5 production closure is documented in [`V1.5-DOM-CONSOLIDATION.md`](V1.5-DOM-CONSOLIDATION.md).
+
+V1.6 design and evidence are documented in [`V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md`](V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md).
 
 ## Source of truth
 
@@ -212,11 +242,13 @@ Implementation hierarchy:
 4. V1.3 — content depth expansion and production E2E baseline
 5. V1.4 — error-driven Vocabulary / Grammar Repair extensions
 6. V1.5 — progressive DOM-patching consolidation
-7. regression tests
+7. V1.6 — evidence-driven Reading / Listening Skill Repair
+8. regression tests
 
 ## Next implementation priorities
 
-1. start V1.6 as an evidence-driven Reading / Listening repair-content cycle using the existing error-tag audit rather than adding another runtime layer;
-2. prioritise recurring non-language-form error families with the strongest evidence — especially detail, number, main idea, distractor, scope, correction and inference — while keeping them separate from Vocabulary / Grammar Repair;
-3. preserve the 30-unit core denominator and existing learner-state / backup contracts; add targeted repair or transfer units only where repeated error evidence justifies them;
-4. defer account sync / PWA unless a concrete product need outweighs the current local-first model.
+1. production-validate V1.6 Batch 1 after merge, including RR01/LR01 deep links, mastery state, Improve recommendation behavior, and LR01 MP3 playback;
+2. re-audit overlap before adding the next Skill Repair unit; strongest remaining candidates are Reading detail (21), Listening detail (16), Listening distractor (14), Listening correction (11), Reading scope (10), and Reading inference (9);
+3. add a new Repair unit only where Core / Lab coverage does not already teach the same decision sufficiently;
+4. keep the 30-unit core denominator, learner-state keys, and backup schema stable;
+5. defer account sync / PWA unless a concrete product need outweighs the current local-first model.

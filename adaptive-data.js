@@ -75,6 +75,11 @@ export const REPAIR_LESSONS = [
   }
 ];
 
+export function repairMatchesError(lesson, error) {
+  if (!lesson || !error || !lesson.triggerTags?.includes(error.errorTag)) return false;
+  return !lesson.errorSkills?.length || lesson.errorSkills.includes(error.skill);
+}
+
 export const RECOMMENDATION_WEIGHTS = {
   weakness: 30,
   dueReview: 20,

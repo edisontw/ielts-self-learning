@@ -64,8 +64,8 @@ assert(registryIndex >= 0 && registryIndex < adaptiveIndex && registryIndex < le
 assert(routeIndex > learningRuntimeIndex, 'V1.5 Repair route renderer should load after the stable interaction runtime.');
 assert(!index.includes('./repair-extension-v14.js'), 'Legacy observer-based Repair extension must not load in production.');
 assert(registry.includes("REPAIR_LESSONS.push(lesson)"), 'V1.5 registry must continue registering VG04/VG05 for existing consumers.');
-assert(routeRuntime.includes("location.hash.match(/^#\\/lesson\\/(VG\\d+)$/)"), 'One data-driven Repair route renderer must accept registered VG lessons.');
-assert(routeRuntime.includes("REPAIR_LESSONS.find(item => item.id === match[1])"), 'Repair route rendering must resolve lessons from the shared registry.');
+assert(routeRuntime.includes('(?:VG|RR|LR)'), 'The unified Repair route renderer must continue accepting registered VG lessons while allowing later skill Repair IDs.');
+assert(routeRuntime.includes('REPAIR_LESSONS') && routeRuntime.includes('allRepairLessons().find(item => item.id === match[1])'), 'Repair route rendering must continue resolving V/G lessons from the shared registry.');
 assert(routeRuntime.includes('data-lrv="repair-option"') && routeRuntime.includes('data-lrv="repair-complete"'), 'Repair routes must reuse the stable interaction contract.');
 assert(routeRuntime.includes('registerRenderEnhancement'), 'Repair route rendering must use the shared V1.5 lifecycle.');
 assert(routeRuntime.includes('data-v15-repair-route') && routeRuntime.includes('&& liveRoute'), 'Repair fingerprint short-circuit must verify that the rendered route DOM still exists after later startup renders.');
@@ -80,6 +80,6 @@ console.log('✓ V1.4 adds VG05 answer-type grammar repair from 14 audited quest
 console.log('✓ Real prefixed Error Notebook tags route to the intended Repair extension');
 console.log('✓ High-frequency IELTS skill errors remain outside Vocabulary/Grammar Repair');
 console.log('✓ VG04/VG05 reuse the wrong → Retry → all-correct → Finish mastery gate');
-console.log('✓ V1.5 uses one data-driven VG01–VG05 Repair route renderer');
+console.log('✓ Unified Repair renderer continues to preserve VG01–VG05 route ownership');
 console.log('✓ V1.5 Repair fingerprint guard survives later startup DOM replacement');
 console.log('✓ First 30-unit curriculum remains a separate completion scope');

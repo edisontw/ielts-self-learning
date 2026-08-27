@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>V1.6 Skill Repair Browser QA</title></head>
+<body>
+<pre id="result">V16_INTERACTION_PENDING</pre>
+<iframe id="app" title="IELTS app" style="width:1280px;height:900px;border:0"></iframe>
+<script type="module">
+const out = document.querySelector('#result');
+const frame = document.querySelector('#app');
+const wait = async (fn, label, timeout = 12000) => {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    try { const value = fn(); if (value) return value; } catch {}
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  throw new Error(`Timed out waiting for ${label}`);
+};
+const clickValue = (doc, rid, q, value) => {
+  const options = [...doc.querySelectorAll(`[data-lrv="repair-option"][data-rid="${rid}"][data-q="${q}"]`)];
+  const button = options.find(item => item.dataset.value === value);
+  if (!button) throw new Error(`${rid} Q${q + 1}: option not found: ${value}`);
+  button.click();
+};
+const open = async route => {
+  frame.src = `../index.html#/${route}`;
+  await new Promise(resolve => frame.addEventListener('load', resolve, { once:true }));
+  return wait(() => frame.contentDocument?.querySelector('[data-v15-repair-route]'), route);
+};
+try {
+  localStorage.clear();
+  const { V16_SKILL_REPAIR_LESSONS } = await import('../skill-repair-registry-v16.js');
+  const rr = V16_SKILL_REPAIR_LESSONS.find(item => item.id === 'RR01');
+  const lr = V16_SKILL_REPAIR_LESSONS.find(item => item.id === 'LR01');
+  if (!rr || !lr) throw new Error('RR01/LR01 registry missing');
+
+  await open('lesson/RR01');
+  let doc = frame.contentDocument;
+  const wrong = rr.questions[0].options.find(option => option !== rr.questions[0].answer);
+  clickValue(doc, rr.id, 0, wrong);
+  doc.querySelector('[data-lrv="repair-check"][data-q="0"]').click();
+  await wait(() => doc.querySelector('[data-lrv="repair-retry"][data-q="0"]'), 'RR01 Retry button');
+  if (!doc.querySelector('[data-lrv="repair-complete"]').disabled) throw new Error('RR01 Finish enabled after wrong answer');
+  doc.querySelector('[data-lrv="repair-retry"][data-q="0"]').click();
+  await wait(() => !doc.querySelector('[data-lrv="repair-option"][data-q="0"]').disabled, 'RR01 retry reset');
+
+  for (let i = 0; i < rr.questions.length; i++) {
+    clickValue(doc, rr.id, i, rr.questions[i].answer);
+    doc.querySelector(`[data-lrv="repair-check"][data-q="${i}"]`).click();
+    await wait(() => doc.querySelectorAll('.feedback.correct').length >= i + 1, `RR01 Q${i + 1} correct feedback`);
+  }
+  await wait(() => !doc.querySelector('[data-lrv="repair-complete"]').disabled, 'RR01 Finish enabled');
+  doc.querySelector('[data-lrv="repair-complete"]').click();
+  await wait(() => doc.querySelector('[data-lrv="repair-complete"]')?.textContent.includes('Completed'), 'RR01 completion persistence');
+
+  await open('lesson/LR01');
+  doc = frame.contentDocument;
+  const audio = [...doc.querySelectorAll('audio')];
+  if (audio.length !== 2) throw new Error(`LR01 expected 2 audio elements, found ${audio.length}`);
+  for (const item of audio) {
+    const response = await fetch(item.src);
+    if (!response.ok) throw new Error(`LR01 audio GET failed: ${response.status} ${item.src}`);
+    const blob = await response.blob();
+    if (blob.size <= 1000) throw new Error(`LR01 audio unexpectedly small: ${blob.size}`);
+  }
+
+  const adaptive = JSON.parse(localStorage.getItem('ielts-adaptive-v1') || '{}');
+  if (!adaptive.repairProgress?.RR01?.completed) throw new Error('RR01 completion missing from shared adaptive state');
+  out.textContent = 'V16_INTERACTION_PASS';
+} catch (error) {
+  out.textContent = `V16_INTERACTION_FAIL: ${error.stack || error}`;
+}
+</script>
+</body>
+</html>
