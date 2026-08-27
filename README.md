@@ -52,6 +52,11 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
   - Error Notebook adds Core/Lab review CTAs only when the original saved item cannot be directly retried; normal lesson `Retry question` keeps priority;
   - Mini Test / Test Mode errors are explicitly excluded from fake single-question Retry even after their definitions enter the shared lesson registry;
   - Batch 3 production closure passed **5/5 deployed E2E scenarios** covering Improve family separation, Error Notebook Core→Lab CTAs, Mini Test retry boundaries across rerender, standard-lesson Retry priority, and real R04→QR01 navigation;
+  - the canonical post-Batch-3 coverage matrix now scans all **388 tagged questions** on every `npm test` and classifies recurring Reading/Listening families as V/G Repair, RR/LR Skill Repair, routed reuse, taught-but-unrouted, or gap-review;
+  - Batch 4 adds four semantically clear reuse routes without changing the runtime: Reading information function → R02 → QR05, contradiction → R04 → QR01, Not Given → R04 → QR01, and summary logic → R02 → QR06;
+  - Batch 4 moves exactly **31 tagged questions** from taught-but-unrouted to routed reuse: routed reuse **105 → 136**, taught-but-unrouted **82 → 51**;
+  - heterogeneous `reading-evidence` (9 signals) remains intentionally unrouted because its questions span TFNG, MCQ/supporting-evidence, and general claim/evidence decisions;
+  - Batch 4 production closure passed **5/5 deployed E2E scenarios** covering the four new routes, the deferred-evidence negative guard, Mini Test rerender/Test Mode preservation, direct lesson Retry priority, and real QR05/R04/QR06 navigation;
   - generic Full Mock tags are matched with the question skill so compact tags cannot silently cross-route between Reading and Listening;
   - LR01 reuses two existing QA-approved production Question Type Lab MP3s in Practice Mode rather than substituting text-only pseudo-listening;
 - 12 Question Type Labs: Reading 6 + Listening 6;
@@ -166,13 +171,26 @@ Recent repetition applies a negative penalty. Due Error Notebook or Vocabulary R
 
 V1.6 Skill Repair does not silently enter the older Vocabulary / Grammar ranking. It has a separate Improve surface and requires matching active error evidence.
 
-V1.6 also distinguishes an **instruction gap** from a **transfer failure**. Reading detail, Listening detail, Listening distractor, Listening correction, and Reading scope are already taught directly by existing Core/Lab units, so Batch 3 routes those errors back to existing practice instead of creating duplicate Repair content.
+V1.6 distinguishes an **instruction gap** from a **transfer failure**. High-frequency errors that are already taught are routed back to focused Core/Lab practice rather than producing duplicate Repair lessons.
 
 Routing priority:
 
 `DIRECT LESSON RETRY → EXISTING CORE REVIEW → QUESTION TYPE LAB TRANSFER`
 
+Current evidence-backed reuse examples include:
+
+- Reading detail → R02 → QR03;
+- Reading heading-specific detail → R05 → QR02;
+- Reading information function → R02 → QR05;
+- Reading contradiction / Not Given → R04 → QR01;
+- Reading summary logic → R02 → QR06;
+- Listening detail → L05 → QL05;
+- Listening distractor → L04 → QL01;
+- Listening correction → L04 → QL06.
+
 Dedicated RR/LR Skill Repair remains separate for the currently demonstrated instructional gaps: Reading main idea, Reading inference, and Listening number tracking.
+
+`reading-evidence` is deliberately not assigned one fixed transfer Lab yet because the current evidence family mixes TFNG, MCQ, and general claim/evidence decisions. The next routing step should become question-type-aware rather than mechanically map every tag to one destination.
 
 ## Writing and Speaking
 
@@ -243,9 +261,9 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour, the V1.5 event-driven render lifecycle, V1.6 skill-aware Repair routing, the Core/Lab coverage-overlap audit, existing-practice route ownership, and the production Mini Test retry boundary.
+Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour, the V1.5 event-driven render lifecycle, V1.6 skill-aware Repair routing, the canonical 388-question Reading/Listening coverage matrix, existing-practice route ownership, and the production Mini Test retry boundary.
 
-Browser smoke performs real RR01 and RR02 interaction loops — wrong → Retry → correct all → Finish — verifies both LR01 production MP3s, and runs a seeded Error Notebook / Improve harness that checks skill-aware Core/Lab routes, standard lesson Retry priority, Mini Test Test Mode preservation across rerender, and real Core/Lab navigation.
+Browser smoke performs real RR01 and RR02 interaction loops — wrong → Retry → correct all → Finish — verifies both LR01 production MP3s, and runs a seeded Error Notebook / Improve harness that checks evidence-backed Core/Lab routes, the deferred `reading-evidence` guard, standard lesson Retry priority, Mini Test Test Mode preservation across rerender, and real Core/Lab navigation.
 
 V1.5 production closure is documented in [`V1.5-DOM-CONSOLIDATION.md`](V1.5-DOM-CONSOLIDATION.md).
 
@@ -254,6 +272,10 @@ V1.6 Batch 1 design, evidence and production closure are documented in [`V1.6-EV
 V1.6 Batch 2 coverage rationale is documented in [`V1.6-BATCH2-COVERAGE-AUDIT.md`](V1.6-BATCH2-COVERAGE-AUDIT.md). Production closure is documented in [`V1.6-BATCH2-PRODUCTION-CLOSURE.md`](V1.6-BATCH2-PRODUCTION-CLOSURE.md): production commit `50b1f600d4db1f6c5035cf6937700685dd2d2a97` passed main Validate #285, Pages #189, and deployed Batch 2 Skill Repair E2E **5/5** in Run `33070911893` with artifact `9645757604`.
 
 V1.6 Batch 3 existing-practice routing and production closure are documented in [`V1.6-BATCH3-EXISTING-PRACTICE-ROUTING.md`](V1.6-BATCH3-EXISTING-PRACTICE-ROUTING.md). Final production main `3b0df73893e39d2d2b2463e0a7f43c9c8bc04926` passed main Validate #295, Pages #192, and deployed Batch 3 E2E **5/5** in Run `33079169130` with artifact `9649245009`.
+
+The canonical post-Batch-3 full coverage decision gate is documented in [`V1.6-POST-BATCH3-COVERAGE-MATRIX.md`](V1.6-POST-BATCH3-COVERAGE-MATRIX.md).
+
+V1.6 Batch 4 routing expansion and production closure are documented in [`V1.6-BATCH4-ROUTING-EXPANSION.md`](V1.6-BATCH4-ROUTING-EXPANSION.md). Production main `52b92cc20b81f5feb2d60c2909cbbb35c1652975` passed main Validate #304, Pages #195, and deployed Batch 4 E2E **5/5** in Run `33090281510` with artifact `9654050907`.
 
 ## Source of truth
 
@@ -272,8 +294,9 @@ Implementation hierarchy:
 
 ## Next implementation priorities
 
-1. re-run the coverage-overlap audit before any later RR/LR extension rather than adding lessons from frequency alone;
-2. collect or inspect deployed learner evidence before making Core→Lab routing more specific; refine only if the current mapping proves too broad or repeatedly misdirected;
-3. keep Mini Test / Full Mock Test Mode boundaries explicit when adding future Error Notebook actions;
-4. keep the 30-unit core denominator, learner-state keys, and backup schema stable;
-5. defer account sync / PWA unless a concrete product need outweighs the current local-first model.
+1. design a **question-type-aware transfer rule** for heterogeneous `reading-evidence` (9 signals) rather than forcing one fixed Lab destination;
+2. inspect actual questions before adding any lower-frequency route; likely candidates are Reading paragraph-purpose (6), heading-purpose (5), Listening attitude (4) and direction (4), but frequency alone is not sufficient;
+3. keep the five frequency-3 `GAP-REVIEW` families under observation until more multi-layer evidence accumulates rather than creating new RR/LR Repair now;
+4. keep Mini Test / Full Mock Test Mode boundaries explicit when adding future Error Notebook actions;
+5. keep the 30-unit core denominator, learner-state keys, and backup schema stable;
+6. defer account sync / PWA unless a concrete product need outweighs the current local-first model.
