@@ -26,34 +26,39 @@ const open = async route => {
   await new Promise(resolve => frame.addEventListener('load', resolve, { once:true }));
   return wait(() => frame.contentDocument?.querySelector('[data-v15-repair-route]'), route);
 };
+const completeWithRetry = async lesson => {
+  await open(`lesson/${lesson.id}`);
+  const doc = frame.contentDocument;
+  const wrong = lesson.questions[0].options.find(option => option !== lesson.questions[0].answer);
+  clickValue(doc, lesson.id, 0, wrong);
+  doc.querySelector(`[data-lrv="repair-check"][data-rid="${lesson.id}"][data-q="0"]`).click();
+  await wait(() => doc.querySelector(`[data-lrv="repair-retry"][data-rid="${lesson.id}"][data-q="0"]`), `${lesson.id} Retry button`);
+  if (!doc.querySelector(`[data-lrv="repair-complete"][data-rid="${lesson.id}"]`).disabled) throw new Error(`${lesson.id} Finish enabled after wrong answer`);
+  doc.querySelector(`[data-lrv="repair-retry"][data-rid="${lesson.id}"][data-q="0"]`).click();
+  await wait(() => !doc.querySelector(`[data-lrv="repair-option"][data-rid="${lesson.id}"][data-q="0"]`).disabled, `${lesson.id} retry reset`);
+
+  for (let i = 0; i < lesson.questions.length; i++) {
+    clickValue(doc, lesson.id, i, lesson.questions[i].answer);
+    doc.querySelector(`[data-lrv="repair-check"][data-rid="${lesson.id}"][data-q="${i}"]`).click();
+    await wait(() => doc.querySelectorAll('.feedback.correct').length >= i + 1, `${lesson.id} Q${i + 1} correct feedback`);
+  }
+  await wait(() => !doc.querySelector(`[data-lrv="repair-complete"][data-rid="${lesson.id}"]`).disabled, `${lesson.id} Finish enabled`);
+  doc.querySelector(`[data-lrv="repair-complete"][data-rid="${lesson.id}"]`).click();
+  await wait(() => doc.querySelector(`[data-lrv="repair-complete"][data-rid="${lesson.id}"]`)?.textContent.includes('Completed'), `${lesson.id} completion persistence`);
+};
 try {
   localStorage.clear();
   const { V16_SKILL_REPAIR_LESSONS } = await import('../skill-repair-registry-v16.js');
-  const rr = V16_SKILL_REPAIR_LESSONS.find(item => item.id === 'RR01');
-  const lr = V16_SKILL_REPAIR_LESSONS.find(item => item.id === 'LR01');
-  if (!rr || !lr) throw new Error('RR01/LR01 registry missing');
+  const rr01 = V16_SKILL_REPAIR_LESSONS.find(item => item.id === 'RR01');
+  const rr02 = V16_SKILL_REPAIR_LESSONS.find(item => item.id === 'RR02');
+  const lr01 = V16_SKILL_REPAIR_LESSONS.find(item => item.id === 'LR01');
+  if (!rr01 || !rr02 || !lr01) throw new Error('RR01/RR02/LR01 registry missing');
 
-  await open('lesson/RR01');
-  let doc = frame.contentDocument;
-  const wrong = rr.questions[0].options.find(option => option !== rr.questions[0].answer);
-  clickValue(doc, rr.id, 0, wrong);
-  doc.querySelector('[data-lrv="repair-check"][data-q="0"]').click();
-  await wait(() => doc.querySelector('[data-lrv="repair-retry"][data-q="0"]'), 'RR01 Retry button');
-  if (!doc.querySelector('[data-lrv="repair-complete"]').disabled) throw new Error('RR01 Finish enabled after wrong answer');
-  doc.querySelector('[data-lrv="repair-retry"][data-q="0"]').click();
-  await wait(() => !doc.querySelector('[data-lrv="repair-option"][data-q="0"]').disabled, 'RR01 retry reset');
-
-  for (let i = 0; i < rr.questions.length; i++) {
-    clickValue(doc, rr.id, i, rr.questions[i].answer);
-    doc.querySelector(`[data-lrv="repair-check"][data-q="${i}"]`).click();
-    await wait(() => doc.querySelectorAll('.feedback.correct').length >= i + 1, `RR01 Q${i + 1} correct feedback`);
-  }
-  await wait(() => !doc.querySelector('[data-lrv="repair-complete"]').disabled, 'RR01 Finish enabled');
-  doc.querySelector('[data-lrv="repair-complete"]').click();
-  await wait(() => doc.querySelector('[data-lrv="repair-complete"]')?.textContent.includes('Completed'), 'RR01 completion persistence');
+  await completeWithRetry(rr01);
+  await completeWithRetry(rr02);
 
   await open('lesson/LR01');
-  doc = frame.contentDocument;
+  const doc = frame.contentDocument;
   const audio = [...doc.querySelectorAll('audio')];
   if (audio.length !== 2) throw new Error(`LR01 expected 2 audio elements, found ${audio.length}`);
   for (const item of audio) {
@@ -65,6 +70,7 @@ try {
 
   const adaptive = JSON.parse(localStorage.getItem('ielts-adaptive-v1') || '{}');
   if (!adaptive.repairProgress?.RR01?.completed) throw new Error('RR01 completion missing from shared adaptive state');
+  if (!adaptive.repairProgress?.RR02?.completed) throw new Error('RR02 completion missing from shared adaptive state');
   out.textContent = 'V16_INTERACTION_PASS';
 } catch (error) {
   out.textContent = `V16_INTERACTION_FAIL: ${error.stack || error}`;
