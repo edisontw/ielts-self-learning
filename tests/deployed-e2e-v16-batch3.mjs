@@ -144,7 +144,7 @@ try {
   await miniRoute.locator('[data-lesson="R04"]').click();
   await page.waitForFunction(() => location.hash === '#/lesson/R04');
   await page.waitForTimeout(500);
-  assert((await page.locator('#main').textContent()).includes('True / False / Not Given: Evidence, Not Assumptions'), 'R04 routed lesson did not render');
+  assert((await page.locator('#main').textContent()).includes('True, False or Not Given?'), 'R04 routed lesson did not render');
   await goto(page, 'improve');
   const miniRouteAgain = errorCardLocator(page, 'Mini Test Reading scope deployed QA').locator('[data-v16-existing-practice-error-route]');
   await miniRouteAgain.locator('[data-lesson="QR01"]').click();
