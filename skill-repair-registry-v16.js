@@ -1,6 +1,3 @@
-import './repair-registry-v15.js';
-import { REPAIR_LESSONS } from './adaptive-data.js';
-
 export const V16_SKILL_REPAIR_FAMILIES = {
   'reading-main-idea': {
     tags: ['reading-main-idea', 'main-idea'],
@@ -137,7 +134,3 @@ export const V16_SKILL_REPAIR_LESSONS = [
     ]
   }
 ];
-
-for (const lesson of V16_SKILL_REPAIR_LESSONS) {
-  if (!REPAIR_LESSONS.some(existing => existing.id === lesson.id)) REPAIR_LESSONS.push(lesson);
-}
