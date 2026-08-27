@@ -81,6 +81,16 @@ try {
     localStorage.setItem(adaptiveKey, JSON.stringify({ repairProgress:{}, learningHistory:[], reviewSchedule:{} }));
   }, { coreKey:CORE, adaptiveKey:ADAPTIVE, guideKey:GUIDE });
 
+  // A same-origin hash navigation does not reload ES modules, so app.js would
+  // otherwise keep the empty in-memory state it captured before the QA seed.
+  // Reload once after seeding so the base Error Notebook and enhancement
+  // runtimes all hydrate from the same persisted learner record.
+  await page.reload({ waitUntil:'domcontentloaded' });
+  await page.waitForSelector('#main', { timeout:20000 });
+  await page.waitForTimeout(900);
+  const hydratedErrors = await page.evaluate(key => JSON.parse(localStorage.getItem(key) || '{}').errors?.length || 0, CORE);
+  assert(hydratedErrors === 5, `Seeded learner state was not retained across hydration reload: ${hydratedErrors}`);
+
   await goto(page, 'improve');
   const families = await improveFamilyState(page);
   assert(families['reading-detail']?.match === '1 active match', `Reading detail aggregation should exclude direct R05 retry: ${JSON.stringify(families)}`);
