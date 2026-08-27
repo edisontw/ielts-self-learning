@@ -8,6 +8,11 @@ export const V16_SKILL_REPAIR_FAMILIES = {
     tags: ['listening-number', 'number'],
     skills: ['listening'],
     auditedQuestions: 27
+  },
+  'reading-inference': {
+    tags: ['reading-inference', 'inference'],
+    skills: ['reading'],
+    auditedQuestions: 9
   }
 };
 
@@ -69,6 +74,66 @@ export const V16_SKILL_REPAIR_LESSONS = [
         ],
         answer: 'Cutting too frequently can stop some plants from flowering.',
         rationale: 'That statement is explicitly true, but it is only one supporting detail. The paragraph as a whole is about how management timing affects ecological value.'
+      }
+    ]
+  },
+  {
+    id: 'RR02',
+    title: 'Infer Only What the Evidence Supports',
+    skill: 'reading',
+    lessonType: 'skill-repair',
+    cefr: 'B2+',
+    difficulty: 4,
+    estimatedMinutes: 16,
+    objective: 'Make the smallest evidence-supported inference and reject attractive options that add an unstated cause, certainty, quantity, or universal claim.',
+    triggerTags: V16_SKILL_REPAIR_FAMILIES['reading-inference'].tags,
+    errorSkills: V16_SKILL_REPAIR_FAMILIES['reading-inference'].skills,
+    requiresErrorEvidence: true,
+    placementSkills: [],
+    evidence: { family: 'reading inference', auditedQuestions: 9, auditDate: '2026-08-27' },
+    learn: [
+      'An inference is not outside knowledge and it is not a creative guess. It is a limited conclusion supported by information the text actually gives, even if the exact conclusion is not written in one sentence.',
+      'Build a short evidence chain: identify the explicit facts, then ask what is the smallest conclusion that reasonably follows. Prefer an answer that stays close to those facts over one that explains more than the passage proves.',
+      'Reject inference options that introduce a new cause, stronger certainty, larger quantity, wider population, or universal rule. Words such as “must”, “always”, “all”, and “because” often make an otherwise plausible option too strong.'
+    ],
+    examples: [
+      'evidence: visits rose in new evening access hours + no extra staff shifts → supported: access increased without extending staffed hours',
+      'evidence: total visitors stayed similar + queues became shorter → supported: arrivals were probably spread more evenly',
+      'evidence: one site improved → not supported: the method will work everywhere'
+    ],
+    questions: [
+      {
+        context: 'A community library introduced self-service entry for registered users after staff left at 6 p.m. During the first month, weekday evening visits increased, while daytime visits remained close to their previous level. The library did not add any evening staff shifts.',
+        prompt: 'Which inference is best supported?',
+        options: [
+          'Self-service access allowed more evening use without extending staffed opening hours.',
+          'Most daytime users switched their visits to the evening.',
+          'The library’s staffing costs fell sharply during the first month.'
+        ],
+        answer: 'Self-service access allowed more evening use without extending staffed opening hours.',
+        rationale: 'Evening visits increased and no extra evening staff shifts were added. The passage does not show that daytime users switched periods or that staffing costs fell sharply.'
+      },
+      {
+        context: 'Three apartment buildings installed secure indoor bicycle storage. In the following year, reported bicycle thefts at those buildings were lower than in the previous year. The report did not compare the buildings with similar properties elsewhere and did not investigate other changes in local security.',
+        prompt: 'What is the safest inference from the evidence?',
+        options: [
+          'Secure storage was associated with fewer reported bicycle thefts at these buildings.',
+          'Secure storage was proven to be the only cause of the reduction.',
+          'Indoor bicycle storage will reduce theft in every neighbourhood.'
+        ],
+        answer: 'Secure storage was associated with fewer reported bicycle thefts at these buildings.',
+        rationale: 'The before-and-after pattern supports a limited association at the observed buildings. Without comparison sites or evidence about other changes, causation and universal effectiveness are too strong.'
+      },
+      {
+        context: 'A museum replaced open entry with timed arrival slots on busy weekends. Average queue length fell, but total daily visitor numbers stayed approximately the same. Some visitors reported that booking a time in advance was less convenient.',
+        prompt: 'Which conclusion can reasonably be inferred?',
+        options: [
+          'Timed entry probably spread arrivals more evenly rather than simply reducing attendance.',
+          'Every visitor preferred the new booking system.',
+          'The shorter queues were caused entirely by fewer people visiting the museum.'
+        ],
+        answer: 'Timed entry probably spread arrivals more evenly rather than simply reducing attendance.',
+        rationale: 'Queues shortened while total attendance stayed similar, which supports a redistribution explanation. The passage explicitly notes some inconvenience and does not show that fewer visitors caused the change.'
       }
     ]
   },
