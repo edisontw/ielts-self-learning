@@ -36,7 +36,7 @@ assert(adaptiveRuntime.includes("localStorage.getItem(ADAPTIVE_STORAGE_KEY) !== 
 assert(repairIndex.includes('data-lesson="${lesson.id}"'), 'Learn Repair cards must use the standard data-lesson route contract.');
 assert(repairIndex.includes('registerRenderEnhancement'), 'Learn Repair index must use the shared V1.5 lifecycle.');
 assert(!repairIndex.includes('setInterval') && !repairIndex.includes('MutationObserver'), 'Learn Repair index must not poll or observe the whole DOM.');
-assert(lifecycle.includes("document.addEventListener('DOMContentLoaded'"), 'V1.5 lifecycle must run once after all startup module rendering completes.');
+assert(lifecycle.startsWith("// Startup barrier") && lifecycle.includes("import './app.js';"), 'V1.5 lifecycle must wait for the base app top-level-await startup before its initial enhancement pass.');
 assert(lifecycle.includes("window.addEventListener('hashchange'"), 'V1.5 lifecycle must react to route renders.');
 assert(lifecycle.includes("document.addEventListener('click'"), 'V1.5 lifecycle must react after app click renders.');
 assert(!lifecycle.includes("document.addEventListener('input', scheduleEnhancementPass"), 'Repair note typing must not trigger a whole enhancement rerender and replace the active textarea.');
@@ -46,6 +46,7 @@ assert(css.includes('env(safe-area-inset-bottom)'), 'Mobile bottom navigation sh
 
 console.log('✓ Adaptive UI and learning runtime use one shared event-driven render lifecycle');
 console.log('✓ Document-wide MutationObserver and one-second learning polling are retired');
+console.log('✓ Lifecycle waits for app.js top-level-await startup before enhancement rendering');
 console.log('✓ Learn Repair index uses the shared V1.5 render lifecycle');
 console.log('✓ Repair helpers are explicit module dependencies');
 console.log('✓ Repair note typing stays render-stable and preserves the active textarea');
