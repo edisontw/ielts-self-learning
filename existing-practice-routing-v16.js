@@ -33,6 +33,34 @@ export const EXISTING_PRACTICE_FAMILIES = {
     auditedQuestions: 10,
     coverage: ['R04', 'QR01', 'QR03'],
     reason: 'R04 and QR01 teach exact-claim scope; QR03 reinforces broad/narrow option traps.'
+  },
+  'reading-information-function': {
+    label: 'Reading information function',
+    skill: 'reading',
+    auditedQuestions: 10,
+    coverage: ['R02', 'QR05'],
+    reason: 'R02 teaches sentence/paragraph roles, while QR05 directly practises locating a finding, criticism, reason, example, or other requested information function.'
+  },
+  'reading-contradiction': {
+    label: 'Reading contradiction',
+    skill: 'reading',
+    auditedQuestions: 7,
+    coverage: ['R04', 'QR01'],
+    reason: 'R04 and QR01 already teach exact-claim comparison: False requires evidence that contradicts the statement, not merely missing support.'
+  },
+  'reading-not-given': {
+    label: 'Reading Not Given',
+    skill: 'reading',
+    auditedQuestions: 7,
+    coverage: ['R04', 'QR01'],
+    reason: 'R04 and QR01 already teach the key boundary between contradiction and absent evidence, so another Repair unit would duplicate TFNG instruction.'
+  },
+  'reading-summary-logic': {
+    label: 'Reading summary logic',
+    skill: 'reading',
+    auditedQuestions: 7,
+    coverage: ['R02', 'QR06'],
+    reason: 'R02 teaches text structure and logical roles; QR06 directly practises following the compressed purpose → development → limitation → solution sequence in a summary.'
   }
 };
 
@@ -45,7 +73,7 @@ export const EXISTING_PRACTICE_RULES = [
     family: 'reading-detail',
     skills: ['reading'],
     tags: ['reading-heading-detail', 'reading-detail-confusion'],
-    primary: lesson('R05', 'Matching Headings: Main Idea, Not Keywords'),
+    primary: lesson('R05', 'Matching Headings Without Reading Every Line'),
     transfer: lesson('QR02', 'Question Type Lab: Matching Headings')
   },
   {
@@ -77,7 +105,7 @@ export const EXISTING_PRACTICE_RULES = [
     family: 'listening-distractor',
     skills: ['listening'],
     tags: ['distractor', 'listening-distractor', 'listening-first-mention', 'listening-option-tracking', 'listening-change-of-mind', 'change-of-mind'],
-    primary: lesson('L04', 'Distractors: The First Answer Is Often Not the Answer'),
+    primary: lesson('L04', "Don't Fall for the Distractor"),
     transfer: lesson('QL01', 'Question Type Lab: Listening Multiple Choice')
   },
   {
@@ -85,7 +113,7 @@ export const EXISTING_PRACTICE_RULES = [
     family: 'listening-correction',
     skills: ['listening'],
     tags: ['listening-correction'],
-    primary: lesson('L04', 'Distractors: The First Answer Is Often Not the Answer'),
+    primary: lesson('L04', "Don't Fall for the Distractor"),
     transfer: lesson('QL06', 'Question Type Lab: Listening Sentence Completion')
   },
   {
@@ -93,8 +121,40 @@ export const EXISTING_PRACTICE_RULES = [
     family: 'reading-scope',
     skills: ['reading'],
     tags: ['reading-scope'],
-    primary: lesson('R04', 'True / False / Not Given: Evidence, Not Assumptions'),
+    primary: lesson('R04', 'True, False or Not Given?'),
     transfer: lesson('QR01', 'Question Type Lab: True / False / Not Given')
+  },
+  {
+    id: 'reading-information-function',
+    family: 'reading-information-function',
+    skills: ['reading'],
+    tags: ['reading-information-function'],
+    primary: lesson('R02', 'Read for Structure, Not Just Words'),
+    transfer: lesson('QR05', 'Question Type Lab: Matching Information')
+  },
+  {
+    id: 'reading-contradiction',
+    family: 'reading-contradiction',
+    skills: ['reading'],
+    tags: ['reading-contradiction'],
+    primary: lesson('R04', 'True, False or Not Given?'),
+    transfer: lesson('QR01', 'Question Type Lab: True / False / Not Given')
+  },
+  {
+    id: 'reading-not-given',
+    family: 'reading-not-given',
+    skills: ['reading'],
+    tags: ['reading-not-given'],
+    primary: lesson('R04', 'True, False or Not Given?'),
+    transfer: lesson('QR01', 'Question Type Lab: True / False / Not Given')
+  },
+  {
+    id: 'reading-summary-logic',
+    family: 'reading-summary-logic',
+    skills: ['reading'],
+    tags: ['reading-summary-logic'],
+    primary: lesson('R02', 'Read for Structure, Not Just Words'),
+    transfer: lesson('QR06', 'Question Type Lab: Summary Completion')
   }
 ];
 
