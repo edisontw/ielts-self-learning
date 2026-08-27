@@ -1,0 +1,36 @@
+name: V1.6 Batch 2 deployed E2E QA
+
+on:
+  push:
+    branches:
+      - qa/v16-batch2-deployed-e2e-runner
+  workflow_dispatch:
+
+concurrency:
+  group: v16-batch2-deployed-e2e
+  cancel-in-progress: true
+
+jobs:
+  deployed-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Repository regression suite
+        run: npm test
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run V1.6 Batch 2 deployed Skill Repair QA
+        run: node tests/deployed-e2e-v16-batch2.mjs
+      - name: Upload QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v16-batch2-deployed-e2e
+          path: qa-artifacts-v16-batch2/
+          if-no-files-found: warn
