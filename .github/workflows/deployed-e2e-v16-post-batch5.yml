@@ -1,0 +1,35 @@
+name: V1.6 Post-Batch 5 deployed E2E QA
+
+on:
+  push:
+    branches:
+      - qa/v16-post-batch5-semantics-deployed-e2e-runner
+
+permissions:
+  contents: read
+
+jobs:
+  deployed-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Repository regression suite
+        run: npm test
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run V1.6 Post-Batch 5 deployed routing QA
+        run: node tests/deployed-e2e-v16-post-batch5.mjs
+      - name: Upload QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v16-post-batch5-deployed-e2e
+          path: qa-artifacts-v16-post-batch5/
+          if-no-files-found: warn
