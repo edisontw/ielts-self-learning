@@ -1,3 +1,5 @@
+import { readingEvidenceQuestionType } from './reading-evidence-routing-v16.js';
+
 export const EXISTING_PRACTICE_FAMILIES = {
   'reading-detail': {
     label: 'Reading detail',
@@ -40,6 +42,13 @@ export const EXISTING_PRACTICE_FAMILIES = {
     auditedQuestions: 10,
     coverage: ['R02', 'QR05'],
     reason: 'R02 teaches sentence/paragraph roles, while QR05 directly practises locating a finding, criticism, reason, example, or other requested information function.'
+  },
+  'reading-evidence': {
+    label: 'Reading evidence',
+    skill: 'reading',
+    auditedQuestions: 9,
+    coverage: ['R02', 'R04', 'QR01', 'QR03'],
+    reason: 'Core R02/R04 evidence errors keep direct Retry. Mini Test evidence is routed by question type: TFNG evidence → R04/QR01; supported-statement or supporting-example MCQ evidence → R02/QR03.'
   },
   'reading-contradiction': {
     label: 'Reading contradiction',
@@ -133,6 +142,24 @@ export const EXISTING_PRACTICE_RULES = [
     transfer: lesson('QR05', 'Question Type Lab: Matching Information')
   },
   {
+    id: 'reading-evidence-tfng',
+    family: 'reading-evidence',
+    skills: ['reading'],
+    tags: ['reading-evidence'],
+    questionTypes: ['true-false-not-given'],
+    primary: lesson('R04', 'True, False or Not Given?'),
+    transfer: lesson('QR01', 'Question Type Lab: True / False / Not Given')
+  },
+  {
+    id: 'reading-evidence-mcq',
+    family: 'reading-evidence',
+    skills: ['reading'],
+    tags: ['reading-evidence'],
+    questionTypes: ['multiple-choice'],
+    primary: lesson('R02', 'Read for Structure, Not Just Words'),
+    transfer: lesson('QR03', 'Question Type Lab: Reading Multiple Choice')
+  },
+  {
     id: 'reading-contradiction',
     family: 'reading-contradiction',
     skills: ['reading'],
@@ -161,7 +188,12 @@ export const EXISTING_PRACTICE_RULES = [
 export function existingPracticeRuleFor(error = {}) {
   const skill = String(error.skill || '').toLowerCase();
   const tag = String(error.errorTag || '');
-  return EXISTING_PRACTICE_RULES.find(rule => rule.skills.includes(skill) && rule.tags.includes(tag)) || null;
+  const evidenceType = readingEvidenceQuestionType(error);
+  return EXISTING_PRACTICE_RULES.find(rule => {
+    if (!rule.skills.includes(skill) || !rule.tags.includes(tag)) return false;
+    if (rule.questionTypes?.length && !rule.questionTypes.includes(evidenceType)) return false;
+    return true;
+  }) || null;
 }
 
 export function existingPracticeRecommendationFor(error = {}) {
