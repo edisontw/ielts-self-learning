@@ -45,6 +45,7 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
   - `LR01` Track the Final Number — selected from **27 Listening number** audit signals;
   - generic Full Mock tags are matched with the question skill so `main-idea` / `number` cannot cross-route between Reading and Listening;
   - LR01 reuses two existing QA-approved production Question Type Lab MP3s in Practice Mode rather than substituting text-only pseudo-listening;
+  - production closure passed **5/5 deployed E2E scenarios** covering skill-aware Improve routing, RR01/LR01 mastery, production MP3 delivery, and completed-state refresh;
 - 12 Question Type Labs: Reading 6 + Listening 6;
   - every Lab now contains Set A guided practice + Set B independent practice + Set C retry challenge;
   - V1.3 adds 72 unseen B/C questions across QR01–QR06 and QL01–QL06;
@@ -228,7 +229,7 @@ Browser smoke additionally performs a real RR01 interaction loop — wrong → R
 
 V1.5 production closure is documented in [`V1.5-DOM-CONSOLIDATION.md`](V1.5-DOM-CONSOLIDATION.md).
 
-V1.6 design and evidence are documented in [`V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md`](V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md).
+V1.6 design, evidence and production closure are documented in [`V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md`](V1.6-EVIDENCE-DRIVEN-SKILL-REPAIR.md). Production commit `1ef32e7ed779f701228e4458af6c126ec02e9bb1` passed main Validate #275, Pages #187, and deployed Skill Repair E2E **5/5** in Run `33068400626` with artifact `9644712452`.
 
 ## Source of truth
 
@@ -247,8 +248,8 @@ Implementation hierarchy:
 
 ## Next implementation priorities
 
-1. production-validate V1.6 Batch 1 after merge, including RR01/LR01 deep links, mastery state, Improve recommendation behavior, and LR01 MP3 playback;
-2. re-audit overlap before adding the next Skill Repair unit; strongest remaining candidates are Reading detail (21), Listening detail (16), Listening distractor (14), Listening correction (11), Reading scope (10), and Reading inference (9);
-3. add a new Repair unit only where Core / Lab coverage does not already teach the same decision sufficiently;
+1. treat V1.6 Batch 1 as production-closed; keep RR01/LR01 and the skill-aware matching contract stable;
+2. start V1.6 Batch 2 with a coverage-overlap audit before adding another Skill Repair unit; strongest remaining evidence families are Reading detail (21), Listening detail (16), Listening distractor (14), Listening correction (11), Reading scope (10), and Reading inference (9);
+3. add a new Repair unit only where Core / Lab coverage does not already teach the same decision sufficiently; prefer transfer practice or better routing when existing content already covers the skill;
 4. keep the 30-unit core denominator, learner-state keys, and backup schema stable;
 5. defer account sync / PWA unless a concrete product need outweighs the current local-first model.
