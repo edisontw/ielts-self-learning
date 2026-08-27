@@ -46,6 +46,8 @@ try {
   for (const marker of ['R02 → QR03', 'L05 → QL05', 'L04 → QL01', 'R04 → QR01']) {
     if (!textIncludes(surface, marker)) throw new Error(`Improve route missing: ${marker}`);
   }
+  const readingDetailFamily = surface.querySelector('[data-existing-practice-family="reading-detail"]');
+  if (!textIncludes(readingDetailFamily, '1 active match')) throw new Error('Retriable R05 lesson error was incorrectly counted in existing-practice aggregation');
 
   const skillSurface = await wait(() => doc.querySelector('[data-v16-skill-repair-improve]'), 'Skill Repair surface');
   const rr02 = [...skillSurface.querySelectorAll('.repair-card')].find(card => card.textContent.includes('RR02'));
