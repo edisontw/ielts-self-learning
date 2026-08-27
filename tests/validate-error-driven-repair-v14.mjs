@@ -66,6 +66,7 @@ assert(registry.includes("REPAIR_LESSONS.push(lesson)"), 'V1.5 registry must con
 assert(routeRuntime.includes("location.hash.match(/^#\\/lesson\\/(VG04|VG05)$/)"), 'VG04/VG05 need standard hash lesson routes.');
 assert(routeRuntime.includes('data-lrv="repair-option"') && routeRuntime.includes('data-lrv="repair-complete"'), 'V1.5 routes must reuse the stable Repair interaction contract.');
 assert(routeRuntime.includes('registerRenderEnhancement'), 'VG04/VG05 route rendering must use the shared V1.5 lifecycle.');
+assert(routeRuntime.includes('data-v15-repair-route') && routeRuntime.includes('&& liveRoute'), 'Repair fingerprint short-circuit must verify that the rendered route DOM still exists after later startup renders.');
 assert(!routeRuntime.includes('MutationObserver') && !routeRuntime.includes('setInterval'), 'VG04/VG05 route renderer must not continuously scan the DOM.');
 assert(!lifecycle.includes('MutationObserver') && !lifecycle.includes('setInterval'), 'V1.5 lifecycle must remain event-driven.');
 assert(legacyRuntime.includes("export { ERROR_TAG_FAMILIES, V14_REPAIR_LESSONS }"), 'Legacy V1.4 filename should remain only as a compatibility re-export.');
@@ -77,4 +78,5 @@ console.log('✓ Real prefixed Error Notebook tags route to the intended Repair 
 console.log('✓ High-frequency IELTS skill errors remain outside Vocabulary/Grammar Repair');
 console.log('✓ VG04/VG05 reuse the wrong → Retry → all-correct → Finish mastery gate');
 console.log('✓ V1.5 retires the VG04/VG05 MutationObserver route patch in favour of the shared render lifecycle');
+console.log('✓ V1.5 Repair fingerprint guard survives later startup DOM replacement');
 console.log('✓ First 30-unit curriculum remains a separate completion scope');
