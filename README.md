@@ -50,6 +50,8 @@ A persistent **How to use** button explains Today, Learn, IELTS, Improve and Pro
   - Batch 3 routes already-covered transfer failures back to existing Core / Lab practice rather than creating duplicate Repair content;
   - generic Reading `detail` → R02 → QR03, heading-specific detail → R05 → QR02, Listening `detail` → L05 → QL05, distractor → L04 → QL01, correction → L04 → QL06, Reading scope → R04 → QR01;
   - Error Notebook adds Core/Lab review CTAs only when the original saved item cannot be directly retried; normal lesson `Retry question` keeps priority;
+  - Mini Test / Test Mode errors are explicitly excluded from fake single-question Retry even after their definitions enter the shared lesson registry;
+  - Batch 3 production closure passed **5/5 deployed E2E scenarios** covering Improve family separation, Error Notebook Core→Lab CTAs, Mini Test retry boundaries across rerender, standard-lesson Retry priority, and real R04→QR01 navigation;
   - generic Full Mock tags are matched with the question skill so compact tags cannot silently cross-route between Reading and Listening;
   - LR01 reuses two existing QA-approved production Question Type Lab MP3s in Practice Mode rather than substituting text-only pseudo-listening;
 - 12 Question Type Labs: Reading 6 + Listening 6;
@@ -145,6 +147,8 @@ Test Mode rule:
 
 ML01–ML04 use one successful playback per attempt. The transcript remains hidden until submission. Production MP3 is preferred; browser speech is only a labelled fallback if the MP3 cannot be played.
 
+A Mini Test error never becomes a fake single-question Practice Mode retry merely because Mini Test definitions are registered in the shared lesson catalog. Its next step remains review / targeted existing practice / full Test Mode retake.
+
 ## Adaptive Today and Improve routing
 
 Positive recommendation factors:
@@ -239,9 +243,9 @@ Node 20+ is sufficient; no package installation is required.
 npm test
 ```
 
-Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour, the V1.5 event-driven render lifecycle, V1.6 skill-aware Repair routing, the Core/Lab coverage-overlap audit, and existing-practice route ownership.
+Validation covers curriculum registration, learner-state flow, prerequisite guardrails, 12 Labs and their A/B/C depth sets, Mini Tests, production audio, Full Mock integration, Study Plan, local-data backup, Diagnostics, modal interactions, mobile guardrails, Site Guide behaviour, the V1.5 event-driven render lifecycle, V1.6 skill-aware Repair routing, the Core/Lab coverage-overlap audit, existing-practice route ownership, and the production Mini Test retry boundary.
 
-Browser smoke performs real RR01 and RR02 interaction loops — wrong → Retry → correct all → Finish — verifies both LR01 production MP3s, and runs a seeded Error Notebook / Improve harness that checks skill-aware Core/Lab routes, original lesson Retry priority, and real navigation to R02.
+Browser smoke performs real RR01 and RR02 interaction loops — wrong → Retry → correct all → Finish — verifies both LR01 production MP3s, and runs a seeded Error Notebook / Improve harness that checks skill-aware Core/Lab routes, standard lesson Retry priority, Mini Test Test Mode preservation across rerender, and real Core/Lab navigation.
 
 V1.5 production closure is documented in [`V1.5-DOM-CONSOLIDATION.md`](V1.5-DOM-CONSOLIDATION.md).
 
@@ -249,7 +253,7 @@ V1.6 Batch 1 design, evidence and production closure are documented in [`V1.6-EV
 
 V1.6 Batch 2 coverage rationale is documented in [`V1.6-BATCH2-COVERAGE-AUDIT.md`](V1.6-BATCH2-COVERAGE-AUDIT.md). Production closure is documented in [`V1.6-BATCH2-PRODUCTION-CLOSURE.md`](V1.6-BATCH2-PRODUCTION-CLOSURE.md): production commit `50b1f600d4db1f6c5035cf6937700685dd2d2a97` passed main Validate #285, Pages #189, and deployed Batch 2 Skill Repair E2E **5/5** in Run `33070911893` with artifact `9645757604`.
 
-V1.6 Batch 3 existing-practice routing is documented in [`V1.6-BATCH3-EXISTING-PRACTICE-ROUTING.md`](V1.6-BATCH3-EXISTING-PRACTICE-ROUTING.md).
+V1.6 Batch 3 existing-practice routing and production closure are documented in [`V1.6-BATCH3-EXISTING-PRACTICE-ROUTING.md`](V1.6-BATCH3-EXISTING-PRACTICE-ROUTING.md). Final production main `3b0df73893e39d2d2b2463e0a7f43c9c8bc04926` passed main Validate #295, Pages #192, and deployed Batch 3 E2E **5/5** in Run `33079169130` with artifact `9649245009`.
 
 ## Source of truth
 
@@ -268,8 +272,8 @@ Implementation hierarchy:
 
 ## Next implementation priorities
 
-1. production-validate V1.6 Batch 3 after merge, including Improve family aggregation, Error Notebook CTAs, direct lesson Retry priority, and Core/Lab navigation;
-2. re-run the coverage-overlap audit before any later RR/LR extension rather than adding lessons from frequency alone;
-3. consider more precise question-type-aware transfer routes only where deployed learner evidence shows the current Core→Lab mapping is too broad;
+1. re-run the coverage-overlap audit before any later RR/LR extension rather than adding lessons from frequency alone;
+2. collect or inspect deployed learner evidence before making Core→Lab routing more specific; refine only if the current mapping proves too broad or repeatedly misdirected;
+3. keep Mini Test / Full Mock Test Mode boundaries explicit when adding future Error Notebook actions;
 4. keep the 30-unit core denominator, learner-state keys, and backup schema stable;
 5. defer account sync / PWA unless a concrete product need outweighs the current local-first model.
