@@ -179,20 +179,26 @@ try {
   await today.waitFor({ timeout: 15000 });
   await page.waitForFunction(() => Boolean(document.querySelector('[data-adaptive-root="today"]')?.dataset.runtimeFingerprint));
   const beforeFingerprint = await today.getAttribute('data-runtime-fingerprint');
+  assert(beforeFingerprint?.startsWith('review-'), `Expected Today to start in review-first mode after VG01 completion, got ${beforeFingerprint}`);
+
   await page.evaluate(({ adaptiveKey }) => {
     const adaptive = JSON.parse(localStorage.getItem(adaptiveKey) || '{}');
-    adaptive.skillPerformance ||= {};
-    adaptive.skillPerformance.reading = { answered: 20, correct: 0, accuracy: 0, confidence: 'Moderate', updatedAt: Date.now() };
+    const future = Date.now() + 7 * 86400000;
+    for (const item of Object.values(adaptive.vocabularySchedule || {})) item.dueAt = future;
     localStorage.setItem(adaptiveKey, JSON.stringify(adaptive));
     window.dispatchEvent(new CustomEvent('ielts-adaptive-state-change'));
   }, { adaptiveKey: ADAPTIVE });
+
   await page.waitForFunction(before => {
     const root = document.querySelector('[data-adaptive-root="today"]');
-    return root?.dataset.runtimeFingerprint && root.dataset.runtimeFingerprint !== before;
+    return root?.dataset.runtimeFingerprint &&
+      root.dataset.runtimeFingerprint !== before &&
+      root.dataset.runtimeFingerprint.startsWith('lesson-');
   }, beforeFingerprint, { timeout: 10000 });
   const afterFingerprint = await today.getAttribute('data-runtime-fingerprint');
+  assert(afterFingerprint?.startsWith('lesson-'), `Today did not return to a lesson recommendation after due vocabulary was rescheduled: ${afterFingerprint}`);
   assert(await page.locator('[data-adaptive-root="today"]').count() === 1, 'Today lifecycle refresh created duplicate adaptive roots');
-  pass('V1.5-E Adaptive state change refreshes Today through one shared lifecycle root', { beforeFingerprint, afterFingerprint });
+  pass('V1.5-E Due-review state change refreshes Today through one shared lifecycle root', { beforeFingerprint, afterFingerprint });
   await shot(page, 'v15-e-today-refresh');
 
   assert(pageErrors.length === 0, `Deployed V1.5 page errors detected: ${pageErrors.join(' | ')}`);
