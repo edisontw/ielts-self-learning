@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { LESSONS } from '../data.js';
+import '../mini-test-data-v3.js';
 import { REPAIR_LESSONS } from '../adaptive-data.js';
 import { retriableLessonError, resetLessonErrorForRetry, resolveSavedErrorsForCorrectAnswer, repairReadyToComplete, resetRepairAnswer } from '../repair-retry-v1.js';
 const assert=(condition,message)=>{if(!condition)throw new Error(message);};
@@ -14,7 +15,11 @@ assert(core.errors.length===1,'Retry must preserve Error Notebook evidence.');
 core.lessonAnswers[question.id]={selected:question.answer,checked:true};
 const resolved=resolveSavedErrorsForCorrectAnswer(core,question.id);
 assert(resolved.includes(error.id)&&core.fixedErrors.includes(error.id),'A successful retry must automatically resolve the saved lesson error.');
-assert(!retriableLessonError({id:'err-mini',questionId:'MR01-Q1',lessonId:'MR01'},LESSONS),'Mini Test evidence must not expose a fake single-question lesson retry route.');
+const miniLesson=LESSONS.find(item=>item.id==='MR01');
+assert(miniLesson?.lessonType==='mini-test','Production Mini Test registry must be loaded for retry-boundary validation.');
+assert(miniLesson.sections.flatMap(section=>section.blocks||[]).some(block=>block?.id==='MR01-Q1'),'Production MR01 question must be present in LESSONS during retry validation.');
+assert(!retriableLessonError({id:'err-mini',questionId:'MR01-Q1',lessonId:'MR01'},LESSONS),'Mini Test evidence must not expose a fake single-question lesson retry route even after production registry registration.');
+assert(!resetLessonErrorForRetry({lessonAnswers:{'MR01-Q1':{selected:'wrong',checked:true}},fixedErrors:[]},{id:'err-mini',questionId:'MR01-Q1',lessonId:'MR01'},LESSONS),'Mini Test evidence must require a full Test Mode retry rather than clearing one saved answer.');
 const repair=REPAIR_LESSONS[0]; const progress={answers:{}};
 assert(!repairReadyToComplete(repair,progress),'Repair cannot complete before guided practice.');
 repair.questions.forEach((q,index)=>{progress.answers[index]={selected:index===0?'wrong':q.answer,checked:true};});
@@ -32,6 +37,6 @@ assert(runtime.includes("from './repair-retry-v1.js'"),'Learning runtime must im
 for(const token of ['repair-retry','repairReadyToComplete','Complete every guided-practice item correctly before finishing.']) assert(repairRoute.includes(token),`Unified Repair route retry/completion gate missing ${token}`);
 console.log('✓ Wrong Practice Mode questions can be unlocked and retried');
 console.log('✓ Saved lesson errors persist during retry and auto-resolve after a correct checked answer');
-console.log('✓ Mini Test errors do not expose an invalid lesson retry route');
+console.log('✓ Mini Test registry is loaded and Test Mode errors still reject fake single-question retry');
 console.log('✓ Repair guided practice supports retry and blocks premature completion');
 console.log('✓ Unified Repair renderer owns the mastery gate while runtime helpers are explicit imports');
