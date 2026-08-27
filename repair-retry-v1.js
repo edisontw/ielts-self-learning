@@ -4,9 +4,18 @@ function lessonHasQuestion(lesson, questionId) {
   ));
 }
 
+function supportsDirectLessonRetry(lesson) {
+  if (!lesson) return false;
+  if (lesson.lessonType === 'mini-test') return false;
+  if (lesson.subskill === 'mini-test') return false;
+  if (lesson.timed === true && (lesson.tags || []).includes('test-mode')) return false;
+  return true;
+}
+
 export function retriableLessonError(error, lessons = []) {
   if (!error?.id || !error?.questionId || !error?.lessonId) return false;
   const lesson = lessons.find(item => item.id === error.lessonId);
+  if (!supportsDirectLessonRetry(lesson)) return false;
   return lessonHasQuestion(lesson, error.questionId);
 }
 
