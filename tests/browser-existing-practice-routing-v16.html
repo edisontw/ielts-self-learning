@@ -32,7 +32,7 @@ try {
       { id:'qa-reading-inference', ts:now, questionId:'MA01-R05', lessonId:'MA01', skill:'reading', errorTag:'inference', question:'Reading inference Skill Repair control', myAnswer:'A', correctAnswer:'B', rationale:'QA' },
       { id:'qa-retriable-heading', ts:now, questionId:'R05-Q6', lessonId:'R05', skill:'reading', errorTag:'reading-detail-confusion', question:'Why is heading “Replacing books completely” a trap for Paragraph C?', myAnswer:'A', correctAnswer:'B', rationale:'QA' }
     ],
-    fixedErrors: [], lessonAnswers: { 'R05-Q6': { selected:'A', checked:true } }, studyHistory: [], completedLessons: [],
+    fixedErrors: [], lessonAnswers: { 'R05-Q6': { selected:'A', checked:true }, 'MR02-Q7': { selected:'A', checked:true } }, studyHistory: [], completedLessons: [],
     profile: { targetBand:7, placementSections:{ vocabulary:3, grammar:3, reading:3, listening:3 }, recommendedDifficulty:3 },
     study: { preferredMinutes:20 }, ui:{ chineseHelp:false }
   }));
@@ -40,8 +40,8 @@ try {
 
   frame.src = '../index.html#/improve';
   await new Promise(resolve => frame.addEventListener('load', resolve, { once:true }));
-  const doc = frame.contentDocument;
-  const surface = await wait(() => doc.querySelector('[data-v16-existing-practice-improve]'), 'existing-practice Improve surface');
+  let doc = frame.contentDocument;
+  let surface = await wait(() => doc.querySelector('[data-v16-existing-practice-improve]'), 'existing-practice Improve surface');
   if (!textIncludes(surface, 'These errors are already taught')) throw new Error('Improve surface heading missing');
   for (const marker of ['R02 → QR03', 'L05 → QL05', 'L04 → QL01', 'R04 → QR01']) {
     if (!textIncludes(surface, marker)) throw new Error(`Improve route missing: ${marker}`);
@@ -53,7 +53,7 @@ try {
   const rr02 = [...skillSurface.querySelectorAll('.repair-card')].find(card => card.textContent.includes('RR02'));
   if (!textIncludes(rr02, '1 active match')) throw new Error('Reading inference was not retained by RR02 Skill Repair');
 
-  const cardFor = id => doc.querySelector(`[data-error-id="${id}"]`)?.closest('.error-item');
+  let cardFor = id => doc.querySelector(`[data-error-id="${id}"]`)?.closest('.error-item');
   const expected = {
     'qa-reading-detail': ['Review R02', 'Practise QR03'],
     'qa-listening-detail': ['Review L05', 'Practise QL05'],
@@ -71,6 +71,23 @@ try {
   const retriable = await wait(() => cardFor('qa-retriable-heading'), 'retriable lesson error');
   if (!retriable.querySelector('[data-action="retry-error"]')) throw new Error('Original lesson Retry action missing');
   if (retriable.querySelector('[data-v16-existing-practice-error-route]')) throw new Error('Existing-practice route should not compete with original lesson Retry');
+
+  const miniInitial = await wait(() => cardFor('qa-reading-scope'), 'Mini Test scope error initial render');
+  if (miniInitial.querySelector('[data-action="retry-error"]')) throw new Error('Mini Test error exposed fake single-question Retry on initial render');
+
+  // Revisit Improve after all production module side effects have completed. This
+  // catches the historical timing bug where Mini Tests entered LESSONS after the
+  // first render and became incorrectly retriable on a later render.
+  frame.contentWindow.location.hash = '#/learn';
+  await wait(() => frame.contentWindow.location.hash === '#/learn' && frame.contentDocument.querySelector('#main')?.textContent.includes('Learn by skill'), 'Learn rerender');
+  frame.contentWindow.location.hash = '#/improve';
+  await wait(() => frame.contentWindow.location.hash === '#/improve' && frame.contentDocument.querySelector('[data-v16-existing-practice-improve]'), 'Improve rerender');
+  doc = frame.contentDocument;
+  cardFor = id => doc.querySelector(`[data-error-id="${id}"]`)?.closest('.error-item');
+  const miniAfterRerender = await wait(() => cardFor('qa-reading-scope'), 'Mini Test scope error after rerender');
+  if (miniAfterRerender.querySelector('[data-action="retry-error"]')) throw new Error('Mini Test error became falsely retriable after production registry registration');
+  const miniRoute = miniAfterRerender.querySelector('[data-v16-existing-practice-error-route]');
+  if (!textIncludes(miniRoute, 'Review R04') || !textIncludes(miniRoute, 'Practise QR01')) throw new Error('Mini Test scope error lost existing-practice routing after rerender');
 
   cardFor('qa-reading-detail').querySelector('[data-v16-existing-practice-error-route] [data-lesson="R02"]').click();
   await wait(() => frame.contentWindow.location.hash === '#/lesson/R02', 'R02 navigation');
