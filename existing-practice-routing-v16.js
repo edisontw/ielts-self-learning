@@ -43,12 +43,19 @@ export const EXISTING_PRACTICE_FAMILIES = {
     coverage: ['R02', 'QR05'],
     reason: 'R02 teaches sentence/paragraph roles, while QR05 directly practises locating a finding, criticism, reason, example, or other requested information function.'
   },
-  'reading-evidence': {
-    label: 'Reading evidence',
+  'reading-evidence-tfng': {
+    label: 'Reading evidence · TFNG',
     skill: 'reading',
-    auditedQuestions: 9,
-    coverage: ['R02', 'R04', 'QR01', 'QR03'],
-    reason: 'Core R02/R04 evidence errors keep direct Retry. Mini Test evidence is routed by question type: TFNG evidence → R04/QR01; supported-statement or supporting-example MCQ evidence → R02/QR03.'
+    auditedQuestions: 2,
+    coverage: ['R04', 'QR01'],
+    reason: 'These Mini Test evidence items ask whether the exact statement is supported. R04 and QR01 directly practise evidence-based True / False / Not Given decisions.'
+  },
+  'reading-evidence-mcq': {
+    label: 'Reading evidence · MCQ',
+    skill: 'reading',
+    auditedQuestions: 3,
+    coverage: ['R02', 'QR03'],
+    reason: 'These Mini Test evidence items ask which statement or example is supported. R02 teaches claim/evidence roles and QR03 practises evidence-first option comparison.'
   },
   'reading-contradiction': {
     label: 'Reading contradiction',
@@ -143,7 +150,7 @@ export const EXISTING_PRACTICE_RULES = [
   },
   {
     id: 'reading-evidence-tfng',
-    family: 'reading-evidence',
+    family: 'reading-evidence-tfng',
     skills: ['reading'],
     tags: ['reading-evidence'],
     questionTypes: ['true-false-not-given'],
@@ -152,7 +159,7 @@ export const EXISTING_PRACTICE_RULES = [
   },
   {
     id: 'reading-evidence-mcq',
-    family: 'reading-evidence',
+    family: 'reading-evidence-mcq',
     skills: ['reading'],
     tags: ['reading-evidence'],
     questionTypes: ['multiple-choice'],
