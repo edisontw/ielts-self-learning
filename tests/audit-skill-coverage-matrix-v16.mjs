@@ -1,8 +1,10 @@
 import { LESSONS } from '../data.js';
+import { V14_REPAIR_LESSONS } from '../repair-registry-v15.js';
 import { V16_SKILL_REPAIR_FAMILIES, V16_SKILL_REPAIR_LESSONS } from '../skill-repair-registry-v16.js';
 import { EXISTING_PRACTICE_RULES } from '../existing-practice-routing-v16.js';
 
 const modulePaths = [
+  '../data.js',
   '../curriculum-batch-01.js',
   '../curriculum-batch-02.js',
   '../question-type-lab-v1.js',
@@ -57,6 +59,7 @@ function visit(value, source) {
 }
 
 for (const { path, ns } of modules) visit(ns, path);
+assert(questions.size >= 388, `Coverage matrix scanned only ${questions.size} tagged questions; canonical post-Batch 3 inventory is at least 388.`);
 
 const skillFamilyRows = new Map();
 for (const row of questions.values()) {
@@ -87,6 +90,13 @@ function exactTeachingOwners(row) {
     .sort();
 }
 
+function vgRepairOwners(row) {
+  return V14_REPAIR_LESSONS
+    .filter(lesson => (lesson.triggerTags || []).some(tag => row.tags.has(tag)))
+    .map(lesson => lesson.id)
+    .sort();
+}
+
 function skillRepairOwners(row) {
   const owners = [];
   for (const lesson of V16_SKILL_REPAIR_LESSONS) {
@@ -105,10 +115,12 @@ function existingRouteOwners(row) {
 }
 
 function classify(row) {
-  const repairs = skillRepairOwners(row);
+  const vgRepairs = vgRepairOwners(row);
+  const skillRepairs = skillRepairOwners(row);
   const routes = existingRouteOwners(row);
   const teaching = exactTeachingOwners(row);
-  if (repairs.length) return { status: 'SKILL-REPAIR', owners: repairs, teaching, routes };
+  if (vgRepairs.length) return { status: 'V/G-REPAIR', owners: vgRepairs, teaching, routes };
+  if (skillRepairs.length) return { status: 'SKILL-REPAIR', owners: skillRepairs, teaching, routes };
   if (routes.length) return { status: 'ROUTED-REUSE', owners: routes, teaching, routes };
   if (teaching.length) return { status: 'TAUGHT-UNROUTED', owners: teaching, teaching, routes };
   return { status: 'GAP-REVIEW', owners: [], teaching, routes };
@@ -129,13 +141,14 @@ const recurring = [...skillFamilyRows.values()]
   .sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
 
 const buckets = {
+  'V/G-REPAIR': [],
   'SKILL-REPAIR': [],
   'ROUTED-REUSE': [],
   'TAUGHT-UNROUTED': [],
   'GAP-REVIEW': []
 };
 
-console.log('V1.6 post-Batch 3 Reading / Listening coverage matrix');
+console.log(`V1.6 post-Batch 3 Reading / Listening coverage matrix — ${questions.size} tagged questions scanned`);
 console.log('count | family | status | owners / destinations | layers | exact tags');
 for (const row of recurring) {
   const result = classify(row);
@@ -147,7 +160,7 @@ for (const row of recurring) {
 }
 
 console.log('\nCoverage summary');
-for (const status of ['SKILL-REPAIR', 'ROUTED-REUSE', 'TAUGHT-UNROUTED', 'GAP-REVIEW']) {
+for (const status of ['V/G-REPAIR', 'SKILL-REPAIR', 'ROUTED-REUSE', 'TAUGHT-UNROUTED', 'GAP-REVIEW']) {
   const rows = buckets[status];
   console.log(`${status}: ${rows.length} recurring families / ${rows.reduce((sum, item) => sum + item.row.count, 0)} tagged questions`);
 }
@@ -161,10 +174,12 @@ for (const { row, result } of followUp.slice(0, 12)) {
 if (!followUp.length) console.log('none');
 
 assert(recurring.length > 0, 'No recurring Reading / Listening error families were audited.');
+assert(buckets['V/G-REPAIR'].some(item => item.result.owners.includes('VG04') && item.row.family === 'paraphrase'), 'VG04 paraphrase ownership is missing from the coverage matrix.');
+assert(buckets['V/G-REPAIR'].some(item => item.result.owners.includes('VG05') && item.row.family === 'answer-type'), 'VG05 answer-type ownership is missing from the coverage matrix.');
 assert(buckets['SKILL-REPAIR'].some(item => item.result.owners.includes('RR01')), 'RR01 is missing from the post-Batch 3 coverage matrix.');
 assert(buckets['SKILL-REPAIR'].some(item => item.result.owners.includes('RR02')), 'RR02 is missing from the post-Batch 3 coverage matrix.');
 assert(buckets['SKILL-REPAIR'].some(item => item.result.owners.includes('LR01')), 'LR01 is missing from the post-Batch 3 coverage matrix.');
 assert(buckets['ROUTED-REUSE'].some(item => item.row.key === 'reading:detail'), 'Batch 3 Reading detail routing is missing from the coverage matrix.');
 assert(buckets['ROUTED-REUSE'].some(item => item.row.key === 'listening:detail'), 'Batch 3 Listening detail routing is missing from the coverage matrix.');
 
-console.log('✓ Post-Batch 3 matrix distinguishes Skill Repair, routed reuse, taught-but-unrouted coverage, and real gap-review candidates.');
+console.log('✓ Post-Batch 3 matrix distinguishes V/G Repair, Skill Repair, routed reuse, taught-but-unrouted coverage, and real gap-review candidates.');
