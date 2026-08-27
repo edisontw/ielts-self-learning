@@ -109,7 +109,7 @@ smoke_skill_repair_interaction() {
     --disable-crash-reporter \
     --user-data-dir="$profile" \
     --window-size="1280,900" \
-    --virtual-time-budget=12000 \
+    --virtual-time-budget=14000 \
     --dump-dom "$BASE/tests/browser-skill-repair-v16.html" >"$dom" 2>"$log"
   local status=$?
   set -e
@@ -122,13 +122,14 @@ smoke_skill_repair_interaction() {
     cat "$log" >&2 || true
     exit 1
   fi
-  echo "Browser interaction passed: RR01 wrong → Retry → all correct → Finish; LR01 production audio GET"
+  echo "Browser interaction passed: RR01 + RR02 wrong → Retry → all correct → Finish; LR01 production audio GET"
 }
 
 smoke_route '#/today' "Today's study" today
 smoke_route '#/learn' 'Learn by skill' learn
 smoke_route '#/learn' 'Paraphrase: Same Meaning, Different Form' learn-repair
 smoke_route '#/learn' 'Main Idea vs Supporting Detail' learn-skill-repair
+smoke_route '#/learn' 'Infer Only What the Evidence Supports' learn-inference-repair
 smoke_route '#/ielts' 'IELTS practice' ielts
 smoke_route '#/ielts' '5 lessons + 12 full practice prompts' wt1-ielts
 smoke_route '#/ielts' 'Speaking Practice Bank' spb-ielts
@@ -142,6 +143,7 @@ smoke_route '#/lesson/VG03' 'Complex Sentences Without Losing Control' vg03
 smoke_route '#/lesson/VG04' 'Paraphrase: Same Meaning, Different Form' vg04
 smoke_route '#/lesson/VG05' 'Use Grammar to Predict the Answer Type' vg05
 smoke_route '#/lesson/RR01' 'Main Idea vs Supporting Detail' rr01
+smoke_route '#/lesson/RR02' 'Infer Only What the Evidence Supports' rr02
 smoke_route '#/lesson/LR01' 'Audio A — Pottery workshop booking' lr01
 smoke_route '#/lesson/QR01' 'Set B — Independent' qr01-depth
 smoke_route '#/lesson/QL01' 'Play practice audio' ql01-depth
@@ -150,4 +152,4 @@ smoke_route '#/lesson/SPB01' 'Random Part 1 question' spb-workspace
 smoke_route '#/ielts' 'Full Mock' ielts-mobile '390,844'
 smoke_skill_repair_interaction
 
-echo "Browser smoke passed across core desktop routes, V/G Repair, V1.6 RR01/LR01 Skill Repair, Learn Repair indexes, V1.3 Lab depth routes, eight Mini Tests, Academic Writing Task 1, Speaking Practice Bank and mobile IELTS navigation."
+echo "Browser smoke passed across core desktop routes, V/G Repair, V1.6 RR01/RR02/LR01 Skill Repair, Learn Repair indexes, V1.3 Lab depth routes, eight Mini Tests, Academic Writing Task 1, Speaking Practice Bank and mobile IELTS navigation."
