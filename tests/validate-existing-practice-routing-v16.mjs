@@ -16,12 +16,16 @@ const ids = error => {
   return rec ? [rec.primary.id, rec.transfer.id] : null;
 };
 
-assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 5, 'Batch 3 must route exactly the five already-covered overlap-audit families');
+assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 9, 'Batch 4 must expose nine audited existing-practice families');
 assert(EXISTING_PRACTICE_FAMILIES['reading-detail'].auditedQuestions === 21, 'Reading detail count must remain 21');
 assert(EXISTING_PRACTICE_FAMILIES['listening-detail'].auditedQuestions === 16, 'Listening detail count must remain 16');
 assert(EXISTING_PRACTICE_FAMILIES['listening-distractor'].auditedQuestions === 14, 'Listening distractor count must remain 14');
 assert(EXISTING_PRACTICE_FAMILIES['listening-correction'].auditedQuestions === 11, 'Listening correction count must remain 11');
 assert(EXISTING_PRACTICE_FAMILIES['reading-scope'].auditedQuestions === 10, 'Reading scope count must remain 10');
+assert(EXISTING_PRACTICE_FAMILIES['reading-information-function'].auditedQuestions === 10, 'Reading information-function count must remain 10');
+assert(EXISTING_PRACTICE_FAMILIES['reading-contradiction'].auditedQuestions === 7, 'Reading contradiction count must remain 7');
+assert(EXISTING_PRACTICE_FAMILIES['reading-not-given'].auditedQuestions === 7, 'Reading Not Given count must remain 7');
+assert(EXISTING_PRACTICE_FAMILIES['reading-summary-logic'].auditedQuestions === 7, 'Reading summary-logic count must remain 7');
 
 assert(JSON.stringify(ids({ skill:'reading', errorTag:'detail' })) === JSON.stringify(['R02','QR03']), 'Generic Reading detail must route to R02 → QR03');
 assert(JSON.stringify(ids({ skill:'listening', errorTag:'detail' })) === JSON.stringify(['L05','QL05']), 'Generic Listening detail must route to L05 → QL05');
@@ -33,6 +37,15 @@ assert(JSON.stringify(ids({ skill:'listening', errorTag:'listening-requested-det
 assert(JSON.stringify(ids({ skill:'listening', errorTag:'distractor' })) === JSON.stringify(['L04','QL01']), 'Generic Listening distractor must route to L04 → QL01');
 assert(JSON.stringify(ids({ skill:'listening', errorTag:'listening-correction' })) === JSON.stringify(['L04','QL06']), 'Listening correction must route to L04 → QL06');
 assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-scope' })) === JSON.stringify(['R04','QR01']), 'Reading scope must route to R04 → QR01');
+
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-information-function' })) === JSON.stringify(['R02','QR05']), 'Reading information-function must route to R02 → QR05');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-contradiction' })) === JSON.stringify(['R04','QR01']), 'Reading contradiction must route to R04 → QR01');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-not-given' })) === JSON.stringify(['R04','QR01']), 'Reading Not Given must route to R04 → QR01');
+assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-summary-logic' })) === JSON.stringify(['R02','QR06']), 'Reading summary logic must route to R02 → QR06');
+
+// Evidence is intentionally deferred: the same tag currently spans TFNG and MCQ
+// decisions, so one fixed Lab transfer would over-route part of the evidence.
+assert(route({ skill:'reading', errorTag:'reading-evidence' }) === null, 'Reading evidence must stay unrouted until question-type-aware transfer is available');
 
 assert(route({ skill:'reading', errorTag:'number' }) === null, 'Reading number must not enter existing-practice routing');
 assert(route({ skill:'listening', errorTag:'main-idea' }) === null, 'Listening main idea must not enter existing-practice routing');
@@ -58,8 +71,8 @@ assert(runtime.includes('data-action="retry-error"'), 'Error Notebook routing mu
 assert(index.includes('existing-practice-routing-runtime-v16.js'), 'Production index must load the existing-practice routing runtime');
 assert(index.indexOf('skill-repair-runtime-v16.js') < index.indexOf('existing-practice-routing-runtime-v16.js'), 'Existing-practice surface must render after Skill Repair so the two recommendation types stay distinct');
 
-console.log('✓ V1.6 Batch 3 routes five already-covered error families back to existing Core/Lab practice');
-console.log('✓ Generic detail is skill-aware: Reading → R02/QR03, Listening → L05/QL05');
-console.log('✓ Distractor/correction and Reading scope route to existing teaching instead of new Repair units');
-console.log('✓ RR01/RR02/LR01 evidence remains owned by Skill Repair');
-console.log('✓ Existing-practice routing is read-only and reuses the V1.5 event-driven lifecycle');
+console.log('✓ V1.6 Batch 4 expands existing-practice routing to four semantically clear taught-but-unrouted Reading families');
+console.log('✓ Information function → R02/QR05; contradiction + Not Given → R04/QR01; summary logic → R02/QR06');
+console.log('✓ Heterogeneous Reading evidence remains deliberately unrouted instead of forcing one incorrect Lab transfer');
+console.log('✓ Direct lesson Retry and RR01/RR02/LR01 ownership remain higher-priority contracts');
+console.log('✓ Existing-practice routing remains read-only and reuses the V1.5 event-driven lifecycle');
