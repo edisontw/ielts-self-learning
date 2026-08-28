@@ -83,11 +83,18 @@ for (const row of questions.values()) {
 
 const instructional = LESSONS.filter(lesson => !['mini-test', 'full-mock'].includes(lesson.lessonType));
 
+// Semantics-first aliases are used only when the audited family is clearly taught by an
+// existing lesson but its historical errorTag vocabulary does not encode that ownership.
+// They do not create runtime routes or learner state.
+const SEMANTIC_TEACHING_OVERRIDES = {
+  'listening:main-idea': ['L01']
+};
+
 function exactTeachingOwners(row) {
-  return instructional
-    .filter(lesson => (lesson.errorTags || []).some(tag => row.tags.has(tag)))
-    .map(lesson => lesson.id)
-    .sort();
+  const direct = instructional
+    .filter(lesson => lesson.skill === row.skill && (lesson.errorTags || []).some(tag => row.tags.has(tag)))
+    .map(lesson => lesson.id);
+  return [...new Set([...direct, ...(SEMANTIC_TEACHING_OVERRIDES[row.key] || [])])].sort();
 }
 
 function vgRepairOwners(row) {
@@ -178,8 +185,17 @@ assert(buckets['V/G-REPAIR'].some(item => item.result.owners.includes('VG04') &&
 assert(buckets['V/G-REPAIR'].some(item => item.result.owners.includes('VG05') && item.row.family === 'answer-type'), 'VG05 answer-type ownership is missing from the coverage matrix.');
 assert(buckets['SKILL-REPAIR'].some(item => item.result.owners.includes('RR01')), 'RR01 is missing from the post-Batch 3 coverage matrix.');
 assert(buckets['SKILL-REPAIR'].some(item => item.result.owners.includes('RR02')), 'RR02 is missing from the post-Batch 3 coverage matrix.');
+assert(buckets['SKILL-REPAIR'].some(item => item.result.owners.includes('RR03') && item.row.key === 'reading:reference'), 'RR03 must own the three audited Reading reference signals.');
 assert(buckets['SKILL-REPAIR'].some(item => item.result.owners.includes('LR01')), 'LR01 is missing from the post-Batch 3 coverage matrix.');
 assert(buckets['ROUTED-REUSE'].some(item => item.row.key === 'reading:detail'), 'Batch 3 Reading detail routing is missing from the coverage matrix.');
 assert(buckets['ROUTED-REUSE'].some(item => item.row.key === 'listening:detail'), 'Batch 3 Listening detail routing is missing from the coverage matrix.');
+assert(buckets['ROUTED-REUSE'].some(item => item.row.key === 'listening:final-decision' && item.result.owners.includes('L04→QL01')), 'Listening final-decision must reuse L04 → QL01.');
+assert(buckets['ROUTED-REUSE'].some(item => item.row.key === 'listening:scope' && item.result.owners.includes('L05→QL05')), 'Listening scope must reuse L05 → QL05.');
+assert(buckets['TAUGHT-UNROUTED'].some(item => item.row.key === 'listening:main-idea' && item.result.owners.includes('L01')), 'Listening main-idea must be recognised as taught by L01 without inventing a Repair or transfer Lab.');
+assert(buckets['GAP-REVIEW'].some(item => item.row.key === 'listening:sequence'), 'Listening sequence must remain GAP-REVIEW because its three signals mix route-following and procedural sequence semantics.');
+assert(buckets['SKILL-REPAIR'].length === 4 && buckets['SKILL-REPAIR'].reduce((sum, item) => sum + item.row.count, 0) === 62, 'Post-gap review Skill Repair summary must be 4 families / 62 questions.');
+assert(buckets['ROUTED-REUSE'].length === 20 && buckets['ROUTED-REUSE'].reduce((sum, item) => sum + item.row.count, 0) === 155, 'Post-gap review routed reuse summary must be 20 families / 155 questions.');
+assert(buckets['TAUGHT-UNROUTED'].length === 11 && buckets['TAUGHT-UNROUTED'].reduce((sum, item) => sum + item.row.count, 0) === 41, 'Post-gap review taught-unrouted summary must be 11 families / 41 questions.');
+assert(buckets['GAP-REVIEW'].length === 1 && buckets['GAP-REVIEW'][0].row.key === 'listening:sequence', 'Only heterogeneous Listening sequence should remain in GAP-REVIEW after this semantics pass.');
 
-console.log('✓ Post-Batch 3 matrix distinguishes V/G Repair, Skill Repair, routed reuse, taught-but-unrouted coverage, and real gap-review candidates.');
+console.log('✓ Post-Batch 5 gap review routes final-decision/scope, recognises L01 Listening gist ownership, adds RR03 reference repair, and leaves heterogeneous sequence unresolved.');
