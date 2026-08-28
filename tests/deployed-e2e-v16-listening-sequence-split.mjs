@@ -58,7 +58,7 @@ async function resetState(page, adaptive = {}) {
 }
 
 async function selectMiniStage(page) {
-  const tab = page.locator('[data-ielts-stage="mini"]');
+  const tab = page.locator('button[data-ielts-stage="mini"]');
   await tab.waitFor({ timeout:15000 });
   if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
   await page.locator('[data-mini-test-index]').waitFor({ state:'visible', timeout:15000 });
