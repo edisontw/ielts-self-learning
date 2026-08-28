@@ -57,8 +57,16 @@ async function resetState(page, adaptive = {}) {
   await openRoute(page, 'today');
 }
 
+async function selectMiniStage(page) {
+  const tab = page.locator('[data-ielts-stage="mini"]');
+  await tab.waitFor({ timeout:15000 });
+  if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
+  await page.locator('[data-mini-test-index]').waitFor({ state:'visible', timeout:15000 });
+}
+
 async function runUnansweredMiniTestAndSave(page, testId, questionId, expectedTag) {
   await goto(page, 'ielts');
+  await selectMiniStage(page);
   const start = page.locator(`[data-mini-action="start"][data-test-id="${testId}"]`).first();
   await start.waitFor({ timeout:15000 });
   await start.click();
