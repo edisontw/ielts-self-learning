@@ -1,5 +1,6 @@
 import './mini-test-data-v3.js';
 import { MINI_TESTS } from './mini-test-data-v1.js';
+import { normalizedMiniTestErrorTag } from './listening-sequence-semantics-v16.js';
 
 const CORE_KEY='ielts-self-learning-v1';
 const ADAPTIVE_KEY='ielts-adaptive-v1';
@@ -17,7 +18,8 @@ function tagCountsForSubmission(result){
   for(const item of test.questions){
     const saved=core.lessonAnswers?.[item.id];
     if(saved?.selected===item.answer)continue;
-    counts[item.errorTag]=(counts[item.errorTag]||0)+1;
+    const tag=normalizedMiniTestErrorTag(item);
+    counts[tag]=(counts[tag]||0)+1;
   }
   return counts;
 }
@@ -57,8 +59,9 @@ function recurringPatterns(adaptive,skill){
   if(rows.length<2)return [];
   const patterns=new Map();
   for(const row of rows){
-    for(const [tag,count] of Object.entries(row.missedErrorTags||{})){
+    for(const [rawTag,count] of Object.entries(row.missedErrorTags||{})){
       if(!count)continue;
+      const tag=normalizedMiniTestErrorTag({errorTag:rawTag,testId:row.testId});
       const current=patterns.get(tag)||{tag,count:0,tests:[],forms:0};
       current.count+=count;
       current.tests.push(row.testId);
