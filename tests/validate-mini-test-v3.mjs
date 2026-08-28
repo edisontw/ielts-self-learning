@@ -5,7 +5,13 @@ import { LESSONS } from '../data.js';
 import { MINI_TESTS } from '../mini-test-data-v1.js';
 import '../mini-test-data-v2.js';
 import { MINI_TESTS_V3 } from '../mini-test-data-v3.js';
-import { LISTENING_SEQUENCE_TAG_BY_QUESTION_ID, normalizedMiniTestErrorTag, listeningSequenceSubtype } from '../listening-sequence-semantics-v16.js';
+import {
+  LISTENING_SEQUENCE_TAG_BY_QUESTION_ID,
+  READING_DEFINITION_TAG_BY_QUESTION_ID,
+  normalizedMiniTestErrorTag,
+  listeningSequenceSubtype,
+  readingDefinitionSubtype
+} from '../listening-sequence-semantics-v16.js';
 
 const here=path.dirname(fileURLToPath(import.meta.url));
 const root=path.resolve(here,'..');
@@ -69,6 +75,16 @@ assert(normalizedMiniTestErrorTag({testId:'ML02',errorTag:'listening-sequence'})
 assert(normalizedMiniTestErrorTag({testId:'ML03',errorTag:'listening-sequence'})==='listening-spatial-sequence','Historical ML03 trend evidence must normalize by test form.');
 assert(normalizedMiniTestErrorTag({testId:'ML04',errorTag:'listening-sequence'})==='listening-procedural-sequence','Historical ML04 trend evidence must normalize by test form.');
 
+assert(JSON.stringify(READING_DEFINITION_TAG_BY_QUESTION_ID)===JSON.stringify({
+  'MR02-Q4':'reading-explicit-definition',
+  'MR04-Q4':'reading-distinction'
+}),'Reading definition subtype registry must contain exactly the two audited Mini Test questions.');
+assert(readingDefinitionSubtype({questionId:'MR02-Q4',errorTag:'reading-definition'})==='explicit-definition','MR02-Q4 must normalize to explicit-definition retrieval.');
+assert(readingDefinitionSubtype({questionId:'MR04-Q4',errorTag:'reading-definition'})==='concept-distinction','MR04-Q4 must normalize to concept distinction.');
+assert(normalizedMiniTestErrorTag({questionId:'UNKNOWN',errorTag:'reading-definition'})==='reading-definition','Unknown legacy reading-definition IDs must not be guessed into a subtype.');
+assert(normalizedMiniTestErrorTag({testId:'MR02',errorTag:'reading-definition'})==='reading-explicit-definition','Historical MR02 reading-definition evidence must normalize by test form.');
+assert(normalizedMiniTestErrorTag({testId:'MR04',errorTag:'reading-definition'})==='reading-distinction','Historical MR04 reading-definition evidence must normalize by test form.');
+
 const v3Index=index.indexOf('./mini-test-data-v3.js');
 const appIndex=index.indexOf('./app.js');
 const learningIndex=index.indexOf('./learning-runtime-v3.js');
@@ -77,7 +93,7 @@ assert(ux.includes("['mini','3','Mini Tests','8 tests']"),'IELTS stage navigatio
 for(const token of ['mini-test-data-v3.js','limit=4','x.forms>=2','up to the four most recent different Mini Tests','Three or four forms provide stronger evidence','normalizedMiniTestErrorTag']){
   assert(trendsSource.includes(token),`Mini Test trend runtime missing V3/semantic contract token: ${token}`);
 }
-assert(runtimeSource.includes('normalizedMiniTestErrorTag')&&runtimeSource.includes('errorTag:displayTag(item)'),'Mini Test Error Notebook saves must persist the normalized semantic sequence tag.');
+assert(runtimeSource.includes('normalizedMiniTestErrorTag')&&runtimeSource.includes('errorTag:displayTag(item)'),'Mini Test Error Notebook saves must persist normalized semantic Mini Test tags.');
 assert(!trendsSource.includes('bandScore')&&!trendsSource.includes('estimatedBand'),'Mini Test trends must not create pseudo IELTS band scoring.');
 
 const store=new Map();
@@ -114,8 +130,18 @@ assert(spatial?.forms===2&&spatial.count===2,'Historical ML02/ML03 sequence miss
 assert(!listeningPatterns.some(x=>x.tag==='listening-procedural-sequence'),'The single ML04 procedural sequence miss must stay subthreshold.');
 assert(!listeningPatterns.some(x=>x.tag==='listening-sequence'),'The heterogeneous umbrella sequence tag must never appear as a recurring trend after normalization.');
 
+const legacyReadingDefinition={miniTestHistory:[
+  {id:'r4',ts:40,testId:'MR04',skill:'reading',missedErrorTags:{'reading-definition':1}},
+  {id:'r2',ts:20,testId:'MR02',skill:'reading',missedErrorTags:{'reading-definition':1}}
+]};
+const definitionPatterns=recurringPatterns(legacyReadingDefinition,'reading');
+assert(!definitionPatterns.some(x=>x.tag==='reading-definition'),'The heterogeneous reading-definition umbrella tag must never appear as recurring trend evidence.');
+assert(!definitionPatterns.some(x=>x.tag==='reading-explicit-definition'),'MR02 explicit-definition is only one form and must stay subthreshold.');
+assert(!definitionPatterns.some(x=>x.tag==='reading-distinction'),'MR04 concept-distinction is only one form and must stay subthreshold.');
+
 console.log('✓ Mini Test bank expanded to 8 forms: MR01–MR04 / ML01–ML04');
 console.log('✓ Bank size: 4 Reading × 12 + 4 Listening × 10 = 88 questions');
 console.log('✓ ML02/ML03 spatial route sequence is separated from ML04 procedural/event sequence before persistence, trend detection, and audit');
+console.log('✓ MR02 explicit definition is separated from MR04 concept distinction before persistence, trend detection, and audit');
 console.log('✓ Trend analysis still uses up to four distinct forms and requires recurrence on at least two');
-console.log('✓ Legacy umbrella sequence history normalizes without creating false three-form recurrence or LR02 evidence');
+console.log('✓ Legacy heterogeneous sequence/definition history normalizes without false recurring evidence');
