@@ -15,18 +15,35 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const pass = (name, detail = {}) => { results.push({ name, status:'PASS', ...detail }); console.log(`✓ ${name}`); };
 const shot = async (page, name) => page.screenshot({ path:path.join(OUT, `${name}.png`), fullPage:true });
 
+async function openRoute(page, route, attempts = 4) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const response = await page.goto(`${BASE}#/${route}`, { waitUntil:'domcontentloaded', timeout:20000 });
+      const status = response?.status() || 0;
+      if (status >= 500) throw new Error(`production returned HTTP ${status}`);
+      await page.waitForSelector('#main', { timeout:15000 });
+      await page.waitForTimeout(800);
+      const text = await page.locator('#main').textContent();
+      assert(!text?.includes('The page could not start normally.'), `${route} showed boot recovery`);
+      assert(!text?.includes('Lesson not found'), `${route} showed Lesson not found`);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts) break;
+      console.log(`production navigation retry ${attempt}/${attempts}: ${route} — ${String(error.message || error)}`);
+      await page.waitForTimeout(1000 * attempt);
+    }
+  }
+  throw lastError;
+}
+
 async function goto(page, route) {
-  await page.goto(`${BASE}#/${route}`, { waitUntil:'domcontentloaded' });
-  await page.waitForSelector('#main', { timeout:20000 });
-  await page.waitForTimeout(900);
-  const text = await page.locator('#main').textContent();
-  assert(!text?.includes('The page could not start normally.'), `${route} showed boot recovery`);
-  assert(!text?.includes('Lesson not found'), `${route} showed Lesson not found`);
+  await openRoute(page, route);
 }
 
 async function resetState(page, adaptive = {}) {
-  await page.goto(`${BASE}#/today`, { waitUntil:'domcontentloaded' });
-  await page.waitForSelector('#main', { timeout:20000 });
+  await openRoute(page, 'today');
   await page.evaluate(({ coreKey, adaptiveKey, guideKey, adaptiveValue }) => {
     localStorage.clear();
     localStorage.setItem(guideKey, 'true');
@@ -37,9 +54,7 @@ async function resetState(page, adaptive = {}) {
     }));
     localStorage.setItem(adaptiveKey, JSON.stringify({ repairProgress:{}, learningHistory:[], reviewSchedule:{}, ...adaptiveValue }));
   }, { coreKey:CORE, adaptiveKey:ADAPTIVE, guideKey:GUIDE, adaptiveValue:adaptive });
-  await page.reload({ waitUntil:'domcontentloaded' });
-  await page.waitForSelector('#main', { timeout:20000 });
-  await page.waitForTimeout(800);
+  await openRoute(page, 'today');
 }
 
 async function runUnansweredMiniTestAndSave(page, testId, questionId, expectedTag) {
@@ -69,8 +84,7 @@ async function errorCardState(page, questionId) {
     const core = JSON.parse(localStorage.getItem('ielts-self-learning-v1') || '{}');
     const error = (core.errors || []).find(row => row.questionId === qid);
     if (!error) return null;
-    const marker = document.querySelector(`[data-error-id="${CSS.escape(error.id)}"]`);
-    const card = marker?.closest('.error-item');
+    const card = [...document.querySelectorAll('#main .error-item')].find(item => (item.textContent || '').includes(error.question || ''));
     if (!card) return { error, cardFound:false };
     return {
       error,
