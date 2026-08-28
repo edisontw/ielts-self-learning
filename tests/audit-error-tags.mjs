@@ -1,3 +1,5 @@
+import { normalizedMiniTestErrorTag } from '../listening-sequence-semantics-v16.js';
+
 const modulePaths = [
   '../data.js',
   '../curriculum-batch-01.js',
@@ -41,7 +43,7 @@ function visit(value, source) {
   if (typeof value.id === 'string' && typeof value.errorTag === 'string') {
     const row = {
       id: value.id,
-      errorTag: value.errorTag,
+      errorTag: normalizedMiniTestErrorTag({ id:value.id, errorTag:value.errorTag }),
       source,
       layer: sourceLayer(value.id),
       skill: questionSkill(value.id)
@@ -110,3 +112,10 @@ console.log('\nReading / Listening recurring skill families, frequency >= 3 (cou
 for (const [, row] of sortRows([...skillSemantic.entries()]).filter(([, row]) => ['reading', 'listening'].includes(row.skill) && row.count >= 3)) {
   console.log(`${String(row.count).padStart(3)} | ${row.skill} | ${[...row.layers].sort().join(',')} | ${row.family} <- ${[...row.exactTags].sort().join(', ')}`);
 }
+
+const spatial = skillSemantic.get('listening:spatial-sequence');
+const procedural = skillSemantic.get('listening:procedural-sequence');
+if (spatial?.count !== 2 || procedural?.count !== 1 || skillSemantic.has('listening:sequence')) {
+  throw new Error('Listening sequence semantic split must resolve to spatial-sequence ×2 and procedural-sequence ×1 with no umbrella recurring family.');
+}
+console.log('✓ Listening sequence umbrella tag is normalized to spatial-sequence ×2 and procedural-sequence ×1 before recurrence analysis');

@@ -1,4 +1,5 @@
 import { MINI_TESTS } from './mini-test-data-v1.js';
+import { normalizedMiniTestErrorTag } from './listening-sequence-semantics-v16.js';
 
 const CORE_KEY='ielts-self-learning-v1';
 const ADAPTIVE_KEY='ielts-adaptive-v1';
@@ -10,6 +11,7 @@ const write=(key,value)=>localStorage.setItem(key,JSON.stringify(value));
 const testById=id=>MINI_TESTS.find(t=>t.id===id);
 const canSpeak=()=>('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
 const stopSpeech=()=>{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); };
+const displayTag=item=>normalizedMiniTestErrorTag(item);
 
 function removeMiniTestsFromLearn(){
   if(!location.hash.includes('/learn')) return;
@@ -74,7 +76,7 @@ function startTimer(){
 
 function questionHTML(item,index){
   const selected=session?.answers[item.id]||'';
-  return `<div class="quiz-card" data-mini-question="${item.id}"><div class="cluster"><span class="chip">${index+1}</span><span class="small muted">${esc(item.errorTag)}</span></div><div class="q-title" style="margin-top:10px">${esc(item.prompt)}</div><div class="options">${item.options.map((o,i)=>`<button class="option ${selected===o?'selected':''}" data-mini-option data-qid="${item.id}" data-value="${esc(o)}"><span class="option-letter">${String.fromCharCode(65+i)}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
+  return `<div class="quiz-card" data-mini-question="${item.id}"><div class="cluster"><span class="chip">${index+1}</span><span class="small muted">${esc(displayTag(item))}</span></div><div class="q-title" style="margin-top:10px">${esc(item.prompt)}</div><div class="options">${item.options.map((o,i)=>`<button class="option ${selected===o?'selected':''}" data-mini-option data-qid="${item.id}" data-value="${esc(o)}"><span class="option-letter">${String.fromCharCode(65+i)}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
 }
 
 function playerHTML(){
@@ -131,7 +133,7 @@ function resultHTML(result){
   const t=session.test;
   const items=t.questions.map((item,index)=>{
     const mine=session.answers[item.id]||'Unanswered'; const correct=mine===item.answer;
-    return `<article class="error-item"><div class="cluster"><span class="chip">${index+1}</span><span class="chip ${correct?'success':'warning'}">${correct?'Correct':'Review'}</span><span class="small muted">${esc(item.errorTag)}</span></div><strong>${esc(item.prompt)}</strong><div class="error-answer"><div><span class="small muted">Your answer</span><br>${esc(mine)}</div><div><span class="small muted">Correct answer</span><br>${esc(item.answer)}</div></div><p class="muted">${esc(item.rationale)}</p></article>`;
+    return `<article class="error-item"><div class="cluster"><span class="chip">${index+1}</span><span class="chip ${correct?'success':'warning'}">${correct?'Correct':'Review'}</span><span class="small muted">${esc(displayTag(item))}</span></div><strong>${esc(item.prompt)}</strong><div class="error-answer"><div><span class="small muted">Your answer</span><br>${esc(mine)}</div><div><span class="small muted">Correct answer</span><br>${esc(item.answer)}</div></div><p class="muted">${esc(item.rationale)}</p></article>`;
   }).join('');
   const transcript=t.skill==='listening'?`<details class="card" style="margin-top:18px"><summary><strong>Review transcript after submission</strong></summary><div class="reading-passage" style="margin-top:12px">${t.script.split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('')}</div></details>`:'';
   return `<section data-mini-test-player="true"><section class="page-head"><div><div class="eyebrow">Mini Test result · diagnostic only</div><h1>${esc(t.title)}</h1><p class="lede">This score is evidence from one short test. It is not an IELTS band estimate.</p></div><div class="score-circle">${result.correct}<span class="small">/${result.total}</span></div></section><div class="grid three"><div class="card stat"><div class="stat-value">${Math.round(result.correct/result.total*100)}%</div><div class="stat-label">items correct</div></div><div class="card stat"><div class="stat-value">${result.unanswered}</div><div class="stat-label">unanswered</div></div><div class="card stat"><div class="stat-value">${formatTime(result.durationSeconds)}</div><div class="stat-label">time used</div></div></div>${transcript}<section class="card" style="margin-top:18px"><div class="eyebrow">Item review</div><h2 style="margin:7px 0 14px">Evidence → Error → Repair</h2>${items}<div class="cluster" style="margin-top:18px"><button class="btn primary" data-mini-action="save-errors">Save missed items to Error Notebook</button><button class="btn soft" data-mini-action="retake">Retake after review</button><button class="btn ghost" data-mini-action="exit">Back to IELTS</button></div></section></section>`;
@@ -155,7 +157,7 @@ function saveErrors(button){
   for(const item of session.test.questions){
     const mine=session.answers[item.id]||'';
     if(mine===item.answer||core.errors.some(e=>e.questionId===item.id))continue;
-    core.errors.push({id:`err-${Date.now()}-${item.id}`,ts:Date.now(),questionId:item.id,lessonId:session.test.id,skill:session.test.skill,question:item.prompt,myAnswer:mine||'Unanswered',correctAnswer:item.answer,rationale:item.rationale,errorTag:item.errorTag});
+    core.errors.push({id:`err-${Date.now()}-${item.id}`,ts:Date.now(),questionId:item.id,lessonId:session.test.id,skill:session.test.skill,question:item.prompt,myAnswer:mine||'Unanswered',correctAnswer:item.answer,rationale:item.rationale,errorTag:displayTag(item)});
     added++;
   }
   write(CORE_KEY,core);
