@@ -30,6 +30,20 @@ export const EXISTING_PRACTICE_FAMILIES = {
     coverage: ['L04', 'QL06'],
     reason: 'Correction language and delayed commitment are explicit teaching targets in existing Listening practice.'
   },
+  'listening-final-decision': {
+    label: 'Listening final decision',
+    skill: 'listening',
+    auditedQuestions: 3,
+    coverage: ['L04', 'QL01'],
+    reason: 'All three Mini Test signals require following the completed decision or conditional recommendation to its final action; L04 and QL01 already teach that exact decision-state discipline.'
+  },
+  'listening-scope': {
+    label: 'Listening scope',
+    skill: 'listening',
+    auditedQuestions: 3,
+    coverage: ['L05', 'QL05'],
+    reason: 'The three Mini Test scope items ask for a precise detail constrained by who, when, inclusion, or exclusion. L05 prepares the requested answer category and QL05 explicitly trains question-word/time-reference control.'
+  },
   'reading-scope': {
     label: 'Reading scope',
     skill: 'reading',
@@ -138,6 +152,22 @@ export const EXISTING_PRACTICE_RULES = [
     tags: ['distractor', 'listening-distractor', 'listening-first-mention', 'listening-option-tracking', 'listening-change-of-mind', 'change-of-mind'],
     primary: lesson('L04', "Don't Fall for the Distractor"),
     transfer: lesson('QL01', 'Question Type Lab: Listening Multiple Choice')
+  },
+  {
+    id: 'listening-final-decision',
+    family: 'listening-final-decision',
+    skills: ['listening'],
+    tags: ['listening-final-decision'],
+    primary: lesson('L04', "Don't Fall for the Distractor"),
+    transfer: lesson('QL01', 'Question Type Lab: Listening Multiple Choice')
+  },
+  {
+    id: 'listening-scope',
+    family: 'listening-scope',
+    skills: ['listening'],
+    tags: ['listening-scope'],
+    primary: lesson('L05', 'Predict Before You Listen'),
+    transfer: lesson('QL05', 'Question Type Lab: Listening Short Answer')
   },
   {
     id: 'listening-correction',
