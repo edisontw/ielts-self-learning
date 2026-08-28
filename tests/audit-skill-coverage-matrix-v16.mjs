@@ -2,6 +2,7 @@ import { LESSONS } from '../data.js';
 import { V14_REPAIR_LESSONS } from '../repair-registry-v15.js';
 import { V16_SKILL_REPAIR_FAMILIES, V16_SKILL_REPAIR_LESSONS } from '../skill-repair-registry-v16.js';
 import { EXISTING_PRACTICE_RULES } from '../existing-practice-routing-v16.js';
+import { normalizedMiniTestErrorTag } from '../listening-sequence-semantics-v16.js';
 
 const modulePaths = [
   '../data.js',
@@ -45,10 +46,11 @@ function visit(value, source) {
   if (!value || typeof value !== 'object' || seen.has(value)) return;
   seen.add(value);
   if (typeof value.id === 'string' && typeof value.errorTag === 'string' && !questions.has(value.id)) {
+    const tag = normalizedMiniTestErrorTag({ id:value.id, errorTag:value.errorTag });
     questions.set(value.id, {
       id: value.id,
-      tag: value.errorTag,
-      family: familyOf(value.errorTag),
+      tag,
+      family: familyOf(tag),
       skill: questionSkill(value.id),
       layer: sourceLayer(value.id),
       source
@@ -87,7 +89,8 @@ const instructional = LESSONS.filter(lesson => !['mini-test', 'full-mock'].inclu
 // existing lesson but its historical errorTag vocabulary does not encode that ownership.
 // They do not create runtime routes or learner state.
 const SEMANTIC_TEACHING_OVERRIDES = {
-  'listening:main-idea': ['L01']
+  'listening:main-idea': ['L01'],
+  'listening:spatial-sequence': ['QL03']
 };
 
 function exactTeachingOwners(row) {
@@ -133,7 +136,6 @@ function classify(row) {
   return { status: 'GAP-REVIEW', owners: [], teaching, routes };
 }
 
-// Registry integrity: every declared Skill Repair family must still resolve to a real lesson.
 for (const [familyKey, family] of Object.entries(V16_SKILL_REPAIR_FAMILIES)) {
   const skill = family.skills?.[0];
   const normalized = `${skill}:${familyOf(familyKey)}`;
@@ -180,6 +182,15 @@ for (const { row, result } of followUp.slice(0, 12)) {
 }
 if (!followUp.length) console.log('none');
 
+const spatialSequence = skillFamilyRows.get('listening:spatial-sequence');
+const proceduralSequence = skillFamilyRows.get('listening:procedural-sequence');
+assert(spatialSequence?.count === 2, 'Listening spatial-sequence must contain exactly ML02-Q4 and ML03-Q4.');
+assert(JSON.stringify([...spatialSequence.ids].sort()) === JSON.stringify(['ML02-Q4','ML03-Q4']), 'Listening spatial-sequence IDs changed unexpectedly.');
+assert(classify(spatialSequence).status === 'TAUGHT-UNROUTED' && classify(spatialSequence).owners.includes('QL03'), 'Spatial route sequence must be recognised as taught by QL03 without a synthetic Core → Lab route.');
+assert(proceduralSequence?.count === 1 && proceduralSequence.ids[0] === 'ML04-Q3', 'Listening procedural-sequence must contain only ML04-Q3.');
+assert(classify(proceduralSequence).status === 'GAP-REVIEW', 'The single procedural/event sequence signal remains untreated but subthreshold.');
+assert(!skillFamilyRows.has('listening:sequence'), 'Umbrella Listening sequence family must disappear after semantic normalization.');
+
 assert(recurring.length > 0, 'No recurring Reading / Listening error families were audited.');
 assert(buckets['V/G-REPAIR'].some(item => item.result.owners.includes('VG04') && item.row.family === 'paraphrase'), 'VG04 paraphrase ownership is missing from the coverage matrix.');
 assert(buckets['V/G-REPAIR'].some(item => item.result.owners.includes('VG05') && item.row.family === 'answer-type'), 'VG05 answer-type ownership is missing from the coverage matrix.');
@@ -192,10 +203,10 @@ assert(buckets['ROUTED-REUSE'].some(item => item.row.key === 'listening:detail')
 assert(buckets['ROUTED-REUSE'].some(item => item.row.key === 'listening:final-decision' && item.result.owners.includes('L04→QL01')), 'Listening final-decision must reuse L04 → QL01.');
 assert(buckets['ROUTED-REUSE'].some(item => item.row.key === 'listening:scope' && item.result.owners.includes('L05→QL05')), 'Listening scope must reuse L05 → QL05.');
 assert(buckets['TAUGHT-UNROUTED'].some(item => item.row.key === 'listening:main-idea' && item.result.owners.includes('L01')), 'Listening main-idea must be recognised as taught by L01 without inventing a Repair or transfer Lab.');
-assert(buckets['GAP-REVIEW'].some(item => item.row.key === 'listening:sequence'), 'Listening sequence must remain GAP-REVIEW because its three signals mix route-following and procedural sequence semantics.');
-assert(buckets['SKILL-REPAIR'].length === 4 && buckets['SKILL-REPAIR'].reduce((sum, item) => sum + item.row.count, 0) === 62, 'Post-gap review Skill Repair summary must be 4 families / 62 questions.');
-assert(buckets['ROUTED-REUSE'].length === 20 && buckets['ROUTED-REUSE'].reduce((sum, item) => sum + item.row.count, 0) === 155, 'Post-gap review routed reuse summary must be 20 families / 155 questions.');
-assert(buckets['TAUGHT-UNROUTED'].length === 11 && buckets['TAUGHT-UNROUTED'].reduce((sum, item) => sum + item.row.count, 0) === 41, 'Post-gap review taught-unrouted summary must be 11 families / 41 questions.');
-assert(buckets['GAP-REVIEW'].length === 1 && buckets['GAP-REVIEW'][0].row.key === 'listening:sequence', 'Only heterogeneous Listening sequence should remain in GAP-REVIEW after this semantics pass.');
+assert(buckets['SKILL-REPAIR'].length === 4 && buckets['SKILL-REPAIR'].reduce((sum, item) => sum + item.row.count, 0) === 62, 'Post-split Skill Repair summary must remain 4 families / 62 questions.');
+assert(buckets['ROUTED-REUSE'].length === 20 && buckets['ROUTED-REUSE'].reduce((sum, item) => sum + item.row.count, 0) === 155, 'Post-split routed reuse summary must remain 20 families / 155 questions.');
+assert(buckets['TAUGHT-UNROUTED'].length === 11 && buckets['TAUGHT-UNROUTED'].reduce((sum, item) => sum + item.row.count, 0) === 41, 'Post-split recurring taught-unrouted summary must remain 11 families / 41 questions.');
+assert(buckets['GAP-REVIEW'].length === 0, 'No recurring GAP-REVIEW family should remain after splitting the heterogeneous Listening sequence umbrella.');
+assert(!V16_SKILL_REPAIR_LESSONS.some(lesson => lesson.id === 'LR02'), 'The semantic split must not create LR02 from subthreshold evidence.');
 
-console.log('✓ Post-Batch 5 gap review routes final-decision/scope, recognises L01 Listening gist ownership, adds RR03 reference repair, and leaves heterogeneous sequence unresolved.');
+console.log('✓ Listening sequence is split into spatial-sequence ×2 (QL03-taught) and procedural-sequence ×1 (subthreshold), leaving zero recurring GAP-REVIEW families and no LR02.');
