@@ -9,13 +9,15 @@ const byId = id => V16_SKILL_REPAIR_LESSONS.find(lesson => lesson.id === id);
 
 const rr01 = byId('RR01');
 const rr02 = byId('RR02');
+const rr03 = byId('RR03');
 const lr01 = byId('LR01');
-assert(rr01 && rr02 && lr01 && V16_SKILL_REPAIR_LESSONS.length === 3, 'V1.6 must register RR01, RR02 and LR01');
+assert(rr01 && rr02 && rr03 && lr01 && V16_SKILL_REPAIR_LESSONS.length === 4, 'V1.6 must register RR01, RR02, RR03 and LR01');
 
 assert(V16_SKILL_REPAIR_FAMILIES['reading-main-idea'].auditedQuestions === 23, 'RR01 evidence count must match the skill-aware audit: 23 Reading main-idea signals');
 assert(V16_SKILL_REPAIR_FAMILIES['listening-number'].auditedQuestions === 27, 'LR01 evidence count must match the skill-aware audit: 27 Listening number signals');
 assert(V16_SKILL_REPAIR_FAMILIES['reading-inference'].auditedQuestions === 9, 'RR02 evidence count must match the skill-aware audit: 9 Reading inference signals');
-assert(rr01.evidence?.auditedQuestions === 23 && lr01.evidence?.auditedQuestions === 27 && rr02.evidence?.auditedQuestions === 9, 'Lesson evidence metadata must preserve audited counts');
+assert(V16_SKILL_REPAIR_FAMILIES['reading-reference'].auditedQuestions === 3, 'RR03 evidence count must match the semantics audit: 3 Reading reference signals');
+assert(rr01.evidence?.auditedQuestions === 23 && lr01.evidence?.auditedQuestions === 27 && rr02.evidence?.auditedQuestions === 9 && rr03.evidence?.auditedQuestions === 3, 'Lesson evidence metadata must preserve audited counts');
 
 assert(repairMatchesError(rr01, { errorTag:'reading-main-idea', skill:'reading' }), 'RR01 must match reading-main-idea Reading errors');
 assert(repairMatchesError(rr01, { errorTag:'main-idea', skill:'reading' }), 'RR01 must accept bare Full Mock main-idea only when the question skill is Reading');
@@ -26,6 +28,10 @@ assert(!repairMatchesError(lr01, { errorTag:'number', skill:'reading' }), 'LR01 
 assert(repairMatchesError(rr02, { errorTag:'reading-inference', skill:'reading' }), 'RR02 must match reading-inference Reading errors');
 assert(repairMatchesError(rr02, { errorTag:'inference', skill:'reading' }), 'RR02 must accept bare Full Mock inference only when the question skill is Reading');
 assert(!repairMatchesError(rr02, { errorTag:'inference', skill:'listening' }), 'RR02 must reject bare Listening inference errors');
+assert(repairMatchesError(rr03, { errorTag:'reading-reference', skill:'reading' }), 'RR03 must match Reading reference errors');
+assert(!repairMatchesError(rr03, { errorTag:'reading-reference', skill:'listening' }), 'RR03 must reject a Reading reference tag when the error skill is Listening');
+assert(!V16_SKILL_REPAIR_LESSONS.some(lesson => repairMatchesError(lesson, { errorTag:'listening-main-idea', skill:'listening' }) || repairMatchesError(lesson, { errorTag:'main-idea', skill:'listening' })), 'Listening main-idea must not gain a synthetic LR Repair');
+assert(!V16_SKILL_REPAIR_LESSONS.some(lesson => repairMatchesError(lesson, { errorTag:'listening-sequence', skill:'listening' })), 'Heterogeneous Listening sequence must not gain a synthetic LR Repair');
 
 const vg04 = REPAIR_LESSONS.find(lesson => lesson.id === 'VG04');
 assert(vg04 && repairMatchesError(vg04, { errorTag:'reading-paraphrase', skill:'reading' }), 'Existing cross-skill VG04 routing must remain compatible when no errorSkills constraint is declared');
@@ -52,6 +58,10 @@ assert(rr02.questions.every(question => question.context?.length > 100), 'RR02 m
 for (const question of rr02.questions) {
   assert(question.options.some(option => /always|every|only cause|entirely|sharp/i.test(option)), 'RR02 should include an overclaim/speculation distractor in each guided check');
 }
+assert(rr03.questions.every(question => question.context?.length > 100), 'RR03 must use new contexts rather than copying the three Mini Test reference questions');
+assert(rr03.questions.some(question => /this problem/i.test(question.prompt)), 'RR03 must practise a demonstrative phrase that refers to an earlier event/idea');
+assert(rr03.questions.some(question => /these measures/i.test(question.prompt)), 'RR03 must practise plural demonstrative reference to a preceding list');
+assert(rr03.questions.some(question => /“it”/i.test(question.prompt)), 'RR03 must practise pronoun reference where grammar and meaning disambiguate the antecedent');
 assert(lr01.media?.length === 2, 'LR01 must use two production Listening recordings');
 for (const media of lr01.media) {
   assert(media.src.startsWith('media/audio/question-type-labs/'), `LR01 media must reuse a Question Type Lab production asset: ${media.src}`);
@@ -67,7 +77,7 @@ assert(indexHTML.includes('skill-repair-runtime-v16.js'), 'Production index must
 assert(routeRuntime.includes('(?:VG|RR|LR)'), 'Unified Repair route must accept VG, RR and LR IDs');
 assert(routeRuntime.includes('V16_SKILL_REPAIR_LESSONS'), 'Unified Repair route must resolve V1.6 skill Repair data');
 assert(routeRuntime.includes('<audio controls'), 'Unified Repair route must render LR01 production audio controls');
-assert(routeRuntime.includes('question.context'), 'Unified Repair route must render RR01/RR02 reading contexts');
+assert(routeRuntime.includes('question.context'), 'Unified Repair route must render RR01/RR02/RR03 reading contexts');
 assert(skillRuntime.includes('repairMatchesError'), 'Skill Repair recommendations must use tag + skill matching');
 assert(skillRuntime.includes('data-v16-skill-repair-improve'), 'Improve must expose a separate V1.6 Skill Repair surface');
 assert(skillRuntime.includes('data-v16-skill-repair-learn'), 'Learn must expose a separate V1.6 Skill Repair index');
@@ -75,7 +85,8 @@ assert(!skillRuntime.includes('MutationObserver') && !skillRuntime.includes('set
 
 console.log('✓ V1.6 RR01 uses 23 skill-aware Reading main-idea signals');
 console.log('✓ V1.6 LR01 uses 27 skill-aware Listening number signals and real production audio');
-console.log('✓ V1.6 Batch 2 RR02 uses 9 recurrent Reading inference signals identified as the only untreated overlap-audit gap');
-console.log('✓ Bare Full Mock main-idea / number / inference tags cannot cross-route between Reading and Listening Skill Repair');
-console.log('✓ RR01 / RR02 / LR01 remain outside Vocabulary / Grammar Repair and the 30-unit core denominator');
+console.log('✓ V1.6 Batch 2 RR02 uses 9 recurrent Reading inference signals identified as an untreated overlap-audit gap');
+console.log('✓ V1.6 post-Batch5 gap review adds RR03 from 3 independent Reading reference-resolution signals');
+console.log('✓ Listening main-idea and heterogeneous sequence remain outside LR Repair');
+console.log('✓ RR01 / RR02 / RR03 / LR01 remain outside Vocabulary / Grammar Repair and the 30-unit core denominator');
 console.log('✓ V1.6 reuses the V1.5 lifecycle and all-correct Repair mastery gate');

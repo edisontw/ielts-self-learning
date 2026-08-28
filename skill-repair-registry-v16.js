@@ -13,6 +13,11 @@ export const V16_SKILL_REPAIR_FAMILIES = {
     tags: ['reading-inference', 'inference'],
     skills: ['reading'],
     auditedQuestions: 9
+  },
+  'reading-reference': {
+    tags: ['reading-reference'],
+    skills: ['reading'],
+    auditedQuestions: 3
   }
 };
 
@@ -134,6 +139,66 @@ export const V16_SKILL_REPAIR_LESSONS = [
         ],
         answer: 'Timed entry probably spread arrivals more evenly rather than simply reducing attendance.',
         rationale: 'Queues shortened while total attendance stayed similar, which supports a redistribution explanation. The passage explicitly notes some inconvenience and does not show that fewer visitors caused the change.'
+      }
+    ]
+  },
+  {
+    id: 'RR03',
+    title: 'Resolve What Reference Words Point To',
+    skill: 'reading',
+    lessonType: 'skill-repair',
+    cefr: 'B2+',
+    difficulty: 3,
+    estimatedMinutes: 15,
+    objective: 'Resolve pronouns and demonstrative reference words by linking them to the nearest grammatically and semantically compatible earlier idea.',
+    triggerTags: V16_SKILL_REPAIR_FAMILIES['reading-reference'].tags,
+    errorSkills: V16_SKILL_REPAIR_FAMILIES['reading-reference'].skills,
+    requiresErrorEvidence: true,
+    placementSkills: [],
+    evidence: { family: 'reading reference', auditedQuestions: 3, auditDate: '2026-08-28' },
+    learn: [
+      'Reference words such as it, they, this, these, those, and such usually point backward to a noun, noun phrase, event, or idea already introduced. Do not choose the nearest repeated word automatically.',
+      'Use three checks: look back for plausible candidates, match number and meaning, then substitute the candidate into the sentence. The sentence should remain grammatically natural and preserve the writer’s intended logic.',
+      'Demonstratives such as “this problem” or “these measures” often refer to a whole earlier idea or list, not one isolated noun. When several candidates are nearby, ask which one can logically perform the action in the new sentence.'
+    ],
+    examples: [
+      '“The service introduced evening appointments. This change reduced queues.” → this change = introducing evening appointments',
+      '“Reduced fees and local collection points were added. These measures improved access.” → these measures = both listed actions',
+      '“The council considered a full closure but rejected it.” → it = the proposed full closure'
+    ],
+    questions: [
+      {
+        context: 'A university library tested automatic lighting in several quiet-study rooms. The lights switched off when no movement was detected for five minutes, but students complained that they sometimes went dark while someone was still reading. The delay was later increased to fifteen minutes, and this problem became much less common.',
+        prompt: 'What does “this problem” refer to?',
+        options: [
+          'The lights switching off while a student was still using the room.',
+          'The university having too many study rooms.',
+          'The delay being increased to fifteen minutes.'
+        ],
+        answer: 'The lights switching off while a student was still using the room.',
+        rationale: '“This problem” points back to the complaint immediately before it. Substituting that event into the final sentence preserves both the meaning and the cause-effect relationship.'
+      },
+      {
+        context: 'A tool-lending service found that membership fees and a single central collection site prevented some residents from using the scheme. It introduced reduced fees for low-income households and opened two neighbourhood pick-up points. These measures increased participation in districts that had previously used the service least.',
+        prompt: 'What does “These measures” refer to?',
+        options: [
+          'Reduced fees and neighbourhood pick-up points.',
+          'Membership fees and the original central site.',
+          'The districts with the lowest earlier participation.'
+        ],
+        answer: 'Reduced fees and neighbourhood pick-up points.',
+        rationale: 'The plural demonstrative refers to the two actions just introduced. They are the measures that can logically increase access and participation.'
+      },
+      {
+        context: 'Planners considered closing a riverside path throughout the winter because repeated flooding damaged its surface. Local groups argued that a complete closure would remove an important walking route even on dry days. The council therefore rejected it and instead installed gates that can close only the flooded sections temporarily.',
+        prompt: 'What does “it” refer to?',
+        options: [
+          'The proposal for a complete winter closure.',
+          'The riverside path itself.',
+          'The temporary gates.'
+        ],
+        answer: 'The proposal for a complete winter closure.',
+        rationale: 'The council can reject a proposal, not the physical path. Substituting “the proposal for a complete winter closure” makes the sentence coherent and matches the alternative introduced afterwards.'
       }
     ]
   },

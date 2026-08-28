@@ -24,11 +24,13 @@ const ids = error => {
   return rec ? [rec.primary.id, rec.transfer.id] : null;
 };
 
-assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 13, 'Post-Batch 5 semantics review must expose thirteen existing-practice family/subtype cards');
+assert(Object.keys(EXISTING_PRACTICE_FAMILIES).length === 15, 'Post-gap semantics review must expose fifteen existing-practice family/subtype cards');
 assert(EXISTING_PRACTICE_FAMILIES['reading-detail'].auditedQuestions === 21, 'Reading detail count must remain 21');
 assert(EXISTING_PRACTICE_FAMILIES['listening-detail'].auditedQuestions === 16, 'Listening detail count must remain 16');
 assert(EXISTING_PRACTICE_FAMILIES['listening-distractor'].auditedQuestions === 14, 'Listening distractor count must remain 14');
 assert(EXISTING_PRACTICE_FAMILIES['listening-correction'].auditedQuestions === 11, 'Listening correction count must remain 11');
+assert(EXISTING_PRACTICE_FAMILIES['listening-final-decision'].auditedQuestions === 3, 'Listening final-decision count must be the three audited Mini Test items');
+assert(EXISTING_PRACTICE_FAMILIES['listening-scope'].auditedQuestions === 3, 'Listening scope count must be the three audited Mini Test items');
 assert(EXISTING_PRACTICE_FAMILIES['reading-scope'].auditedQuestions === 10, 'Reading scope count must remain 10');
 assert(EXISTING_PRACTICE_FAMILIES['reading-information-function'].auditedQuestions === 10, 'Reading information-function count must remain 10');
 assert(EXISTING_PRACTICE_FAMILIES['reading-structure-matching-information'].auditedQuestions === 1, 'Reading structure Matching Information subtype must contain the one audited Mini Test transfer item');
@@ -47,6 +49,8 @@ assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-mcq-detail' })) =
 assert(JSON.stringify(ids({ skill:'listening', errorTag:'listening-missed-detail' })) === JSON.stringify(['L05','QL05']), 'Listening missed detail must route to L05 → QL05');
 assert(JSON.stringify(ids({ skill:'listening', errorTag:'listening-requested-detail' })) === JSON.stringify(['L05','QL05']), 'Listening requested detail must route to L05 → QL05');
 assert(JSON.stringify(ids({ skill:'listening', errorTag:'distractor' })) === JSON.stringify(['L04','QL01']), 'Generic Listening distractor must route to L04 → QL01');
+assert(JSON.stringify(ids({ skill:'listening', errorTag:'listening-final-decision' })) === JSON.stringify(['L04','QL01']), 'Listening final-decision must route to L04 → QL01');
+assert(JSON.stringify(ids({ skill:'listening', errorTag:'listening-scope' })) === JSON.stringify(['L05','QL05']), 'Listening scope must route to L05 → QL05');
 assert(JSON.stringify(ids({ skill:'listening', errorTag:'listening-correction' })) === JSON.stringify(['L04','QL06']), 'Listening correction must route to L04 → QL06');
 assert(JSON.stringify(ids({ skill:'reading', errorTag:'reading-scope' })) === JSON.stringify(['R04','QR01']), 'Reading scope must route to R04 → QR01');
 
@@ -90,11 +94,16 @@ assert(route({ skill:'listening', errorTag:'listening-attitude', questionId:'QL0
 assert(route({ skill:'listening', errorTag:'listening-direction', questionId:'QL03-Q1' }) === null, 'Listening direction must remain direct-Retry only');
 assert(route({ skill:'reading', errorTag:'reading-word-limit', questionId:'QR04-Q1' }) === null, 'Reading word-limit must remain direct-Retry only');
 
+// Post-gap semantics guardrails.
+assert(route({ skill:'listening', errorTag:'main-idea', questionId:'MA01-L21' }) === null, 'Listening main-idea is taught by L01 but has no exact transfer Lab and must stay unrouted');
+assert(route({ skill:'listening', errorTag:'listening-sequence', questionId:'ML02-Q4' }) === null, 'Listening sequence must remain unrouted because the family mixes spatial and procedural sequence semantics');
+assert(route({ skill:'reading', errorTag:'reading-reference', questionId:'MR02-Q9' }) === null, 'Reading reference must be owned by RR03 Skill Repair, not existing-practice routing');
+
 assert(route({ skill:'reading', errorTag:'number' }) === null, 'Reading number must not enter existing-practice routing');
-assert(route({ skill:'listening', errorTag:'main-idea' }) === null, 'Listening main idea must not enter existing-practice routing');
 assert(route({ skill:'reading', errorTag:'reading-main-idea' }) === null, 'RR01 evidence must remain owned by Skill Repair');
 assert(route({ skill:'reading', errorTag:'inference' }) === null, 'RR02 generic inference must remain owned by Skill Repair');
 assert(route({ skill:'reading', errorTag:'reading-inference' }) === null, 'RR02 prefixed inference must remain owned by Skill Repair');
+assert(route({ skill:'reading', errorTag:'reading-reference' }) === null, 'RR03 Reading reference must remain owned by Skill Repair');
 assert(route({ skill:'listening', errorTag:'number' }) === null, 'LR01 number must remain owned by Skill Repair');
 assert(route({ skill:'listening', errorTag:'reading-scope' }) === null, 'Skill constraints must prevent cross-routing');
 
@@ -114,7 +123,8 @@ assert(runtime.includes('data-action="retry-error"'), 'Error Notebook routing mu
 assert(index.includes('existing-practice-routing-runtime-v16.js'), 'Production index must load the existing-practice routing runtime');
 assert(index.indexOf('skill-repair-runtime-v16.js') < index.indexOf('existing-practice-routing-runtime-v16.js'), 'Existing-practice surface must render after Skill Repair so the two recommendation types stay distinct');
 
-console.log('✓ Post-Batch 5 semantics review routes only the two non-retriable Reading structure transfer items');
-console.log('✓ MR01-Q10 structure → R02/QR05; MA01-R08 structure → R02/QR03; unknown structure remains unrouted');
-console.log('✓ Paragraph-purpose, heading-purpose, Listening attitude/direction, and Reading word-limit remain direct-Retry or Lab-owned without synthetic reuse routes');
-console.log('✓ Batch 5 Reading evidence routing and RR01/RR02/LR01 ownership remain unchanged');
+console.log('✓ Post-gap semantics review adds only the audited Listening final-decision and scope reuse routes');
+console.log('✓ Listening final-decision → L04/QL01; Listening scope → L05/QL05');
+console.log('✓ Listening main-idea stays L01-taught without a synthetic transfer Lab; heterogeneous sequence stays unrouted');
+console.log('✓ Reading reference stays outside reuse because RR03 owns the untreated reference-resolution gap');
+console.log('✓ Earlier post-Batch5 Reading structure/evidence routing and RR01/RR02/LR01 ownership remain unchanged');
