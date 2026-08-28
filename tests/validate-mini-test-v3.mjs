@@ -5,11 +5,13 @@ import { LESSONS } from '../data.js';
 import { MINI_TESTS } from '../mini-test-data-v1.js';
 import '../mini-test-data-v2.js';
 import { MINI_TESTS_V3 } from '../mini-test-data-v3.js';
+import { LISTENING_SEQUENCE_TAG_BY_QUESTION_ID, normalizedMiniTestErrorTag, listeningSequenceSubtype } from '../listening-sequence-semantics-v16.js';
 
 const here=path.dirname(fileURLToPath(import.meta.url));
 const root=path.resolve(here,'..');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const trendsSource=fs.readFileSync(path.join(root,'mini-test-trends-v1.js'),'utf8');
+const runtimeSource=fs.readFileSync(path.join(root,'mini-test-runtime-v1.js'),'utf8');
 const ux=fs.readFileSync(path.join(root,'ux-polish-v1.js'),'utf8');
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 
@@ -44,8 +46,8 @@ for(const test of MINI_TESTS){
 assert(new Set(questionIds).size===questionIds.length,'All 88 Mini Test question IDs must be unique.');
 
 const overlap=(a,b)=>{
-  const aa=new Set(a.questions.map(q=>q.errorTag));
-  return [...new Set(b.questions.map(q=>q.errorTag))].filter(tag=>aa.has(tag));
+  const aa=new Set(a.questions.map(q=>normalizedMiniTestErrorTag(q)));
+  return [...new Set(b.questions.map(q=>normalizedMiniTestErrorTag(q)))].filter(tag=>aa.has(tag));
 };
 for(const skillForms of [reading,listening]){
   for(const newer of skillForms.slice(2)){
@@ -54,14 +56,28 @@ for(const skillForms of [reading,listening]){
   }
 }
 
+assert(JSON.stringify(LISTENING_SEQUENCE_TAG_BY_QUESTION_ID)===JSON.stringify({
+  'ML02-Q4':'listening-spatial-sequence',
+  'ML03-Q4':'listening-spatial-sequence',
+  'ML04-Q3':'listening-procedural-sequence'
+}),'Listening sequence subtype registry must contain exactly the three audited Mini Test questions.');
+assert(listeningSequenceSubtype({questionId:'ML02-Q4',errorTag:'listening-sequence'})==='spatial-route','ML02-Q4 must normalize to spatial-route sequence.');
+assert(listeningSequenceSubtype({id:'ML03-Q4',errorTag:'listening-sequence'})==='spatial-route','ML03-Q4 must normalize to spatial-route sequence.');
+assert(listeningSequenceSubtype({questionId:'ML04-Q3',errorTag:'listening-sequence'})==='procedural-event','ML04-Q3 must normalize to procedural/event sequence.');
+assert(normalizedMiniTestErrorTag({questionId:'UNKNOWN',errorTag:'listening-sequence'})==='listening-sequence','Unknown legacy sequence IDs must not be guessed into a subtype.');
+assert(normalizedMiniTestErrorTag({testId:'ML02',errorTag:'listening-sequence'})==='listening-spatial-sequence','Historical ML02 trend evidence must normalize by test form.');
+assert(normalizedMiniTestErrorTag({testId:'ML03',errorTag:'listening-sequence'})==='listening-spatial-sequence','Historical ML03 trend evidence must normalize by test form.');
+assert(normalizedMiniTestErrorTag({testId:'ML04',errorTag:'listening-sequence'})==='listening-procedural-sequence','Historical ML04 trend evidence must normalize by test form.');
+
 const v3Index=index.indexOf('./mini-test-data-v3.js');
 const appIndex=index.indexOf('./app.js');
 const learningIndex=index.indexOf('./learning-runtime-v3.js');
 assert(v3Index>=0&&appIndex>v3Index&&learningIndex>v3Index,'Mini Test V3 data must register before app and observed-performance runtimes.');
 assert(ux.includes("['mini','3','Mini Tests','8 tests']"),'IELTS stage navigation must show eight Mini Tests.');
-for(const token of ['mini-test-data-v3.js','limit=4','x.forms>=2','up to the four most recent different Mini Tests','Three or four forms provide stronger evidence']){
-  assert(trendsSource.includes(token),`Mini Test trend runtime missing V3 contract token: ${token}`);
+for(const token of ['mini-test-data-v3.js','limit=4','x.forms>=2','up to the four most recent different Mini Tests','Three or four forms provide stronger evidence','normalizedMiniTestErrorTag']){
+  assert(trendsSource.includes(token),`Mini Test trend runtime missing V3/semantic contract token: ${token}`);
 }
+assert(runtimeSource.includes('normalizedMiniTestErrorTag')&&runtimeSource.includes('errorTag:displayTag(item)'),'Mini Test Error Notebook saves must persist the normalized semantic sequence tag.');
 assert(!trendsSource.includes('bandScore')&&!trendsSource.includes('estimatedBand'),'Mini Test trends must not create pseudo IELTS band scoring.');
 
 const store=new Map();
@@ -87,8 +103,19 @@ assert(mainIdea?.forms===3&&mainIdea.count===4,'A tag repeated across three form
 assert(scope?.forms===2&&scope.count===3,'A tag repeated across two forms must remain recurring evidence.');
 assert(!patterns.some(x=>x.tag==='reading-reference'),'A one-form miss must not be labelled recurring.');
 
+const legacyListening={miniTestHistory:[
+  {id:'l4',ts:40,testId:'ML04',skill:'listening',missedErrorTags:{'listening-sequence':1}},
+  {id:'l3',ts:30,testId:'ML03',skill:'listening',missedErrorTags:{'listening-sequence':1}},
+  {id:'l2',ts:20,testId:'ML02',skill:'listening',missedErrorTags:{'listening-sequence':1}}
+]};
+const listeningPatterns=recurringPatterns(legacyListening,'listening');
+const spatial=listeningPatterns.find(x=>x.tag==='listening-spatial-sequence');
+assert(spatial?.forms===2&&spatial.count===2,'Historical ML02/ML03 sequence misses must recur only as spatial-route evidence.');
+assert(!listeningPatterns.some(x=>x.tag==='listening-procedural-sequence'),'The single ML04 procedural sequence miss must stay subthreshold.');
+assert(!listeningPatterns.some(x=>x.tag==='listening-sequence'),'The heterogeneous umbrella sequence tag must never appear as a recurring trend after normalization.');
+
 console.log('✓ Mini Test bank expanded to 8 forms: MR01–MR04 / ML01–ML04');
 console.log('✓ Bank size: 4 Reading × 12 + 4 Listening × 10 = 88 questions');
-console.log('✓ MR03/MR04 and ML03/ML04 preserve shared diagnostic dimensions with earlier forms');
-console.log('✓ Trend analysis now uses up to four distinct forms and requires recurrence on at least two');
-console.log('✓ Three- or four-form repetition is surfaced as stronger persistent evidence without Band scoring');
+console.log('✓ ML02/ML03 spatial route sequence is separated from ML04 procedural/event sequence before persistence, trend detection, and audit');
+console.log('✓ Trend analysis still uses up to four distinct forms and requires recurrence on at least two');
+console.log('✓ Legacy umbrella sequence history normalizes without creating false three-form recurrence or LR02 evidence');
