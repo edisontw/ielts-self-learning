@@ -1,0 +1,35 @@
+name: V1.6 Reading definition split deployed E2E QA
+
+on:
+  push:
+    branches:
+      - qa/v16-reading-definition-deployed-e2e
+
+permissions:
+  contents: read
+
+jobs:
+  deployed-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Repository regression suite
+        run: npm test
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run V1.6 Reading definition split deployed QA
+        run: node tests/deployed-e2e-v16-reading-definition-split.mjs
+      - name: Upload QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v16-reading-definition-split-deployed-e2e
+          path: qa-artifacts-v16-reading-definition-split/
+          if-no-files-found: warn
