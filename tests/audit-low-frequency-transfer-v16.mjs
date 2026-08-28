@@ -3,6 +3,7 @@ import '../mini-test-data-v2.js';
 import '../mini-test-data-v3.js';
 import { MOCK_TESTS } from '../mock-test-data-v1.js';
 import { QUESTION_TYPE_LABS } from '../question-type-lab-v1.js';
+import { CURRICULUM_BATCH_01 } from '../curriculum-batch-01.js';
 import { EXISTING_PRACTICE_RULES } from '../existing-practice-routing-v16.js';
 import { V14_REPAIR_LESSONS } from '../repair-registry-v15.js';
 import { V16_SKILL_REPAIR_LESSONS } from '../skill-repair-registry-v16.js';
@@ -41,10 +42,14 @@ assert(rawDefinition[1].tag==='reading-distinction','MR04-Q4 must normalize to r
 assert(new Set(rawDefinition.map(x=>x.tag)).size===2,'The two heterogeneous Reading definition questions must not collapse into one recurring tag.');
 assert(noOwnership('reading-explicit-definition')&&noOwnership('reading-distinction'),'Definition subtypes must stay discovery-only without route/Repair ownership.');
 
-const finalMeaning=mini.filter(x=>x.tag==='listening-final-meaning').sort((a,b)=>a.id.localeCompare(b.id));
-assert(JSON.stringify(finalMeaning.map(x=>x.id))===JSON.stringify(['ML02-Q9','ML04-Q10']),'Listening final-meaning watchlist changed.');
-assert(new Set(finalMeaning.map(x=>x.testId)).size===2,'Listening final-meaning must remain a two-form Mini Test signal.');
-assert(noOwnership('listening-final-meaning'),'Two-form final-meaning evidence remains below the route/Repair action threshold.');
+const rawFinalMeaning=mini.filter(x=>x.rawTag==='listening-final-meaning').sort((a,b)=>a.id.localeCompare(b.id));
+assert(JSON.stringify(rawFinalMeaning.map(x=>x.id))===JSON.stringify(['ML02-Q9','ML04-Q10']),'Listening final-meaning review set changed.');
+assert(rawFinalMeaning.every(x=>x.tag==='listening-conditional-outcome'),'Both final-meaning questions must normalize to listening-conditional-outcome.');
+assert(new Set(rawFinalMeaning.map(x=>x.testId)).size===2,'Listening conditional-outcome must remain a two-form Mini Test signal.');
+const l04=CURRICULUM_BATCH_01.find(x=>x.id==='L04');
+const l04Teaching=JSON.stringify(l04?.sections||[]);
+assert(l04Teaching.includes('conditional option')&&l04Teaching.includes('FINAL meaning'),'L04 must remain the exact teaching owner for conditional-option final meaning.');
+assert(noOwnership('listening-conditional-outcome'),'Two-form conditional-outcome evidence must remain below the runtime route/Repair action threshold.');
 
 const academicVocabulary=mock.filter(x=>x.tag==='academic-vocabulary').sort((a,b)=>a.id.localeCompare(b.id));
 assert(JSON.stringify(academicVocabulary.map(x=>x.id))===JSON.stringify(['MA01-L33','MA01-R24']),'Full Mock academic-vocabulary discovery set changed.');
@@ -63,7 +68,7 @@ assert(noOwnership('spelling'),'Single Full Mock spelling signal must not create
 
 console.log('V1.6 lower-frequency Test/Mock discovery audit');
 console.log('✓ SPLIT-NOW: MR02-Q4 explicit definition and MR04-Q4 concept distinction no longer create false two-form reading-definition recurrence.');
-console.log('✓ WATCH-HIGH: listening-final-meaning = ML02-Q9 + ML04-Q10 across two Mini Test forms; coherent conditional-outcome signal, but no new route/Repair yet.');
+console.log('✓ WATCH-OWNER: listening-conditional-outcome = ML02-Q9 + ML04-Q10 across two Mini Test forms; L04 exactly teaches conditional option → FINAL meaning, but no route/Repair is added below threshold.');
 console.log('✓ WATCH-OWNER: MA01-L01 spelling has exact QL02 teaching coverage, but remains a one-off Full Mock transfer signal.');
 console.log('✓ OBSERVE: academic-vocabulary = one Listening + one Reading Full Mock item, so aggregate count 2 is not same-skill recurrence.');
 console.log('✓ OBSERVE: MA01-L31 definition remains a single Listening Full Mock retrieval item.');
