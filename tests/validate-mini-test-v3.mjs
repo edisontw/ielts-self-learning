@@ -8,9 +8,11 @@ import { MINI_TESTS_V3 } from '../mini-test-data-v3.js';
 import {
   LISTENING_SEQUENCE_TAG_BY_QUESTION_ID,
   READING_DEFINITION_TAG_BY_QUESTION_ID,
+  LISTENING_FINAL_MEANING_TAG_BY_QUESTION_ID,
   normalizedMiniTestErrorTag,
   listeningSequenceSubtype,
-  readingDefinitionSubtype
+  readingDefinitionSubtype,
+  listeningFinalMeaningSubtype
 } from '../listening-sequence-semantics-v16.js';
 
 const here=path.dirname(fileURLToPath(import.meta.url));
@@ -85,6 +87,16 @@ assert(normalizedMiniTestErrorTag({questionId:'UNKNOWN',errorTag:'reading-defini
 assert(normalizedMiniTestErrorTag({testId:'MR02',errorTag:'reading-definition'})==='reading-explicit-definition','Historical MR02 reading-definition evidence must normalize by test form.');
 assert(normalizedMiniTestErrorTag({testId:'MR04',errorTag:'reading-definition'})==='reading-distinction','Historical MR04 reading-definition evidence must normalize by test form.');
 
+assert(JSON.stringify(LISTENING_FINAL_MEANING_TAG_BY_QUESTION_ID)===JSON.stringify({
+  'ML02-Q9':'listening-conditional-outcome',
+  'ML04-Q10':'listening-conditional-outcome'
+}),'Listening final-meaning semantic registry must contain exactly the two audited conditional-outcome questions.');
+assert(listeningFinalMeaningSubtype({questionId:'ML02-Q9',errorTag:'listening-final-meaning'})==='conditional-outcome','ML02-Q9 must normalize to a conditional outcome.');
+assert(listeningFinalMeaningSubtype({questionId:'ML04-Q10',errorTag:'listening-final-meaning'})==='conditional-outcome','ML04-Q10 must normalize to a conditional outcome.');
+assert(normalizedMiniTestErrorTag({questionId:'UNKNOWN',errorTag:'listening-final-meaning'})==='listening-final-meaning','Unknown legacy final-meaning IDs must not be guessed into a subtype.');
+assert(normalizedMiniTestErrorTag({testId:'ML02',errorTag:'listening-final-meaning'})==='listening-conditional-outcome','Historical ML02 final-meaning evidence must normalize by test form.');
+assert(normalizedMiniTestErrorTag({testId:'ML04',errorTag:'listening-final-meaning'})==='listening-conditional-outcome','Historical ML04 final-meaning evidence must normalize by test form.');
+
 const v3Index=index.indexOf('./mini-test-data-v3.js');
 const appIndex=index.indexOf('./app.js');
 const learningIndex=index.indexOf('./learning-runtime-v3.js');
@@ -139,9 +151,19 @@ assert(!definitionPatterns.some(x=>x.tag==='reading-definition'),'The heterogene
 assert(!definitionPatterns.some(x=>x.tag==='reading-explicit-definition'),'MR02 explicit-definition is only one form and must stay subthreshold.');
 assert(!definitionPatterns.some(x=>x.tag==='reading-distinction'),'MR04 concept-distinction is only one form and must stay subthreshold.');
 
+const legacyFinalMeaning={miniTestHistory:[
+  {id:'fm4',ts:40,testId:'ML04',skill:'listening',missedErrorTags:{'listening-final-meaning':1}},
+  {id:'fm2',ts:20,testId:'ML02',skill:'listening',missedErrorTags:{'listening-final-meaning':1}}
+]};
+const finalMeaningPatterns=recurringPatterns(legacyFinalMeaning,'listening');
+const conditionalOutcome=finalMeaningPatterns.find(x=>x.tag==='listening-conditional-outcome');
+assert(conditionalOutcome?.forms===2&&conditionalOutcome.count===2,'Historical ML02/ML04 final-meaning misses must recur as conditional-outcome evidence.');
+assert(!finalMeaningPatterns.some(x=>x.tag==='listening-final-meaning'),'The coarse final-meaning label must not remain learner-facing after normalization.');
+
 console.log('✓ Mini Test bank expanded to 8 forms: MR01–MR04 / ML01–ML04');
 console.log('✓ Bank size: 4 Reading × 12 + 4 Listening × 10 = 88 questions');
 console.log('✓ ML02/ML03 spatial route sequence is separated from ML04 procedural/event sequence before persistence, trend detection, and audit');
 console.log('✓ MR02 explicit definition is separated from MR04 concept distinction before persistence, trend detection, and audit');
+console.log('✓ ML02/ML04 final-meaning evidence is refined to the coherent listening-conditional-outcome micro-skill before persistence and trend detection');
 console.log('✓ Trend analysis still uses up to four distinct forms and requires recurrence on at least two');
-console.log('✓ Legacy heterogeneous sequence/definition history normalizes without false recurring evidence');
+console.log('✓ Legacy sequence/definition/final-meaning history normalizes without coarse or false recurring evidence');
