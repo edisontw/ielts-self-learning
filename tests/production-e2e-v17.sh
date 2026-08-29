@@ -60,6 +60,9 @@ trap cleanup EXIT
   --disable-dev-shm-usage \
   --disable-component-update \
   --disable-crash-reporter \
+  --disable-background-timer-throttling \
+  --disable-renderer-backgrounding \
+  --disable-backgrounding-occluded-windows \
   --remote-debugging-port="$CDP_PORT" \
   --remote-allow-origins='*' \
   --user-data-dir="$PROFILE" \
