@@ -1,20 +1,27 @@
-import { MOCK_TESTS } from './mock-test-data-v1.js';
+import { mockTestById } from './mock-test-registry-v17.js';
 import { playListeningMedia, stopListeningMedia } from './listening-media-v1.js';
 
-const test = MOCK_TESTS.find(item => item.id === 'MA01') || MOCK_TESTS[0];
-const MOCK_AUDIO = [
+const MA01_AUDIO = [
   './media/audio/mock-tests/ma01-listening-part1-study-room-booking.mp3',
   './media/audio/mock-tests/ma01-listening-part2-museum-visitor-information.mp3',
   './media/audio/mock-tests/ma01-listening-part3-campus-garden-research-project.mp3',
   './media/audio/mock-tests/ma01-listening-part4-urban-trees-heat-adaptation.mp3'
 ];
-const PLAYER_NOTE = 'Production MP3 · one play only. No pause, seek or replay controls. Browser voice is fallback only if the recording cannot play.';
+const MOCK_AUDIO = { MA01:MA01_AUDIO, MA02:['','','',''] };
+const PLAYER_NOTE = {
+  MA01:'Production MP3 · one play only. No pause, seek or replay controls. Browser voice is fallback only if the recording cannot play.',
+  MA02:'Browser voice beta · one play only. No pause, seek or replay controls. Production MP3 remains a separate V1.7 release gate.'
+};
 
 let playedParts = new Set();
 let playInFlight = false;
 
 function setTextIfChanged(node, value) {
   if (node && node.textContent !== value) node.textContent = value;
+}
+
+function currentTestId() {
+  return document.querySelector?.('[data-mock-player]')?.dataset?.mockTestId || 'MA01';
 }
 
 function currentPartIndex() {
@@ -38,22 +45,18 @@ function sourceStatusNode(button) {
 }
 
 function upgradeCopy() {
-  const centerNote = document.querySelector?.('[data-mock-center] .mock-beta-note');
-  if (centerNote && !centerNote.dataset.productionAudioCopy) {
-    centerNote.dataset.productionAudioCopy = '1';
-    centerNote.innerHTML = '<strong>Authenticity status:</strong> question counts, section timing, strict feedback rules and exam-style navigation are implemented. Listening uses production multi-voice MP3 recordings as the primary source; browser speech is retained only as a fallback if an audio asset cannot play.';
-  }
-
   const panel = document.querySelector?.('[data-mock-player] .mock-audio-panel');
   const button = panel?.querySelector?.('[data-mock-action="play"]');
   if (!panel || !button) return;
 
+  const testId = currentTestId();
+  const hasProduction = Boolean(MOCK_AUDIO[testId]?.[currentPartIndex()]);
   const note = panel.querySelector?.('p.small.muted');
-  setTextIfChanged(note, PLAYER_NOTE);
+  setTextIfChanged(note, PLAYER_NOTE[testId] || PLAYER_NOTE.MA02);
 
   const partIndex = currentPartIndex();
   const status = sourceStatusNode(button);
-  if (playedParts.has(partIndex)) {
+  if (playedParts.has(`${testId}:${partIndex}`)) {
     button.disabled = true;
     button.classList.remove('primary');
     button.classList.add('soft');
@@ -61,7 +64,7 @@ function upgradeCopy() {
     if (status && !status.textContent) setTextIfChanged(status, 'This Part has already used its one allowed playback.');
   } else if (!playInFlight) {
     button.disabled = false;
-    if (status && !status.textContent) setTextIfChanged(status, 'Production MP3 preferred · browser voice fallback if unavailable');
+    if (status && !status.textContent) setTextIfChanged(status, hasProduction ? 'Production MP3 preferred · browser voice fallback if unavailable' : 'Browser voice beta · production recording pending');
   }
 }
 
@@ -72,34 +75,28 @@ function resetAudioAttempt() {
 }
 
 async function handlePlay(button) {
+  const testId = currentTestId();
+  const test = mockTestById(testId);
   const partIndex = currentPartIndex();
   const part = test?.listening?.parts?.[partIndex];
-  if (!part || playedParts.has(partIndex) || playInFlight) return;
+  const key = `${testId}:${partIndex}`;
+  if (!part || playedParts.has(key) || playInFlight) return;
 
   playInFlight = true;
   button.disabled = true;
-  setTextIfChanged(button, 'Loading recording…');
+  const src = MOCK_AUDIO[testId]?.[partIndex] || '';
+  setTextIfChanged(button, src ? 'Loading recording…' : 'Starting browser voice…');
   const status = sourceStatusNode(button);
-  if (status) setTextIfChanged(status, 'Checking production MP3…');
+  if (status) setTextIfChanged(status, src ? 'Checking production MP3…' : 'MA02 production MP3 gate pending…');
 
   try {
-    const result = await playListeningMedia({
-      src: MOCK_AUDIO[partIndex],
-      script: part.script,
-      lang: 'en-GB',
-      rate: .96,
-      pitch: 1
-    });
-    playedParts.add(partIndex);
+    const result = await playListeningMedia({ src, script:part.script, lang:'en-GB', rate:.96, pitch:1 });
+    playedParts.add(key);
     button.classList.remove('primary');
     button.classList.add('soft');
     button.disabled = true;
-    setTextIfChanged(button, result.mode === 'production'
-      ? 'Audio played · production MP3'
-      : 'Audio played · browser voice fallback');
-    if (status) setTextIfChanged(status, result.mode === 'production'
-      ? 'Production multi-voice MP3'
-      : 'Browser voice fallback · not production IELTS audio');
+    setTextIfChanged(button, result.mode === 'production' ? 'Audio played · production MP3' : 'Audio played · browser voice fallback');
+    if (status) setTextIfChanged(status, result.mode === 'production' ? 'Production multi-voice MP3' : 'Browser voice fallback · not production IELTS audio');
   } catch (error) {
     button.disabled = false;
     setTextIfChanged(button, 'Play Part once');
@@ -115,27 +112,19 @@ function handleCapture(event) {
     resetAudioAttempt();
     return;
   }
-
   const action = event.target?.closest?.('[data-mock-action]');
   if (!action) return;
-
   if (action.dataset.mockAction === 'play') {
     event.preventDefault();
     event.stopImmediatePropagation();
     handlePlay(action);
     return;
   }
-
   if (action.dataset.mockAction === 'submit') {
     stopListeningMedia();
     return;
   }
-
-  if (action.dataset.mockAction === 'exit') {
-    stopListeningMedia();
-    playedParts = new Set();
-    playInFlight = false;
-  }
+  if (action.dataset.mockAction === 'exit') resetAudioAttempt();
 }
 
 if (typeof document !== 'undefined') {
@@ -145,4 +134,4 @@ if (typeof document !== 'undefined') {
   setTimeout(upgradeCopy, 0);
 }
 
-export { MOCK_AUDIO, PLAYER_NOTE, setTextIfChanged };
+export { MOCK_AUDIO, MA01_AUDIO, PLAYER_NOTE, setTextIfChanged, currentTestId };
