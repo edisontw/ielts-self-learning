@@ -78,16 +78,18 @@ try{
   const spatial=routing.querySelector('[data-existing-practice-family="listening-spatial-sequence"]');
   if(!includes(conditional,'L04')||conditional.querySelector('[data-lesson="L04"]')===null)throw new Error('Conditional outcome does not route to exact owner L04');
   if(!includes(spatial,'QL03')||spatial.querySelector('[data-lesson="QL03"]')===null)throw new Error('Spatial sequence does not route to exact owner QL03');
-  const conditionalError=doc.querySelector('[data-error-id="v17-conditional"]')?.closest('.error-item');
-  const spatialError=doc.querySelector('[data-error-id="v17-spatial"]')?.closest('.error-item');
-  if(!includes(conditionalError?.querySelector('[data-v16-existing-practice-error-route]'),'Review L04'))throw new Error('Conditional Error Notebook CTA missing');
-  if(!includes(spatialError?.querySelector('[data-v16-existing-practice-error-route]'),'Review QL03'))throw new Error('Spatial Error Notebook CTA missing');
-  conditionalError.querySelector('[data-lesson="L04"]').click();
+  const errorCard=id=>doc.querySelector(`[data-error-id="${id}"]`)?.closest('.error-item');
+  const conditionalRoute=await wait(()=>errorCard('v17-conditional')?.querySelector('[data-v16-existing-practice-error-route]'),'Conditional Error Notebook CTA');
+  const spatialRoute=await wait(()=>errorCard('v17-spatial')?.querySelector('[data-v16-existing-practice-error-route]'),'Spatial Error Notebook CTA');
+  if(!includes(conditionalRoute,'Review L04'))throw new Error('Conditional Error Notebook CTA does not point to L04');
+  if(!includes(spatialRoute,'Review QL03'))throw new Error('Spatial Error Notebook CTA does not point to QL03');
+  conditionalRoute.querySelector('[data-lesson="L04"]').click();
   await wait(()=>frame.contentWindow.location.hash==='#/lesson/L04'&&frame.contentDocument.querySelector('#main')?.textContent.includes("Don't Fall for the Distractor"),'L04 CTA navigation');
   frame.contentWindow.location.hash='#/improve';
   await wait(()=>frame.contentWindow.location.hash==='#/improve'&&frame.contentDocument.querySelector('[data-existing-practice-family="listening-spatial-sequence"]'),'Improve return for QL03');
   doc=frame.contentDocument;
-  doc.querySelector('[data-error-id="v17-spatial"]')?.closest('.error-item')?.querySelector('[data-lesson="QL03"]')?.click();
+  const spatialRouteAfterReturn=await wait(()=>doc.querySelector('[data-error-id="v17-spatial"]')?.closest('.error-item')?.querySelector('[data-v16-existing-practice-error-route]'),'Spatial Error Notebook CTA after Improve return');
+  spatialRouteAfterReturn.querySelector('[data-lesson="QL03"]').click();
   await wait(()=>frame.contentWindow.location.hash==='#/lesson/QL03'&&frame.contentDocument.querySelector('#main')?.textContent.includes('Listening Maps & Directions'),'QL03 CTA navigation');
 
   localStorage.clear();seedGuide();
