@@ -3,6 +3,7 @@ set -euo pipefail
 
 PORT="${PORT:-4187}"
 BASE="http://127.0.0.1:${PORT}"
+PASS_MARKER='<pre id="result">V17_PRODUCTION_E2E_PASS</pre>'
 
 if command -v google-chrome >/dev/null 2>&1; then
   CHROME=google-chrome
@@ -45,9 +46,9 @@ set -e
 if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
   echo "V1.7 local harness Chrome exited with status ${status}" >&2
 fi
-if ! grep -Fq 'V17_PRODUCTION_E2E_PASS' "$DOM"; then
+if ! grep -Fq "$PASS_MARKER" "$DOM"; then
   echo 'V1.7 MA02 local browser harness failed.' >&2
-  grep -F 'V17_PRODUCTION_E2E_' "$DOM" >&2 || true
+  grep -o '<pre id="result">[^<]*</pre>' "$DOM" >&2 || true
   cat "$LOG" >&2 || true
   exit 1
 fi
