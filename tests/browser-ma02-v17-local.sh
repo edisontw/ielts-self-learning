@@ -17,6 +17,7 @@ else
   exit 1
 fi
 
+node --check tests/browser-production-ma02-v17.js
 python3 -m http.server "$PORT" --bind 127.0.0.1 >/tmp/ielts-v17-http.log 2>&1 &
 SERVER_PID=$!
 CHROME_PID=''
