@@ -6,9 +6,10 @@ const CORE='ielts-self-learning-v1';
 const MOCK='ielts-mock-v1';
 const ADAPTIVE='ielts-adaptive-v1';
 const GUIDE='ielts-site-guide-dismissed-v1';
+let loadSerial=0;
 const wait=async(fn,label,timeout=18000)=>{const start=Date.now();while(Date.now()-start<timeout){try{const value=fn();if(value)return value}catch{}await new Promise(r=>setTimeout(r,60))}throw new Error(`Timed out waiting for ${label}`)};
 const includes=(node,text)=>Boolean(node?.textContent?.includes(text));
-const load=async(hash,width=1280,height=900)=>{frame.style.width=`${width}px`;frame.style.height=`${height}px`;frame.src=`../index.html${hash}`;await new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));return frame.contentDocument};
+const load=async(hash,width=1280,height=900)=>{frame.style.width=`${width}px`;frame.style.height=`${height}px`;const loaded=new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));frame.src=`../index.html?e2e=${Date.now()}-${++loadSerial}${hash}`;await loaded;return frame.contentDocument};
 const seedGuide=()=>localStorage.setItem(GUIDE,'true');
 
 try{
