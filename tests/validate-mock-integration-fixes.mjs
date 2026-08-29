@@ -13,7 +13,8 @@ const diag=fs.readFileSync(path.join(root,'mock-diagnostics-extension-v1.js'),'u
 const guide=fs.readFileSync(path.join(root,'site-guide-v1.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
 
-assert(audio.includes('setTextIfChanged(note, PLAYER_NOTE)'), 'Mock audio copy updates must be idempotent.');
+assert(audio.includes('setTextIfChanged(note, PLAYER_NOTE['), 'Mock audio copy updates must remain idempotent and test-aware.');
+assert(audio.includes('PLAYER_NOTE.MA02'), 'Mock audio copy must expose the MA02 browser-voice production gate.');
 assert(!audio.includes("if (note) note.textContent = 'Production MP3"), 'Mock audio observer must not unconditionally rewrite observed text.');
 assert(audio.includes('new MutationObserver(upgradeCopy)'), 'Mock production-audio upgrade should remain mutation-aware.');
 assert(sync.includes("window.addEventListener('ielts-mock-errors-saved'"), 'Mock/core sync must react after Mock errors are persisted.');
@@ -35,13 +36,13 @@ class MemoryStorage {
   getItem(key){return this.map.has(key)?this.map.get(key):null;}
 }
 const {readMockDiagnostics}=await import('../mock-diagnostics-extension-v1.js');
-let report=readMockDiagnostics(new MemoryStorage({'ielts-mock-v1':JSON.stringify({history:[{id:'m1'},{id:'m2'}]})}));
-assert(report.status==='healthy'&&report.attempts===2,'Diagnostics must count valid Full Mock attempts.');
+let report=readMockDiagnostics(new MemoryStorage({'ielts-mock-v1':JSON.stringify({history:[{id:'m1',testId:'MA01'},{id:'m2',testId:'MA02'}]})}));
+assert(report.status==='healthy'&&report.attempts===2,'Diagnostics must count valid MA01 + MA02 Full Mock attempts.');
 report=readMockDiagnostics(new MemoryStorage({'ielts-mock-v1':'{"history":{}}'}));
 assert(report.status==='error'&&report.error.includes('array'),'Diagnostics must flag malformed Full Mock history.');
 
-console.log('✓ Mock Listening observer text updates are idempotent');
+console.log('✓ Mock Listening observer text updates remain idempotent and test-aware');
 console.log('✓ Mock → Error Notebook handoff refreshes the base in-memory app state after exit');
 console.log('✓ Mini Test → Error Notebook handoff refreshes the base state after Exit or route navigation');
-console.log('✓ Full Mock history is included in learner guidance and Diagnostics');
+console.log('✓ MA01 + MA02 Full Mock history is compatible with learner guidance and Diagnostics');
 console.log('✓ Shared external core-write sync loads after both Mini Test and Mock runtimes');

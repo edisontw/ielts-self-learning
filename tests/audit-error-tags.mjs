@@ -10,7 +10,7 @@ const modulePaths = [
   '../mini-test-data-v1.js',
   '../mini-test-data-v2.js',
   '../mini-test-data-v3.js',
-  '../mock-test-data-v1.js'
+  '../mock-test-registry-v17.js'
 ];
 
 const modules = [];
@@ -115,7 +115,7 @@ for (const [, row] of sortRows([...skillSemantic.entries()]).filter(([, row]) =>
 
 const spatial = skillSemantic.get('listening:spatial-sequence');
 const procedural = skillSemantic.get('listening:procedural-sequence');
-if (spatial?.count !== 2 || procedural?.count !== 1 || skillSemantic.has('listening:sequence')) {
-  throw new Error('Listening sequence semantic split must resolve to spatial-sequence ×2 and procedural-sequence ×1 with no umbrella recurring family.');
+if (spatial?.count !== 3 || procedural?.count !== 2 || skillSemantic.has('listening:sequence')) {
+  throw new Error('V1.7 Listening sequence evidence must resolve to spatial-sequence ×3 and procedural-sequence ×2 with no umbrella family.');
 }
-console.log('✓ Listening sequence umbrella tag is normalized to spatial-sequence ×2 and procedural-sequence ×1 before recurrence analysis');
+console.log('✓ V1.7 preserves the semantic sequence split: spatial-sequence ×3 and procedural-sequence ×2, with no umbrella recurrence');
