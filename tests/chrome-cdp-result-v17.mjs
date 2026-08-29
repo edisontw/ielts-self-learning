@@ -49,15 +49,15 @@ function command(method,params={}){
   });
 }
 
+async function evaluate(expression){
+  const response=await command('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
+  return response?.result?.value;
+}
+
 await command('Runtime.enable');
 let last='';
 while(Date.now()-started<timeoutMs){
-  const evaluated=await command('Runtime.evaluate',{
-    expression:"document.querySelector('#result')?.textContent || ''",
-    returnByValue:true,
-    awaitPromise:true
-  });
-  const status=String(evaluated?.result?.value||'');
+  const status=String(await evaluate("document.querySelector('#result')?.textContent || ''")||'');
   if(status!==last&&status){console.log(`V1.7 browser harness status: ${status.split('\n')[0]}`);last=status}
   if(status==='V17_PRODUCTION_E2E_PASS'){
     ws.close();
@@ -71,5 +71,7 @@ while(Date.now()-started<timeoutMs){
   await sleep(150);
 }
 
+const diagnostics=await evaluate(`(()=>{const f=document.querySelector('#app');const d=f?.contentDocument;let mock=null,core=null;try{mock=JSON.parse(localStorage.getItem('ielts-mock-v1')||'null')}catch{}try{core=JSON.parse(localStorage.getItem('ielts-self-learning-v1')||'null')}catch{}return JSON.stringify({outerReady:document.readyState,frameSrc:f?.getAttribute('src')||'',frameHash:f?.contentWindow?.location?.hash||'',frameReady:d?.readyState||'',appShell:Boolean(d?.querySelector('.app-shell')),mockCenter:Boolean(d?.querySelector('[data-mock-center]')),ma02Card:Boolean(d?.querySelector('[data-mock-card="MA02"]')),playerTestId:d?.querySelector('[data-mock-player]')?.dataset?.mockTestId||'',playerResult:Boolean(d?.querySelector('[data-mock-player].mock-result')),mockHistory:(mock?.history||[]).map(x=>({testId:x.testId,mode:x.mode})),coreErrors:(core?.errors||[]).length});})()`);
+console.error(`V1.7 browser timeout diagnostics: ${diagnostics}`);
 ws.close();
 throw new Error(`Timed out waiting for rendered V1.7 E2E result; last status: ${last||'(empty)'}`);
