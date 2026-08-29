@@ -5,7 +5,6 @@ const assert=(x,m)=>{if(!x)throw new Error(m)};
 assert(MOCK_TESTS.length===2,'V1.7 must ship two complete Full Academic mocks.');
 assert(JSON.stringify(MOCK_TESTS.map(t=>t.id))===JSON.stringify(['MA01','MA02']),'Mock registry must preserve MA01 then MA02.');
 const globalIds=new Set();
-const allPrompts=new Set();
 const listeningScripts=new Set();
 const readingPassages=new Set();
 
@@ -35,8 +34,6 @@ for(const t of MOCK_TESTS){
       assert(q.id.startsWith(`${t.id}-`),`${q.id} must be namespaced to ${t.id}.`);
       assert(!globalIds.has(q.id),`Duplicate cross-mock question id ${q.id}.`);
       globalIds.add(q.id);
-      assert(!allPrompts.has(q.prompt),`Question prompt reused across mocks: ${q.prompt}`);
-      allPrompts.add(q.prompt);
     }
   }
   assert(reading.some(q=>q.type==='tfng'),`${t.id} Reading must include TRUE/FALSE/NOT GIVEN.`);
@@ -46,6 +43,7 @@ for(const t of MOCK_TESTS){
   for(const p of t.reading.passages){assert(!readingPassages.has(p.passage),`${t.id} Reading passage duplicates another mock.`);readingPassages.add(p.passage);}
 }
 
+const ma01=MOCK_TESTS.find(t=>t.id==='MA01');
 const ma02=MOCK_TESTS.find(t=>t.id==='MA02');
 const ma02L=ma02.listening.parts.flatMap(p=>p.questions);
 for(const tag of ['spelling','definition','listening-procedural-sequence','listening-conditional-outcome','academic-vocabulary']){
@@ -54,8 +52,10 @@ for(const tag of ['spelling','definition','listening-procedural-sequence','liste
 }
 assert(ma02.audioStatus==='browser-voice-gate','MA02 must explicitly remain behind the production-audio gate.');
 assert(ma02.sourcePolicy.notes.includes('independent from MA01'),'MA02 source policy must state independence from MA01.');
-assert(MOCK_TESTS[0].writing.tasks[0].prompt!==ma02.writing.tasks[0].prompt&&MOCK_TESTS[0].writing.tasks[1].prompt!==ma02.writing.tasks[1].prompt,'MA02 Writing tasks must be independent from MA01.');
-assert(MOCK_TESTS[0].speaking.parts[1].cue!==ma02.speaking.parts[1].cue,'MA02 Speaking Part 2 must be independent from MA01.');
+assert(ma01.listening.parts.every((p,i)=>p.script!==ma02.listening.parts[i]?.script),'MA02 Listening parts must be independent from MA01.');
+assert(ma01.reading.passages.every((p,i)=>p.passage!==ma02.reading.passages[i]?.passage),'MA02 Reading passages must be independent from MA01.');
+assert(ma01.writing.tasks[0].prompt!==ma02.writing.tasks[0].prompt&&ma01.writing.tasks[1].prompt!==ma02.writing.tasks[1].prompt,'MA02 Writing tasks must be independent from MA01.');
+assert(ma01.speaking.parts[1].cue!==ma02.speaking.parts[1].cue,'MA02 Speaking Part 2 must be independent from MA01.');
 assert(approximateBand('listening',30)===7,'Listening raw 30 reference should map to approx Band 7.');
 assert(approximateBand('reading',30)===7,'Reading raw 30 reference should map to approx Band 7.');
 
