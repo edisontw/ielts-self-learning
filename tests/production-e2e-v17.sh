@@ -19,6 +19,7 @@ else
   exit 1
 fi
 
+node --check tests/browser-production-ma02-v17.js
 echo "Waiting for the current main deployment sentinel at ${BASE} ..."
 deployed=0
 for attempt in {1..90}; do
@@ -41,7 +42,8 @@ for asset in \
   mock-test-audio-upgrade-v1.js \
   existing-practice-routing-v17.js \
   existing-practice-routing-runtime-v16.js \
-  tests/browser-production-ma02-v17.html; do
+  tests/browser-production-ma02-v17.html \
+  tests/browser-production-ma02-v17.js; do
   curl -fsS --max-time 15 "${BASE}/${asset}?sha=${CACHE_BUST}" >/dev/null || { echo "Missing deployed V1.7 asset: ${asset}" >&2; exit 1; }
 done
 
