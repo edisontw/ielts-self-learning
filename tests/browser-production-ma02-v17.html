@@ -3,9 +3,8 @@
 <head><meta charset="utf-8"><title>V1.7 MA02 Production E2E</title></head>
 <body>
 <pre id="result">V17_PRODUCTION_E2E_PENDING</pre>
-<iframe id="app" title="IELTS production app" style="width:1280px;height:900px;border:0"></iframe>
-<script>
-(async()=>{
+<iframe id="app" src="../index.html#/ielts" title="IELTS production app" style="width:1280px;height:900px;border:0"></iframe>
+<script type="module">
 const out=document.querySelector('#result');
 const frame=document.querySelector('#app');
 const CORE='ielts-self-learning-v1';
@@ -17,9 +16,12 @@ const includes=(node,text)=>Boolean(node?.textContent?.includes(text));
 const load=async(hash,width=1280,height=900)=>{frame.style.width=`${width}px`;frame.style.height=`${height}px`;frame.src=`../index.html${hash}`;await new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));return frame.contentDocument};
 const seedGuide=()=>localStorage.setItem(GUIDE,'true');
 try{
-  localStorage.clear();seedGuide();
-  let doc=await load('#/ielts');
-  const center=await wait(()=>doc.querySelector('[data-mock-center]'),'V1.7 Mock Center');
+  // The iframe is part of the initial document load so headless Chrome does not
+  // snapshot the harness before its first application page has rendered.
+  let doc=frame.contentDocument;
+  const center=await wait(()=>frame.contentDocument?.querySelector('[data-mock-center]'),'V1.7 Mock Center');
+  doc=frame.contentDocument;
+  seedGuide();
   if(!includes(center,'IELTS Mock Test Center · V1.7'))throw new Error('V1.7 Mock Center marker missing');
   const ma01=center.querySelector('[data-mock-card="MA01"]');
   const ma02=center.querySelector('[data-mock-card="MA02"]');
@@ -109,7 +111,6 @@ try{
 
   out.textContent='V17_PRODUCTION_E2E_PASS';
 }catch(error){out.textContent=`V17_PRODUCTION_E2E_FAIL: ${error.stack||error}`}
-})();
 </script>
 </body>
 </html>
