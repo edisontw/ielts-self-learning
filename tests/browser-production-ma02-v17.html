@@ -4,7 +4,8 @@
 <body>
 <pre id="result">V17_PRODUCTION_E2E_PENDING</pre>
 <iframe id="app" title="IELTS production app" style="width:1280px;height:900px;border:0"></iframe>
-<script type="module">
+<script>
+(async()=>{
 const out=document.querySelector('#result');
 const frame=document.querySelector('#app');
 const CORE='ielts-self-learning-v1';
@@ -108,6 +109,7 @@ try{
 
   out.textContent='V17_PRODUCTION_E2E_PASS';
 }catch(error){out.textContent=`V17_PRODUCTION_E2E_FAIL: ${error.stack||error}`}
+})();
 </script>
 </body>
 </html>
