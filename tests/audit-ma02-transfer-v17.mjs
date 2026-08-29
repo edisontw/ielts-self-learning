@@ -40,6 +40,7 @@ assert(!repairOwns('definition'),'Listening definition must not gain Repair owne
 
 const conditional=forms('listening','conditional-outcome');
 assert(JSON.stringify(conditional)===JSON.stringify(['MA02','ML02','ML04']),'Listening conditional-outcome should now have three independent forms: ML02, ML04 and MA02.');
+assert(rows('listening','conditional-outcome').filter(x=>x.form==='MA02').length===2,'MA02 should contain two genuine conditional-outcome items but count as one independent form.');
 const l04=CURRICULUM_BATCH_01.find(x=>x.id==='L04');
 const l04Teaching=JSON.stringify(l04?.sections||[]);
 assert(l04Teaching.includes('conditional option')&&l04Teaching.includes('FINAL meaning'),'L04 must remain the exact teaching owner for conditional option → FINAL meaning.');
@@ -47,6 +48,13 @@ const conditionalRoute=existingPracticeRecommendationFor({skill:'listening',erro
 assert(conditionalRoute?.primary?.id==='L04','Three-form conditional-outcome evidence should now route to existing L04 teaching.');
 assert(!conditionalRoute.transfer,'Conditional-outcome should use the exact L04 destination without inventing an inexact Lab transfer.');
 assert(!repairOwns('listening-conditional-outcome'),'Recurring conditional-outcome is already taught by L04, so no new Repair is justified.');
+
+const spatial=forms('listening','spatial-sequence');
+assert(JSON.stringify(spatial)===JSON.stringify(['MA02','ML02','ML03']),'Listening spatial sequence should now have three independent forms: ML02, ML03 and MA02.');
+const spatialRoute=existingPracticeRecommendationFor({skill:'listening',errorTag:'listening-spatial-sequence'});
+assert(spatialRoute?.primary?.id==='QL03','Three-form spatial-sequence evidence should now route to exact existing QL03 practice.');
+assert(!spatialRoute.transfer,'Spatial sequence should return directly to QL03 without inventing another destination.');
+assert(!repairOwns('listening-spatial-sequence'),'Recurring spatial sequence is already taught by QL03, so no new Repair is justified.');
 
 const procedural=forms('listening','procedural-sequence');
 assert(JSON.stringify(procedural)===JSON.stringify(['MA02','ML04']),'Listening procedural sequence should now have two independent forms.');
@@ -64,6 +72,7 @@ console.log('V1.7 MA02 skill-aware transfer audit');
 console.log(`✓ Listening spelling: ${spelling.join(' + ')} = two independent Full Mock forms; QL02 remains known teaching context, but no route/Repair at two forms.`);
 console.log(`✓ Listening explicit definition: ${definition.join(' + ')} = two independent Full Mock forms; observe, no route/Repair.`);
 console.log(`✓ Listening conditional outcome: ${conditional.join(' + ')} = three independent forms; exact owner L04 now gets an existing-practice route, with no new Repair.`);
+console.log(`✓ Listening spatial sequence: ${spatial.join(' + ')} = three independent forms; exact owner QL03 now gets an existing-practice route, with no new Repair.`);
 console.log(`✓ Listening procedural sequence: ${procedural.join(' + ')} = two independent forms; remains discovery-only.`);
 console.log(`✓ Academic vocabulary: Listening ${listeningAcademic.join(' + ')}; Reading ${readingAcademic.join(' + ')}; two forms per skill remain below action threshold and are not aggregated across skills.`);
 console.log('✓ MA02 creates independent transfer evidence without changing the 30-unit curriculum denominator or manufacturing new Repair lessons.');
