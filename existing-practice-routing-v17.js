@@ -6,10 +6,10 @@ export const V17_EXISTING_PRACTICE_FAMILIES={
   'listening-conditional-outcome':{
     label:'Listening conditional outcome',
     skill:'listening',
-    auditedQuestions:4,
+    auditedQuestions:5,
     auditedForms:3,
     coverage:['L04'],
-    reason:'ML02, ML04 and independent MA02 now provide three-form transfer evidence for following a stated condition to its final outcome. MA02 contributes two genuine items but counts as one independent form. L04 already teaches conditional option → FINAL meaning, so an existing-practice route is useful and a new Repair lesson would duplicate instruction.'
+    reason:'ML02, ML04 and independent MA02 now provide three-form transfer evidence for following a stated condition to its final outcome. MA02 contributes three genuine items but counts as one independent form. L04 already teaches conditional option → FINAL meaning, so an existing-practice route is useful and a new Repair lesson would duplicate instruction.'
   },
   'listening-spatial-sequence':{
     label:'Listening spatial sequence',
