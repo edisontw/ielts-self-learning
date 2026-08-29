@@ -5,6 +5,7 @@ BASE_URL="${BASE_URL:-https://edisontw.github.io/ielts-self-learning}"
 BASE="${BASE_URL%/}"
 SENTINEL='V1.7-MA02-PRODUCTION-E2E-GATE-20260829-1'
 CACHE_BUST="${GITHUB_SHA:-$(date +%s)}"
+PASS_MARKER='<pre id="result">V17_PRODUCTION_E2E_PASS</pre>'
 
 if command -v google-chrome >/dev/null 2>&1; then
   CHROME=google-chrome
@@ -65,15 +66,10 @@ set -e
 if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
   echo "Production Chrome exited with status ${status}" >&2
 fi
-if ! grep -Fq 'V17_PRODUCTION_E2E_PASS' "$DOM"; then
+if ! grep -Fq "$PASS_MARKER" "$DOM"; then
   echo 'V1.7 deployed browser E2E failed.' >&2
-  grep -F 'V17_PRODUCTION_E2E_' "$DOM" >&2 || true
+  grep -o '<pre id="result">[^<]*</pre>' "$DOM" >&2 || true
   cat "$LOG" >&2 || true
-  exit 1
-fi
-if grep -Fq 'V17_PRODUCTION_E2E_FAIL' "$DOM"; then
-  echo 'V1.7 deployed browser harness reported failure.' >&2
-  grep -F 'V17_PRODUCTION_E2E_FAIL' "$DOM" >&2 || true
   exit 1
 fi
 
