@@ -11,6 +11,15 @@ const wait=async(fn,label,timeout=18000)=>{const start=Date.now();while(Date.now
 const includes=(node,text)=>Boolean(node?.textContent?.includes(text));
 const load=async(hash,width=1280,height=900)=>{frame.style.width=`${width}px`;frame.style.height=`${height}px`;const loaded=new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));frame.src=`../index.html?e2e=${Date.now()}-${++loadSerial}${hash}`;await loaded;return frame.contentDocument};
 const seedGuide=()=>localStorage.setItem(GUIDE,'true');
+const notebookDiagnostics=()=>{
+  const doc=frame.contentDocument;
+  return [...(doc?.querySelectorAll('#main .error-item')||[])].map(item=>({
+    id:item.querySelector('[data-error-id]')?.dataset.errorId||'',
+    tag:[...item.querySelectorAll('.chip')].map(x=>x.textContent?.trim()).filter(Boolean).join('|'),
+    retry:Boolean(item.querySelector('[data-action="retry-error"]')),
+    route:item.querySelector('[data-v16-existing-practice-error-route]')?.textContent?.trim()||''
+  }));
+};
 
 try{
   let doc=frame.contentDocument;
@@ -79,8 +88,11 @@ try{
   if(!includes(conditional,'L04')||conditional.querySelector('[data-lesson="L04"]')===null)throw new Error('Conditional outcome does not route to exact owner L04');
   if(!includes(spatial,'QL03')||spatial.querySelector('[data-lesson="QL03"]')===null)throw new Error('Spatial sequence does not route to exact owner QL03');
   const errorCard=id=>doc.querySelector(`[data-error-id="${id}"]`)?.closest('.error-item');
-  const conditionalRoute=await wait(()=>errorCard('v17-conditional')?.querySelector('[data-v16-existing-practice-error-route]'),'Conditional Error Notebook CTA');
-  const spatialRoute=await wait(()=>errorCard('v17-spatial')?.querySelector('[data-v16-existing-practice-error-route]'),'Spatial Error Notebook CTA');
+  const conditionalCard=await wait(()=>errorCard('v17-conditional'),'Conditional Error Notebook card');
+  const spatialCard=await wait(()=>errorCard('v17-spatial'),'Spatial Error Notebook card');
+  let conditionalRoute=null,spatialRoute=null;
+  try{conditionalRoute=await wait(()=>conditionalCard.querySelector('[data-v16-existing-practice-error-route]'),'Conditional Error Notebook CTA')}catch(error){throw new Error(`${error.message}; notebook=${JSON.stringify(notebookDiagnostics())}`)}
+  try{spatialRoute=await wait(()=>spatialCard.querySelector('[data-v16-existing-practice-error-route]'),'Spatial Error Notebook CTA')}catch(error){throw new Error(`${error.message}; notebook=${JSON.stringify(notebookDiagnostics())}`)}
   if(!includes(conditionalRoute,'Review L04'))throw new Error('Conditional Error Notebook CTA does not point to L04');
   if(!includes(spatialRoute,'Review QL03'))throw new Error('Spatial Error Notebook CTA does not point to QL03');
   conditionalRoute.querySelector('[data-lesson="L04"]').click();
