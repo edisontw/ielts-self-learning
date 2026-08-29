@@ -5,7 +5,8 @@ BASE_URL="${BASE_URL:-https://edisontw.github.io/ielts-self-learning}"
 BASE="${BASE_URL%/}"
 SENTINEL='V1.7-MA02-PRODUCTION-E2E-GATE-20260829-1'
 CACHE_BUST="${GITHUB_SHA:-$(date +%s)}"
-PASS_MARKER='<pre id="result">V17_PRODUCTION_E2E_PASS</pre>'
+CDP_PORT="${CDP_PORT:-9228}"
+URL="${BASE}/tests/browser-production-ma02-v17.html?sha=${CACHE_BUST}"
 
 if command -v google-chrome >/dev/null 2>&1; then
   CHROME=google-chrome
@@ -44,33 +45,35 @@ for asset in \
   curl -fsS --max-time 15 "${BASE}/${asset}?sha=${CACHE_BUST}" >/dev/null || { echo "Missing deployed V1.7 asset: ${asset}" >&2; exit 1; }
 done
 
-DOM='/tmp/ielts-production-v17.html'
 LOG='/tmp/ielts-production-v17-chrome.log'
 PROFILE='/tmp/ielts-production-v17-profile'
-rm -rf "$PROFILE" "$DOM" "$LOG"
-set +e
-timeout 70s "$CHROME" \
+rm -rf "$PROFILE" "$LOG"
+CHROME_PID=''
+cleanup(){ [[ -n "$CHROME_PID" ]] && kill "$CHROME_PID" 2>/dev/null || true; }
+trap cleanup EXIT
+"$CHROME" \
   --headless=new \
   --no-sandbox \
   --disable-gpu \
   --disable-dev-shm-usage \
-  --disable-background-networking \
   --disable-component-update \
   --disable-crash-reporter \
+  --remote-debugging-port="$CDP_PORT" \
+  --remote-allow-origins='*' \
   --user-data-dir="$PROFILE" \
   --window-size='1440,1000' \
-  --virtual-time-budget=35000 \
-  --dump-dom "${BASE}/tests/browser-production-ma02-v17.html?sha=${CACHE_BUST}" >"$DOM" 2>"$LOG"
+  "$URL" >"$LOG" 2>&1 &
+CHROME_PID=$!
+
+set +e
+CDP_PORT="$CDP_PORT" TARGET_URL="$URL" E2E_TIMEOUT_MS=60000 \
+  timeout 70s node --experimental-websocket tests/chrome-cdp-result-v17.mjs
 status=$?
 set -e
-if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
-  echo "Production Chrome exited with status ${status}" >&2
-fi
-if ! grep -Fq "$PASS_MARKER" "$DOM"; then
-  echo 'V1.7 deployed browser E2E failed.' >&2
-  grep -o '<pre id="result">[^<]*</pre>' "$DOM" >&2 || true
+if [[ "$status" -ne 0 ]]; then
+  echo "V1.7 deployed browser E2E failed with status ${status}." >&2
   cat "$LOG" >&2 || true
-  exit 1
+  exit "$status"
 fi
 
 echo 'Production E2E passed: deployed GitHub Pages MA01/MA02 selector, MA02 Reading/history/Error Notebook, dynamic Writing ids, browser-voice gate, L04/QL03 existing-practice CTAs, and 390px selector/overflow.'
