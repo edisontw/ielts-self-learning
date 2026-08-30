@@ -48,6 +48,8 @@ jobs:
         run: node --check speaking-sampler-v111.js && node tests/validate-speaking-sampler-v111.mjs
       - name: V1.11 Speaking sampler browser flow
         run: bash tests/browser-speaking-sampler-v111.sh
+      - name: V1.12 MA02 production-audio preparation guard
+        run: node tests/validate-ma02-audio-prep-v112.mjs
       - name: V1.7 MA02 browser interaction
         run: bash tests/browser-ma02-v17-local.sh
       - name: Production E2E — deployed GitHub Pages
