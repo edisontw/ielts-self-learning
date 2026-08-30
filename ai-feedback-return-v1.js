@@ -1,7 +1,7 @@
 import { LESSONS } from './data.js';
 
 const ADAPTIVE_KEY = 'ielts-adaptive-v1';
-const esc = (value='') => String(value).replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[c]));
+const esc = (value='') => String(value).replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt',"'":'&#039;','\"':'&quot;'}[c]));
 const read = key => { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; } };
 const write = state => localStorage.setItem(ADAPTIVE_KEY, JSON.stringify(state));
 
@@ -64,6 +64,43 @@ function linkRetryToFeedback(retryEvent, adaptive=ensure()) {
   return pending;
 }
 
+function revisionTarget(lesson) {
+  const speaking = lesson?.skill === 'speaking';
+  return {
+    selector:speaking ? '.speaking-input' : '.writing-input',
+    label:speaking ? 'Retry speaking now' : 'Revise draft now',
+    noun:speaking ? 'transcript' : 'draft'
+  };
+}
+
+function primeRetryEvidence() {
+  const kind=document.querySelector('[data-productive-evidence-card] [data-pe-kind]');
+  if (kind) kind.value='retry';
+  return kind || null;
+}
+
+function focusRevision(lesson) {
+  if (!lesson || !['writing','speaking'].includes(lesson.skill)) return false;
+  const target=revisionTarget(lesson);
+  const input=document.querySelector(target.selector);
+  primeRetryEvidence();
+  if (!input) return false;
+  input.dataset.feedbackRevisionFocus='true';
+  input.scrollIntoView({block:'center',behavior:'smooth'});
+  setTimeout(()=>input.focus({preventScroll:true}),0);
+  return true;
+}
+
+function focusRetryEvidence(lesson) {
+  if (!lesson || !['writing','speaking'].includes(lesson.skill)) return false;
+  const kind=primeRetryEvidence();
+  const card=document.querySelector('[data-productive-evidence-card]');
+  if (!card) return false;
+  card.scrollIntoView({block:'center',behavior:'smooth'});
+  setTimeout(()=>kind?.focus({preventScroll:true}),0);
+  return true;
+}
+
 function saveFeedback(button) {
   const lesson = LESSONS.find(x => x.id === button.dataset.lessonId);
   if (!lesson || !['writing','speaking'].includes(lesson.skill)) return;
@@ -98,6 +135,7 @@ function saveFeedback(button) {
   write(adaptive);
   window.dispatchEvent(new CustomEvent('ielts-ai-feedback-return-change', { detail:event }));
   replaceLessonCard(lesson);
+  primeRetryEvidence();
 }
 
 function deltaText(row) {
@@ -114,10 +152,11 @@ function lessonCardHTML(lesson) {
   const rows = feedbackEvents(adaptive, lesson.skill, lesson.id);
   const pending = [...rows].reverse().find(x => !x.appliedByEvidenceId);
   const latest = rows.at(-1);
+  const target=revisionTarget(lesson);
   const status = pending
-    ? `<div class="callout warning" style="margin-top:14px"><strong>Feedback logged — now revise.</strong><br><span class="small">${pending.priorities.map((p,i)=>`${i+1}. ${esc(p)}`).join('<br>')}</span><div class="small muted" style="margin-top:8px">${esc(deltaText(pending))}</div></div>`
+    ? `<div class="callout warning" data-ai-feedback-pending style="margin-top:14px"><strong>Feedback logged — revision is the next step.</strong><br><span class="small">${pending.priorities.map((p,i)=>`${i+1}. ${esc(p)}`).join('<br>')}</span><div class="small muted" style="margin-top:8px">${esc(deltaText(pending))}</div><div class="cluster" style="margin-top:12px"><button class="btn primary" data-af-action="revise-now" data-lesson-id="${esc(lesson.id)}">${target.label}</button><button class="btn soft small-btn" data-af-action="retry-evidence" data-lesson-id="${esc(lesson.id)}">After revising, save retry evidence</button></div><div class="small muted" style="margin-top:8px">Revise the existing ${target.noun} first. Productive Evidence is pre-set to <strong>Revision / retry</strong>; saving it closes this feedback cycle and records the before/after process change.</div></div>`
     : latest?.appliedByEvidenceId
-      ? `<div class="callout success" style="margin-top:14px"><strong>Feedback → retry cycle recorded.</strong><br><span class="small">${latest.priorities.map((p,i)=>`${i+1}. ${esc(p)}`).join('<br>')}</span><div class="small muted" style="margin-top:8px">${esc(deltaText(latest))}</div></div>`
+      ? `<div class="callout success" data-ai-feedback-cycle-complete style="margin-top:14px"><strong>Feedback → retry cycle recorded.</strong><br><span class="small">${latest.priorities.map((p,i)=>`${i+1}. ${esc(p)}`).join('<br>')}</span><div class="small muted" style="margin-top:8px">${esc(deltaText(latest))}</div></div>`
       : '';
   return `<section class="lesson-section" data-ai-feedback-return>
     <div class="eyebrow">AI feedback return · revision log</div>
@@ -198,8 +237,12 @@ function apply() {
 }
 
 document.addEventListener('click',e=>{
-  const button=e.target.closest('[data-af-action="save"]');
-  if (button) saveFeedback(button);
+  const button=e.target.closest('[data-af-action]');
+  if (!button) return;
+  const lesson=LESSONS.find(x=>x.id===button.dataset.lessonId) || currentLesson();
+  if (button.dataset.afAction==='save') saveFeedback(button);
+  else if (button.dataset.afAction==='revise-now') focusRevision(lesson);
+  else if (button.dataset.afAction==='retry-evidence') focusRetryEvidence(lesson);
 });
 window.addEventListener('ielts-productive-evidence-change',e=>{
   const adaptive=ensure();
@@ -215,4 +258,4 @@ window.addEventListener('hashchange',()=>setTimeout(apply,0));
 new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});
 setTimeout(apply,0);
 
-export { ensure, feedbackSummary, comparison, linkRetryToFeedback };
+export { ensure, feedbackSummary, comparison, linkRetryToFeedback, focusRevision };
