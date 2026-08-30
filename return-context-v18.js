@@ -19,7 +19,7 @@ function readContext(){
 }
 
 function writeContext(context){
-  try{sessionStorage.setItem(RETURN_CONTEXT_KEY,JSON.stringify(context));}catch{}
+  try{sessionStorage.setItem(RETURN_CONTEXT_KEY,JSON.stringify(context));return true;}catch{return false;}
 }
 
 function clearContext(){
@@ -65,7 +65,7 @@ function captureResultContext(button){
   const isMini=root.matches('[data-mini-test-player="true"]');
   const sourceLabel=sourceLabelForResult(root);
   const returnLabel=isMini?`Return to ${sourceLabel} review`:mockReturnLabel(root);
-  writeContext({
+  return writeContext({
     version:1,
     createdAt:Date.now(),
     kind:isMini?'mini-result':'mock-result',
@@ -75,7 +75,6 @@ function captureResultContext(button){
     snapshotHtml:sanitiseReviewSnapshot(root),
     returning:false
   });
-  return true;
 }
 
 function captureImproveContext(button){
@@ -83,7 +82,7 @@ function captureImproveContext(button){
   const errorItem=button.closest('.error-item');
   const errorId=errorItem?.querySelector('[data-error-id]')?.dataset.errorId||'';
   const fromNotebook=Boolean(errorItem);
-  writeContext({
+  return writeContext({
     version:1,
     createdAt:Date.now(),
     kind:fromNotebook?'error-notebook':'improve',
@@ -93,7 +92,6 @@ function captureImproveContext(button){
     focusErrorId:errorId,
     returning:false
   });
-  return true;
 }
 
 function lessonIdFromHash(){
@@ -133,15 +131,17 @@ function restoreBaseAfterReview(main){
 
 function renderReturnedReview(){
   const context=readContext();
-  if(!context?.returning||!context.snapshotHtml||!location.hash.includes('/ielts'))return;
+  if(!context?.returning||!context.snapshotHtml||!location.hash.includes('/ielts'))return false;
   const main=document.querySelector('#main');
-  if(!main||main.querySelector('[data-return-review-v18]'))return;
+  if(!main)return false;
+  if(main.querySelector('[data-return-review-v18]'))return true;
   hideBaseForReview(main);
   const shell=document.createElement('section');
   shell.dataset.returnReviewV18='true';
   shell.innerHTML=`<section class="card" style="margin-bottom:18px"><div class="cluster" style="justify-content:space-between;align-items:flex-start;gap:14px"><div><div class="eyebrow">Returned review · read-only</div><h1 style="margin:6px 0 8px">${esc(context.sourceLabel)}</h1><p class="muted" style="margin:0">Continue reviewing the submitted attempt or choose another evidence-backed priority. Test answers and submission controls remain locked.</p></div><button class="btn soft" data-return-context-action="close-review">Back to IELTS practice</button></div></section><div data-return-review-content>${context.snapshotHtml}</div>`;
   main.appendChild(shell);
   setTimeout(()=>shell.querySelector('[data-result-priorities-v18]')?.scrollIntoView({block:'start'}),0);
+  return true;
 }
 
 function completeSimpleReturn(){
@@ -164,13 +164,25 @@ export function renderReturnContext(){
   completeSimpleReturn();
 }
 
+function requestReturnRender(){
+  scheduleEnhancementPass();
+  for(const delay of [0,40,120,300]){
+    setTimeout(()=>{
+      const context=readContext();
+      if(!context?.returning)return;
+      renderReturnContext();
+    },delay);
+  }
+}
+
 function beginReturn(){
   const context=readContext();
   if(!context)return;
   context.returning=true;
-  writeContext(context);
-  if(location.hash===context.targetHash){scheduleEnhancementPass();return;}
+  if(!writeContext(context))return;
+  if(location.hash===context.targetHash){requestReturnRender();return;}
   location.hash=context.targetHash;
+  requestReturnRender();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -211,6 +223,8 @@ function handleClick(event){
 
 if(typeof document!=='undefined'){
   document.addEventListener('click',handleClick,true);
-  window.addEventListener('hashchange',()=>setTimeout(scheduleEnhancementPass,0));
+  window.addEventListener('hashchange',requestReturnRender);
+  window.addEventListener('pageshow',requestReturnRender);
   registerRenderEnhancement(renderReturnContext);
+  requestReturnRender();
 }
