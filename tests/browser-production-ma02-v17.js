@@ -122,15 +122,23 @@ try{
   spatialRouteAfterReturn.querySelector('[data-lesson="QL03"]').click();
   await wait(()=>frame.contentWindow.location.hash==='#/lesson/QL03'&&frame.contentDocument.querySelector('#main')?.textContent.includes('Question Type Lab: Map & Plan Labelling'),'QL03 CTA navigation');
 
-  // Mobile: both mocks remain reachable and the page itself does not overflow horizontally.
+  // Mobile: use the same staged IELTS navigation a learner sees, then verify both mocks
+  // and the MA02 Listening section control are reachable without page-level overflow.
   localStorage.clear();seedGuide();
   doc=await load('#/ielts',390,844);
-  await wait(()=>doc.querySelector('[data-mock-card="MA02"]'),'390px MA02 card');
-  if(!doc.querySelector('[data-mock-card="MA01"]')||!doc.querySelector('[data-mock-card="MA02"]'))throw new Error('Both mock cards are not reachable at 390px');
+  const mockStage=await wait(()=>doc.querySelector('[data-ielts-stage="mock"]'),'390px Full Mock stage tab');
+  mockStage.click();
+  const visibleCenter=await wait(()=>{
+    const center=doc.querySelector('[data-mock-center]');
+    return center&&!center.hidden?center:null;
+  },'390px visible Full Mock center');
+  const mobileMa01=visibleCenter.querySelector('[data-mock-card="MA01"]');
+  const mobileMa02=visibleCenter.querySelector('[data-mock-card="MA02"]');
+  if(!mobileMa01||!mobileMa02)throw new Error('Both mock cards are not reachable at 390px after selecting Full Mock');
   const root=doc.documentElement,body=doc.body;
   if(root.scrollWidth>root.clientWidth+2||body.scrollWidth>body.clientWidth+2)throw new Error(`390px horizontal overflow: root ${root.scrollWidth}/${root.clientWidth}, body ${body.scrollWidth}/${body.clientWidth}`);
-  const mobileStart=doc.querySelector('[data-mock-card="MA02"] [data-mock-start="listening"]');
-  if(!mobileStart||mobileStart.getBoundingClientRect().width<1||mobileStart.getBoundingClientRect().height<1)throw new Error('MA02 mobile start control is not visible/tappable');
+  const mobileStart=mobileMa02.querySelector('[data-mock-start="listening"]');
+  if(!mobileStart||mobileStart.getBoundingClientRect().width<1||mobileStart.getBoundingClientRect().height<1)throw new Error('MA02 mobile Listening start control is not visible/tappable after selecting Full Mock');
 
   out.textContent='V17_PRODUCTION_E2E_PASS';
 }catch(error){
