@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>V1.10 Task 2 QA</title></head>
+<body><pre id="result">V110_TASK2_PENDING</pre><iframe id="app" title="IELTS app" style="width:1280px;height:1000px;border:0"></iframe>
+<script type="module">
+const out=document.querySelector('#result'),frame=document.querySelector('#app');
+const CORE='ielts-self-learning-v1',ADAPTIVE='ielts-adaptive-v1',GUIDE='ielts-site-guide-dismissed-v1';
+const wait=async(fn,label,timeout=14000)=>{const start=Date.now();while(Date.now()-start<timeout){try{const v=fn();if(v)return v}catch{}await new Promise(r=>setTimeout(r,50))}throw new Error(`Timed out waiting for ${label}`)};
+const makeWords=n=>Array.from({length:n},(_,i)=>`word${i+1}`).join(' ');
+const input=(el,value)=>{el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));};
+const change=(el,value)=>{el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));};
+const read=k=>JSON.parse(localStorage.getItem(k)||'{}');
+localStorage.clear();sessionStorage.clear();localStorage.setItem(GUIDE,'true');
+localStorage.setItem(CORE,JSON.stringify({profile:{targetBand:7,stage:'B2',referenceLevel:'B2',recommendedDifficulty:3,confidence:'Moderate',placementSections:{vocabulary:3,grammar:3,reading:3,listening:3}},study:{preferredMinutes:20},placement:{total:12,ts:Date.now()},completedLessons:[],lessonAnswers:{},notes:{},errors:[],fixedErrors:[],studyHistory:[],writingDrafts:{},speakingTranscripts:{},ui:{chineseHelp:false}}));
+localStorage.setItem(ADAPTIVE,JSON.stringify({repairProgress:{},learningHistory:[],reviewSchedule:{},vocabularySchedule:{},skillPerformance:{},miniTestHistory:[],productiveEvidence:{writing:[],speaking:[]},productivePriority:{},aiFeedbackReturns:{writing:[],speaking:[]}}));
+try{
+  frame.src='../index.html?wt2qa=1#/ielts';await new Promise(r=>frame.addEventListener('load',r,{once:true}));
+  const doc=frame.contentDocument,win=frame.contentWindow;
+  const card=await wait(()=>doc.querySelector('[data-wt2-bank-card]'),'Task 2 bank card');
+  card.querySelector('[data-wt2-open]').click();
+  await wait(()=>doc.querySelector('[data-wt2-workspace]'),'Task 2 workspace');
+  const select=doc.querySelector('[data-wt2-select]');
+  if(select.options.length!==10)throw new Error(`Expected 10 prompts, got ${select.options.length}`);
+  for(const prefix of ['WT2-OP-','WT2-DISC-','WT2-ADV-','WT2-PS-','WT2-TWO-'])if([...select.options].filter(o=>o.value.startsWith(prefix)).length!==2)throw new Error(`Family ${prefix} does not have exactly two prompts`);
+  let draft=doc.querySelector('[data-wt2-draft]');input(draft,makeWords(249));
+  await wait(()=>doc.querySelector('[data-wt2-count]')?.textContent==='249 words','249 word count');
+  if(!doc.querySelector('[data-wt2-save-evidence]').disabled)throw new Error('249-word attempt incorrectly passed 250-word evidence gate');
+  draft=doc.querySelector('[data-wt2-draft]');input(draft,makeWords(260));
+  await wait(()=>!doc.querySelector('[data-wt2-save-evidence]').disabled,'260-word evidence button');
+  [...doc.querySelectorAll('[data-wt2-criterion]')].slice(0,3).forEach(x=>x.click());
+  doc.querySelector('[data-wt2-save-evidence]').click();
+  await wait(()=>read(ADAPTIVE).productiveEvidence?.writing?.length===1,'first productive evidence');
+  let adaptive=read(ADAPTIVE),first=adaptive.productiveEvidence.writing[0];
+  if(first.lessonId!=='WT2-BANK'||first.blockId!=='WT2-OP-01'||first.attemptKind!=='first'||first.wordCount!==260)throw new Error(`Unexpected first evidence ${JSON.stringify(first)}`);
+  if(Object.keys(read(CORE).writingDrafts||{}).includes('WT2-OP-01')===false)throw new Error('Task 2 draft did not reuse core writingDrafts storage');
+  const priorities=[...doc.querySelectorAll('[data-wt2-feedback]')];input(priorities[0],'Make the position more precise.');input(priorities[1],'Develop the second body idea before the example.');
+  doc.querySelector('[data-wt2-save-feedback]').click();
+  await wait(()=>read(ADAPTIVE).aiFeedbackReturns?.writing?.length===1,'saved feedback priorities');
+  adaptive=read(ADAPTIVE);if(adaptive.aiFeedbackReturns.writing[0].appliedByEvidenceId)throw new Error('Feedback was applied before a retry');
+  await wait(()=>doc.querySelector('[data-wt2-kind]')?.value==='retry','retry preselection');
+  draft=doc.querySelector('[data-wt2-draft]');input(draft,makeWords(275));
+  [...doc.querySelectorAll('[data-wt2-criterion]')].forEach(x=>x.click());
+  doc.querySelector('[data-wt2-save-evidence]').click();
+  await wait(()=>read(ADAPTIVE).productiveEvidence?.writing?.length===2,'retry productive evidence');
+  adaptive=read(ADAPTIVE);const retry=adaptive.productiveEvidence.writing[1],feedback=adaptive.aiFeedbackReturns.writing[0];
+  if(retry.attemptKind!=='retry'||retry.wordCount!==275)throw new Error('Retry evidence was not recorded correctly');
+  if(feedback.appliedByEvidenceId!==retry.id||!feedback.comparison||feedback.comparison.processDelta<=0)throw new Error(`Feedback cycle did not link to retry: ${JSON.stringify(feedback)}`);
+  const sel2=doc.querySelector('[data-wt2-select]');change(sel2,'WT2-DISC-01');
+  await wait(()=>doc.querySelector('[data-wt2-workspace]')?.textContent.includes('Discussion + opinion'),'Discussion prompt switch');
+  doc.querySelector('[data-wt2-mode="test"]').click();
+  await wait(()=>doc.querySelector('[data-wt2-copy]')?.disabled,'Test Mode AI lock');
+  if(!doc.querySelector('[data-wt2-workspace]').textContent.includes('Hidden in Test Mode'))throw new Error('Task checklist remained visible in Test Mode');
+  win.location.hash='#/progress';
+  await wait(()=>doc.querySelector('[data-diagnostic-center]'),'Diagnostic Center after Task 2 evidence');
+  const writing=doc.querySelector('[data-diagnostic-skill="writing"]');
+  if(!writing?.textContent.includes('Baseline evidence'))throw new Error(`Task 2 first attempt did not satisfy Writing baseline: ${writing?.textContent}`);
+  out.textContent='V110_TASK2_PASS';
+}catch(error){out.textContent=`V110_TASK2_FAIL: ${error.stack||error}`}
+</script></body></html>
