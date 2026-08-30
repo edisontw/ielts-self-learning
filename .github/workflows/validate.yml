@@ -36,6 +36,10 @@ jobs:
         run: node tests/audit-performance-v18.mjs
       - name: V1.8 Performance browser baseline
         run: bash tests/browser-performance-v18.sh
+      - name: V1.9 Diagnostic Evidence static guardrails
+        run: node --check diagnostic-center-v19.js && node tests/validate-diagnostic-center-v19.mjs
+      - name: V1.9 Diagnostic Evidence browser flow
+        run: bash tests/browser-diagnostic-v19.sh
       - name: V1.7 MA02 browser interaction
         run: bash tests/browser-ma02-v17-local.sh
       - name: Production E2E — deployed GitHub Pages
