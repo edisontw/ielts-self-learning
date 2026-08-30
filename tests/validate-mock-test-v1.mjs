@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import {MOCK_TESTS,approximateBand} from '../mock-test-registry-v17.js';
 const assert=(x,m)=>{if(!x)throw new Error(m)};
 
-assert(MOCK_TESTS.length===2,'V1.7 must ship two complete Full Academic mocks.');
+assert(MOCK_TESTS.length===2,'V1.7+ must ship two complete Full Academic mocks.');
 assert(JSON.stringify(MOCK_TESTS.map(t=>t.id))===JSON.stringify(['MA01','MA02']),'Mock registry must preserve MA01 then MA02.');
 const globalIds=new Set();
 const listeningScripts=new Set();
@@ -50,8 +50,9 @@ for(const tag of ['spelling','definition','listening-procedural-sequence','liste
   const semantic=tag.replace(/^listening-/,'');
   assert(ma02L.some(q=>q.errorTag===tag||q.errorTag.replace(/^listening-/,'')===semantic),`MA02 should naturally include ${tag} transfer evidence.`);
 }
-assert(ma02.audioStatus==='browser-voice-gate','MA02 must explicitly remain behind the production-audio gate.');
+assert(ma02.audioStatus==='production-mp3','MA02 must expose approved production MP3 status.');
 assert(ma02.sourcePolicy.notes.includes('independent from MA01'),'MA02 source policy must state independence from MA01.');
+assert(ma02.sourcePolicy.notes.includes('production MP3 recordings'),'MA02 source policy must describe the production Listening release.');
 assert(ma01.listening.parts.every((p,i)=>p.script!==ma02.listening.parts[i]?.script),'MA02 Listening parts must be independent from MA01.');
 assert(ma01.reading.passages.every((p,i)=>p.passage!==ma02.reading.passages[i]?.passage),'MA02 Reading passages must be independent from MA01.');
 assert(ma01.writing.tasks[0].prompt!==ma02.writing.tasks[0].prompt&&ma01.writing.tasks[1].prompt!==ma02.writing.tasks[1].prompt,'MA02 Writing tasks must be independent from MA01.');
@@ -63,14 +64,23 @@ const runtime=fs.readFileSync(new URL('../mock-test-runtime-v1.js',import.meta.u
 for(const token of ['IELTS Mock Test Center · V1.7','Independent Full Academic transfer evidence','data-mock-test-id','data-mock-test','Audio plays once per part','Copy Writing Review Prompt',"document.body.classList.toggle('mock-exam-active'",'Save missed L/R items','Speaking Mock · Beta'])assert(runtime.includes(token),`Runtime missing ${token}`);
 assert(!runtime.includes("w['MA01-W1']")&&!runtime.includes("wordCounts['MA01-W2']"),'Runtime must not hard-code MA01 Writing ids.');
 const audioUpgrade=fs.readFileSync(new URL('../mock-test-audio-upgrade-v1.js',import.meta.url),'utf8');
-const audioFiles=['ma01-listening-part1-study-room-booking.mp3','ma01-listening-part2-museum-visitor-information.mp3','ma01-listening-part3-campus-garden-research-project.mp3','ma01-listening-part4-urban-trees-heat-adaptation.mp3'];
+const audioFiles=[
+  'ma01-listening-part1-study-room-booking.mp3',
+  'ma01-listening-part2-museum-visitor-information.mp3',
+  'ma01-listening-part3-campus-garden-research-project.mp3',
+  'ma01-listening-part4-urban-trees-heat-adaptation.mp3',
+  'ma02-listening-part1-printmaking-workshop-booking.mp3',
+  'ma02-listening-part2-observatory-visitor-orientation.mp3',
+  'ma02-listening-part3-local-history-digitisation-project.mp3',
+  'ma02-listening-part4-seed-banks-seed-storage.mp3'
+];
 for(const file of audioFiles){
   assert(audioUpgrade.includes(`./media/audio/mock-tests/${file}`),`Mock audio adapter missing ${file}.`);
-  assert(fs.existsSync(new URL(`../media/audio/mock-tests/${file}`,import.meta.url)),`Production MA01 audio asset missing ${file}.`);
+  assert(fs.existsSync(new URL(`../media/audio/mock-tests/${file}`,import.meta.url)),`Production Mock audio asset missing ${file}.`);
 }
-for(const token of ['playListeningMedia','stopListeningMedia','MA02',"addEventListener('click', handleCapture, true)"])assert(audioUpgrade.includes(token),`Mock audio adapter missing ${token}`);
+for(const token of ['playListeningMedia','stopListeningMedia','MA02_AUDIO','CENTER_NOTE',"addEventListener('click', handleCapture, true)"])assert(audioUpgrade.includes(token),`Mock audio adapter missing ${token}`);
 const index=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 assert(index.includes('./mock-test-audio-upgrade-v1.js'),'index.html must load the Mock audio adapter.');
 const css=fs.readFileSync(new URL('../mock-test-v1.css',import.meta.url),'utf8');
 for(const token of ['body.mock-exam-active .sidebar','.mock-reading-grid','.mock-writing-grid','.mock-qnav'])assert(css.includes(token),`CSS missing ${token}`);
-console.log('Mock Test Center V1.7 validation passed: MA01 + independent MA02, each 40 Listening + 40 Reading + 2 Writing tasks + 3 Speaking parts; MA01 production MP3 preserved and MA02 browser-voice gate explicit.');
+console.log('Mock Test Center validation passed: MA01 + independent MA02 each retain complete L/R/W/S content, and both mocks expose production MP3 Listening with labelled browser-voice fallback.');
