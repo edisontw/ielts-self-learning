@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "mockTestId": "MA02",
+  "updatedAt": "2026-08-30",
+  "status": "production-ready",
+  "policy": "Production MP3 first; labelled browser-voice fallback only when the MP3 cannot be played.",
+  "assets": [
+    {
+      "id": "MA02-L1",
+      "part": 1,
+      "path": "media/audio/mock-tests/ma02-listening-part1-printmaking-workshop-booking.mp3",
+      "status": "production-ready",
+      "scriptSource": "mock-test-data-v2.js#MA02.listening.parts[0].script",
+      "durationSeconds": 90.409796,
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "bitrateKbps": 192,
+      "sizeBytes": 2170505,
+      "sha256": "c43a245b012190b5a134054ac0ca07de45ec8e4ef83ec2f021d352dc0c544bb9",
+      "provenance": {
+        "providedBy": "repository owner",
+        "createdWith": "external multi-speaker synthetic speech workflow; standardized without intentional wording changes",
+        "syntheticVoice": true,
+        "receivedDate": "2026-08-30"
+      },
+      "qa": {
+        "container": "passed — mono 44.1 kHz / 192 kbps MP3",
+        "durationContract": "passed — 90.41 seconds within the 90–105 second production target",
+        "technicalPlayback": "pending deployed verification",
+        "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
+        "contentApproval": "passed — Dwyer spelling, final 26th date, Studio B, closed shoes, £42 fee, payment deadline, waiting-list outcome and latex allergy verified"
+      }
+    },
+    {
+      "id": "MA02-L2",
+      "part": 2,
+      "path": "media/audio/mock-tests/ma02-listening-part2-observatory-visitor-orientation.mp3",
+      "status": "production-ready",
+      "scriptSource": "mock-test-data-v2.js#MA02.listening.parts[1].script",
+      "durationSeconds": 114.260408,
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "bitrateKbps": 192,
+      "sizeBytes": 2742900,
+      "sha256": "47928c0d6fc24ba7c15aa2a86758768cdfe5e3b7486bf6b220b4b2aba0c6e75a",
+      "provenance": {
+        "providedBy": "repository owner",
+        "createdWith": "external single-speaker synthetic speech workflow; standardized without intentional wording changes",
+        "syntheticVoice": true,
+        "receivedDate": "2026-08-30"
+      },
+      "qa": {
+        "container": "passed — mono 44.1 kHz / 192 kbps MP3",
+        "durationContract": "passed — 114.26 seconds within the 110–125 second production target",
+        "technicalPlayback": "pending deployed verification",
+        "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
+        "contentApproval": "passed — orientation-room first step, red vest, equipment-check sequence, west dome, cloud replacement, 15-minute decision, 8:30 cafe and exit-basket return verified"
+      }
+    },
+    {
+      "id": "MA02-L3",
+      "part": 3,
+      "path": "media/audio/mock-tests/ma02-listening-part3-local-history-digitisation-project.mp3",
+      "status": "production-ready",
+      "scriptSource": "mock-test-data-v2.js#MA02.listening.parts[2].script",
+      "durationSeconds": 111.732245,
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "bitrateKbps": 192,
+      "sizeBytes": 2682087,
+      "sha256": "04ce16d9d1f9df125cb5e832c28bda20dfe94c7dc9dd5cdbc8ae16c3d29b81f1",
+      "provenance": {
+        "providedBy": "repository owner",
+        "createdWith": "external three-speaker synthetic speech workflow; standardized without intentional wording changes",
+        "syntheticVoice": true,
+        "receivedDate": "2026-08-30"
+      },
+      "qa": {
+        "container": "passed — mono 44.1 kHz / 192 kbps MP3",
+        "durationContract": "passed — 111.73 seconds within the 110–125 second production target",
+        "technicalPlayback": "pending deployed verification",
+        "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
+        "contentApproval": "passed — 900-letter collection, 200-letter sample, every-fourth sampling, photograph permission, Friday conditional plan, shared transcription conventions and 12 volunteers verified"
+      }
+    },
+    {
+      "id": "MA02-L4",
+      "part": 4,
+      "path": "media/audio/mock-tests/ma02-listening-part4-seed-banks-seed-storage.mp3",
+      "status": "production-ready",
+      "scriptSource": "mock-test-data-v2.js#MA02.listening.parts[3].script",
+      "durationSeconds": 128.549388,
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "bitrateKbps": 192,
+      "sizeBytes": 3085835,
+      "sha256": "df66122a0d7ca5a05a6792bb7f957a042cf6a69b729ac1d30f23d3753dd05fa4",
+      "provenance": {
+        "providedBy": "repository owner",
+        "createdWith": "external single-speaker synthetic speech workflow; loudness standardized without intentional wording changes",
+        "syntheticVoice": true,
+        "receivedDate": "2026-08-30"
+      },
+      "qa": {
+        "container": "passed — mono 44.1 kHz / 192 kbps MP3",
+        "durationContract": "passed — 128.55 seconds within the 128–145 second production target",
+        "technicalPlayback": "pending deployed verification",
+        "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
+        "contentApproval": "passed — orthodox/recalcitrant distinction, desiccation definition, genetic-diversity sampling, viability testing, regeneration risk and habitat-conservation conclusion verified",
+        "pacing": "passed — approximately 143 wpm; canonical wording unchanged"
+      }
+    }
+  ]
+}
