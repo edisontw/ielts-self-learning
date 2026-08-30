@@ -14,7 +14,9 @@ const guide=fs.readFileSync(path.join(root,'site-guide-v1.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
 
 assert(audio.includes('setTextIfChanged(note, PLAYER_NOTE['), 'Mock audio copy updates must remain idempotent and test-aware.');
-assert(audio.includes('PLAYER_NOTE.MA02'), 'Mock audio copy must expose the MA02 browser-voice production gate.');
+assert(audio.includes('MA02_AUDIO'), 'Mock audio adapter must expose the approved MA02 production sources.');
+assert(audio.includes('PLAYER_NOTE.MA02')&&audio.includes('Production MP3'), 'Mock audio copy must label MA02 production MP3 with fallback disclosure.');
+assert(audio.includes('CENTER_NOTE')&&audio.includes('MA01 and MA02 use production MP3'), 'Mock Center must describe both production Listening sets.');
 assert(!audio.includes("if (note) note.textContent = 'Production MP3"), 'Mock audio observer must not unconditionally rewrite observed text.');
 assert(audio.includes('new MutationObserver(upgradeCopy)'), 'Mock production-audio upgrade should remain mutation-aware.');
 assert(sync.includes("window.addEventListener('ielts-mock-errors-saved'"), 'Mock/core sync must react after Mock errors are persisted.');
@@ -41,8 +43,7 @@ assert(report.status==='healthy'&&report.attempts===2,'Diagnostics must count va
 report=readMockDiagnostics(new MemoryStorage({'ielts-mock-v1':'{"history":{}}'}));
 assert(report.status==='error'&&report.error.includes('array'),'Diagnostics must flag malformed Full Mock history.');
 
-console.log('✓ Mock Listening observer text updates remain idempotent and test-aware');
-console.log('✓ Mock → Error Notebook handoff refreshes the base in-memory app state after exit');
-console.log('✓ Mini Test → Error Notebook handoff refreshes the base state after Exit or route navigation');
-console.log('✓ MA01 + MA02 Full Mock history is compatible with learner guidance and Diagnostics');
-console.log('✓ Shared external core-write sync loads after both Mini Test and Mock runtimes');
+console.log('✓ Mock Listening observer remains idempotent and now exposes MA01 + MA02 production audio');
+console.log('✓ Mock and Mini Test Error Notebook handoffs preserve the existing reload contract');
+console.log('✓ MA01 + MA02 Full Mock history remains compatible with learner guidance and Diagnostics');
+console.log('✓ Shared external core-write sync still loads after both Mini Test and Mock runtimes');
