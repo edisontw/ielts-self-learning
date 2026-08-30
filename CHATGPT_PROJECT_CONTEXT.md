@@ -9,153 +9,123 @@
 
 Build an IELTS Academic self-learning system for learners around IELTS 5.5–6.5 aiming toward 6.5–7.5.
 
-The product is not primarily a question bank. Its core learner loop is:
+Core loop:
 
 `DIAGNOSE → LEARN → PRACTISE → FEEDBACK → ERROR → REPAIR → RETRY → REVIEW → ADJUST → REPEAT`
 
-The main product value is: **the learner should know the highest-value next action without having to navigate or choose randomly.**
+Main product value: **the learner should know the highest-value next action without having to navigate or choose randomly.**
 
-Preserve these product rules:
+Preserve:
 
-- English development remains roughly 60%; explicit IELTS preparation up to roughly 40%.
-- English-first UI; Traditional Chinese is optional scaffolding.
-- AI is a coach, not an examiner; do not import or manufacture false precise IELTS scores.
-- Learner data remains local-first unless a later version explicitly changes the architecture.
-- A wrong answer should lead to explanation, appropriate repair/review, retry, and later review.
+- English development roughly 60%; explicit IELTS preparation up to roughly 40%.
+- English-first UI; Traditional Chinese optional scaffolding.
+- AI is a coach, not an examiner; no false precise IELTS scores.
+- Local-first learner data.
+- Wrong answer → explanation → repair/review → retry → later review.
 - Reuse an existing teaching owner before creating another Repair lesson.
-- Do not add a route/Repair because of one or two sparse signals.
+- No route/Repair from one or two sparse signals.
 - Mini Test / Full Mock Test Mode must not become fake single-question Practice Mode retry.
 - Preserve the 30-unit core curriculum denominator.
 
 ## 2. Current maturity
 
-The site already has enough content to validate the learning system. It is no longer in a content-scarcity phase.
-
-Current major learning assets include:
+The site is no longer content-scarce. It already includes:
 
 - 30-unit core curriculum;
 - evidence-driven V/G and Reading/Listening Repair extensions;
-- 12 Question Type Labs with Set A / Set B / Set C depth;
+- 12 Question Type Labs with Set A / B / C depth;
 - 8 Mini Tests (MR01–MR04 / ML01–ML04);
 - Full Mock MA01 + independent MA02;
 - Academic Writing Task 1 course + practice prompts;
 - Speaking Practice Bank;
 - Quick Placement, Study Plan, Adaptive Today, Error Notebook, Review Queue, productive evidence, AI feedback return, backup/import/reset and Diagnostics;
-- production audio across the earlier Listening learning/test surfaces; MA02 Listening may still be on its explicit browser-voice production gate until separately upgraded.
+- production audio across earlier Listening surfaces; MA02 Listening may remain on its explicit browser-voice production gate until separately upgraded.
 
-Therefore **do not start the next phase by adding more generic lessons, Mini Tests, Full Mocks or Repairs.**
+Do **not** start the next phase by adding generic lessons, Mini Tests, Full Mocks or Repairs.
 
 ## 3. Current V1.8 checkpoint — 2026-08-30
 
-Always inspect current GitHub `main`, open PRs and Actions before starting a new batch; do not assume any SHA below remains current.
+Always inspect current GitHub `main`, open PRs and Actions before starting a new batch.
 
 ### Closed milestones — do not repeat
 
-- **V1.7 production gate:** PR #60 merged; production E2E closed. See `V1.7-PRODUCTION-E2E-CLOSURE.md`.
-- **V1.8 learner-journey baseline audit:** complete. See `V1.8-JOURNEY-AUDIT-01.md`.
-- **V1.8 Test/Mock result prioritization:** PR #61 production-closed. Results now show `attempt summary → up to 3 authorized priorities → one recommended next step → full item review`.
-- **V1.8 navigation/context continuity:** PR #62 production-closed. See `V1.8-CONTEXT-CONTINUITY-CLOSURE.md`.
+1. **V1.7 production gate** — PR #60; see `V1.7-PRODUCTION-E2E-CLOSURE.md`.
+2. **V1.8 learner-journey baseline audit** — see `V1.8-JOURNEY-AUDIT-01.md`.
+3. **V1.8 Test/Mock result prioritization** — PR #61 production-closed.
+   - Result flow: `attempt summary → up to 3 authorized priorities → one recommended next step → full item review`.
+4. **V1.8 navigation/context continuity** — PR #62 production-closed; see `V1.8-CONTEXT-CONTINUITY-CLOSURE.md`.
+   - Supports `submitted review → targeted practice → named Return → read-only exact review snapshot`.
+   - Supports `Error Notebook → targeted practice → Return to Error Notebook`.
+5. **V1.8 Today primary-action consolidation** — PR #63 production-closed; see `V1.8-TODAY-PRIMARY-ACTION-CLOSURE.md`.
+   - merge main at closure: `ec0f814eb077242e78a3399bec8ff0c1749a7188`;
+   - PR Validate #383 PASS;
+   - Pages #227 PASS;
+   - final-main Validate #384 PASS;
+   - Today browser matrix PASS;
+   - MA02 browser interaction PASS;
+   - deployed GitHub Pages E2E PASS.
 
-### Context continuity production closure
+Today now ranks existing actions:
 
-PR #62 `V1.8: preserve return context through targeted practice` merged:
+`due review > current Study Plan session > pending AI feedback retry > productive retry signal > adaptive new material`
 
-- merge main at closure: `eefde4237763fa2db20109a2397aa2ae65974835`;
-- PR Validate #379 PASS;
-- Pages #224 PASS;
-- final-main Validate #380 PASS;
-- browser smoke PASS;
-- MA02 browser interaction PASS;
-- deployed GitHub Pages production E2E PASS.
-
-Learner flow now supports:
-
-`submitted Test/Mock review → authorized targeted practice → named Return → read-only exact review snapshot`
-
-and:
-
-`Error Notebook → targeted practice → Return to Error Notebook`
-
-Return context is session-only, expires after two hours, does not alter learner localStorage schema, does not rely on browser Back, and never reopens submitted Test Mode as editable.
+Only one candidate stays full-size and is labelled `Do this now`; at most two distinct alternatives remain compact. Fresh pre-Placement onboarding is unchanged.
 
 ### NEXT UNFINISHED MILESTONE
 
-> **Today primary-action consolidation:** rank all competing Today signals so the returning learner sees one visually dominant next action.
+> **Productive-skill loop clarity:** after external AI feedback priorities are saved, make the lesson itself show one dominant `Revise / Retry now` action and make it clear that the next saved productive retry closes the feedback cycle.
 
-Priority order to audit/implement should cover at least:
+Primary acceptance target:
 
-1. due spaced review when pedagogically due;
-2. current Study Plan next session / unfinished planned work;
-3. pending Writing/Speaking feedback that needs a revision/retry;
-4. otherwise the best prerequisite-safe adaptive new-material recommendation.
+`attempt → external feedback → save 2–3 priorities → Revise/Retry now → save retry evidence → feedback cycle recorded`
 
-Do not simply add another Today card. The purpose is to consolidate competing surfaces into one primary action and subordinate or hide redundant alternatives.
+Preserve the existing rule that AI feedback contributes coaching priorities only—not an AI band or examiner score.
 
-## 4. V1.8 mission — learner-journey-first optimization
+## 4. V1.8 mission
 
-V1.8 is **not** a content-expansion release.
+V1.8 is **not** a content-expansion release. Reduce cognitive/navigation friction so each meaningful action leads clearly to the next highest-value action.
 
-Primary goal:
-
-> Reduce cognitive/navigation friction so each meaningful action leads clearly to the next highest-value action.
-
-Priority journeys:
-
-1. **New learner:** Landing/Today → goal → Quick Placement → optional Study Plan → first recommended lesson.
-2. **Returning learner:** open site → one obvious primary Today action, with due review taking priority when appropriate.
-3. **Objective error loop:** wrong → explanation/save → Retry or existing owner/Repair → mastery → return to original context → next action.
-4. **Mini Test / Full Mock review:** submit → summarize recurring error families/priorities → targeted next practice → return to test review/plan.
-5. **Writing / Speaking:** attempt → self-check → external AI coaching priorities → return → rewrite/retry → compare improvement.
-
-The desired end-state is:
+Desired end-state:
 
 `TODAY → PRACTICE → ERROR → REPAIR/REVIEW → RETRY → RETURN → NEXT BEST ACTION`
 
-The learner should not have to remember where to go next.
+## 5. Remaining V1.8 order
 
-## 5. Remaining V1.8 optimization order
-
-1. **Today primary-action consolidation — NEXT:** one ranked primary next action across due review, active Study Plan work, pending productive feedback/retry, and adaptive new material.
-2. **Productive-skill loop clarity:** make revision/retry the visible next step after AI feedback, not the endpoint.
-3. **Mobile/accessibility/performance QA:** 360/390/430/768 widths, keyboard/focus/modal/audio/editor/recorder behavior, zoom/overflow/tap targets and route responsiveness.
-4. **Only after the UX loop is stable:** consider Full Diagnostic and targeted content gaps such as MA02 production audio or a Task 2 practice bank.
+1. **Productive-skill loop clarity — NEXT.**
+2. **Mobile/accessibility/performance QA** — 360/390/430/768 widths, keyboard/focus/modal/audio/editor/recorder behavior, zoom/overflow/tap targets and route responsiveness.
+3. **Only after UX loop stability:** evaluate Full Diagnostic and targeted content gaps such as MA02 production audio or a Task 2 practice bank.
 
 ## 6. Explicit non-goals for V1.8
 
-Do not use V1.8 to:
+Do not:
 
 - create MA03;
 - create MR05/ML05;
 - expand Core 30 to 40/50 lessons;
-- resume closed V1.6 high-/low-frequency semantic mining;
+- resume closed V1.6 semantic mining;
 - manufacture routes from sparse signals;
-- add new RR/LR/VG Repair without new independent evidence plus a demonstrated instructional gap;
+- add new RR/LR/VG Repair without new independent evidence plus an instructional gap;
 - add accounts/backend, paid LLM API, automatic IELTS scoring, leaderboard or complex gamification.
 
 ## 7. Working method / guardrails
 
-- Check current `main`, open PRs and latest Actions before every new work batch.
-- Read the latest relevant closure/checkpoint docs; do not redo closed audits.
-- Prefer the smallest safe change that improves an observed learner journey.
-- Preserve existing storage schemas and learner data unless a migration is explicitly justified and tested.
-- Add automated regression coverage for each important learner-facing flow change.
-- For production-sensitive changes, validate locally and against deployed GitHub Pages.
-- Update this file when the project mission, major version direction, or blocking gate changes.
-- Keep detailed implementation findings in focused V1.8 checkpoint/closure notes so this file remains concise enough for new-window startup.
+- Check current main/open PRs/Actions before each batch.
+- Read latest closure/checkpoint docs; do not redo closed audits.
+- Prefer smallest safe learner-flow change.
+- Preserve existing storage schemas unless an explicit migration is justified and tested.
+- Add regression coverage for important learner-facing changes.
+- Validate production-sensitive changes locally and against deployed GitHub Pages.
+- Update this file after meaningful merged milestones.
 
 ## 8. New-window startup instruction
 
-When continuing this project in a new ChatGPT window:
-
 1. Read `CHATGPT_PROJECT_CONTEXT.md`.
 2. Read `V1.8-LEARNER-JOURNEY-OPTIMIZATION.md`.
-3. Inspect latest GitHub `main`, open PRs and Actions.
-4. Do **not** restart V1.6 semantic audits, V1.7 production closure, V1.8 result prioritization, or V1.8 context continuity.
-5. Continue the first unfinished milestone: **Today primary-action consolidation**, unless a newer checkpoint supersedes it.
-6. After a meaningful merged milestone, update this file so the next window starts from the new boundary.
+3. Inspect latest GitHub main/open PRs/Actions.
+4. Do not restart V1.6 audits, V1.7 closure, result prioritization, context continuity, or Today consolidation.
+5. Continue **Productive-skill loop clarity** unless a newer checkpoint supersedes it.
+6. Update this file after the next production-closed milestone.
 
 ## 9. Source-of-truth hierarchy
 
-`V1.0 product principles → V1.1 UX/architecture → implemented/closed version docs → this current project checkpoint → current GitHub runtime/tests`
-
-When older plans conflict with a later explicitly closed implementation decision, preserve the later closed decision unless the new work intentionally revises it with evidence and tests.
+`V1.0 product principles → V1.1 UX/architecture → implemented/closed version docs → this checkpoint → current GitHub runtime/tests`
