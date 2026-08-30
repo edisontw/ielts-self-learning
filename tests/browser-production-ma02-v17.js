@@ -120,7 +120,7 @@ try{
   doc=frame.contentDocument;
   const spatialRouteAfterReturn=await wait(()=>doc.querySelector(`[data-error-id="${spatialSaved.id}"]`)?.closest('.error-item')?.querySelector('[data-v16-existing-practice-error-route]'),'Spatial Error Notebook CTA after Improve return');
   spatialRouteAfterReturn.querySelector('[data-lesson="QL03"]').click();
-  await wait(()=>frame.contentWindow.location.hash==='#/lesson/QL03'&&frame.contentDocument.querySelector('#main')?.textContent.includes('Listening Maps & Directions'),'QL03 CTA navigation');
+  await wait(()=>frame.contentWindow.location.hash==='#/lesson/QL03'&&frame.contentDocument.querySelector('#main')?.textContent.includes('Question Type Lab: Map & Plan Labelling'),'QL03 CTA navigation');
 
   // Mobile: both mocks remain reachable and the page itself does not overflow horizontally.
   localStorage.clear();seedGuide();
