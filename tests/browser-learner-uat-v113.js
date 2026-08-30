@@ -21,10 +21,36 @@ const loadApp = async hash => {
   return frame.contentDocument;
 };
 
+const cardFor = (doc, id) => doc.querySelector(`.lesson-card [data-lesson="${id}"]`)?.closest('.lesson-card') || null;
+
 try {
   localStorage.setItem(CORE_KEY, JSON.stringify({ notes: { 'uat-marker': 'preserve-me' } }));
   let doc = await loadApp('#/learn');
   const win = frame.contentWindow;
+
+  const grid = await wait(() => doc.querySelector('.learn-simplified-grid'), 'Learn lesson grid');
+  let cards = [...grid.querySelectorAll('.lesson-card')];
+  assert(cards.length >= 20, `Expected core lesson cards, got ${cards.length}`);
+
+  const representatives = ['LB01', 'R01', 'L01', 'W01', 'S01'];
+  await wait(() => representatives.every(id => cardFor(doc, id)?.dataset.skill), 'skill identity attributes');
+  const learningBetter = cardFor(doc, 'LB01');
+  assert(learningBetter?.querySelector('[data-v113-skill-name]')?.textContent.includes('Learning Better'), 'Learning Better full label is missing');
+  assert(learningBetter?.querySelector('[data-v113-skill-name]')?.textContent.includes('Study Skills'), 'Learning Better meaning is not clarified as study skills');
+  assert(learningBetter?.querySelector('.lesson-icon')?.textContent.trim() !== 'LB', 'Ambiguous LB icon is still exposed');
+
+  const accentColors = new Set(representatives.map(id => win.getComputedStyle(cardFor(doc, id)).borderTopColor));
+  assert(accentColors.size === 5, `Expected five distinct skill accent colors, got ${[...accentColors].join(' | ')}`);
+
+  let chineseToggle = await wait(() => doc.querySelector('[data-action="toggle-chinese"]'), 'Chinese help toggle');
+  await wait(() => chineseToggle.getAttribute('aria-pressed') === 'false', 'Chinese help initial state');
+  assert(chineseToggle.textContent.includes('關'), `Chinese help should show an explicit off state, got ${chineseToggle.textContent}`);
+  chineseToggle.click();
+  chineseToggle = await wait(() => frame.contentDocument.querySelector('[data-action="toggle-chinese"][aria-pressed="true"]'), 'Chinese help enabled state');
+  doc = frame.contentDocument;
+  assert(chineseToggle.textContent.includes('開'), `Chinese help should show an explicit on state, got ${chineseToggle.textContent}`);
+  const l01Chinese = await wait(() => cardFor(doc, 'L01')?.querySelector('[data-v113-chinese-assist]'), 'visible Chinese lesson summary');
+  assert(/[\u3400-\u9fff]/.test(l01Chinese.textContent), 'Chinese help did not expose Traditional Chinese lesson guidance');
 
   const toolbar = await wait(() => doc.querySelector('[data-learn-toolbar]'), 'Learn skill toolbar');
   const listening = toolbar.querySelector('[data-learn-filter="listening"]');
@@ -32,9 +58,7 @@ try {
   listening.click();
   await wait(() => listening.getAttribute('aria-pressed') === 'true', 'Listening filter active state');
 
-  const grid = await wait(() => doc.querySelector('.learn-simplified-grid'), 'Learn lesson grid');
-  const cards = [...grid.querySelectorAll('.lesson-card')];
-  assert(cards.length >= 20, `Expected core lesson cards, got ${cards.length}`);
+  cards = [...doc.querySelector('.learn-simplified-grid').querySelectorAll('.lesson-card')];
   const visibleIds = cards
     .filter(card => win.getComputedStyle(card).display !== 'none')
     .map(card => card.querySelector('[data-lesson]')?.dataset.lesson || '');
@@ -46,6 +70,7 @@ try {
   win.location.hash = '#/lesson/L01';
   let completion = await wait(() => frame.contentDocument.querySelector('[data-action="complete-lesson"][data-lesson-id="L01"]'), 'initial completion control');
   assert(completion.textContent.trim() === 'Mark lesson complete', `Unexpected initial completion label: ${completion.textContent}`);
+  assert(frame.contentDocument.querySelector('.lesson-top .callout')?.textContent.includes('中文說明'), 'Chinese help did not persist into the lesson page');
   completion.click();
 
   completion = await wait(() => frame.contentDocument.querySelector('[data-action="uncomplete-lesson"][data-lesson-id="L01"]'), 'reversible completed state');
