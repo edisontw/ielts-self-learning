@@ -2,7 +2,7 @@ import { LESSONS } from './data.js';
 
 const CORE_KEY = 'ielts-self-learning-v1';
 const ADAPTIVE_KEY = 'ielts-adaptive-v1';
-const esc = (value='') => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+const esc = (value='') => String(value).replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[c]));
 const read = key => { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; } };
 const writeAdaptive = state => {
   const next = JSON.stringify(state);
@@ -31,6 +31,9 @@ function ensure(adaptive = read(ADAPTIVE_KEY)) {
   adaptive.productiveEvidence.writing ||= [];
   adaptive.productiveEvidence.speaking ||= [];
   adaptive.productivePriority ||= {};
+  adaptive.aiFeedbackReturns ||= { writing: [], speaking: [] };
+  adaptive.aiFeedbackReturns.writing ||= [];
+  adaptive.aiFeedbackReturns.speaking ||= [];
   return adaptive;
 }
 
@@ -92,21 +95,29 @@ function updatePriority(adaptive) {
   }
 }
 
+function pendingFeedbackForLesson(adaptive, lesson) {
+  return [...(adaptive.aiFeedbackReturns?.[lesson.skill] || [])]
+    .reverse()
+    .find(x => x.lessonId === lesson.id && !x.appliedByEvidenceId) || null;
+}
+
 function evidenceCard(lesson) {
   const adaptive = ensure();
   const s = summary(adaptive, lesson.skill);
   const criteria = CRITERIA[lesson.skill];
   const latest = latestEvents(adaptive, lesson.skill, 1)[0];
+  const pendingFeedback=pendingFeedbackForLesson(adaptive, lesson);
   return `<section class="lesson-section productive-evidence-card" data-productive-evidence-card>
     <div class="eyebrow">Productive-skill evidence</div>
     <h2 style="margin-top:6px">Save an attempt, then make the retry measurable.</h2>
     <p class="muted">This is <strong>process evidence</strong>, not an IELTS band score. It records whether your Writing revision or Speaking retry fixed the priorities you were practising.</p>
+    ${pendingFeedback ? `<div class="callout warning" data-pe-feedback-retry style="margin-top:14px"><strong>Feedback is waiting for a revision / retry.</strong><br><span class="small">Edit the current ${lesson.skill === 'writing' ? 'draft' : 'transcript'}, self-check it again, then save this next evidence as <strong>Revision / retry</strong>. That closes the pending feedback cycle.</span></div>` : ''}
     <div class="grid two" style="margin-top:14px">
-      <label class="stack"><strong>Attempt type</strong><select class="text-input" data-pe-kind><option value="first">First attempt</option><option value="retry">Revision / retry</option></select></label>
+      <label class="stack"><strong>Attempt type</strong><select class="text-input" data-pe-kind><option value="first" ${pendingFeedback?'':'selected'}>First attempt</option><option value="retry" ${pendingFeedback?'selected':''}>Revision / retry</option></select></label>
       <div class="card subtle"><strong>Evidence so far</strong><p class="small muted" style="margin-top:6px">${s.attempts} attempt${s.attempts===1?'':'s'} · ${s.retries} retr${s.retries===1?'y':'ies'}${s.average==null?'':` · recent self-check ${Math.round(s.average*100)}%`}</p>${latest?`<p class="small muted">Latest: ${latest.lessonId} · ${new Date(latest.ts).toLocaleDateString()}</p>`:''}</div>
     </div>
     <div class="checklist" style="margin-top:14px">${criteria.map(([id,label])=>`<label class="check-item"><input type="checkbox" data-pe-criterion="${id}"> ${esc(label)}</label>`).join('')}</div>
-    <div class="cluster" style="margin-top:14px"><button class="btn primary" data-pe-action="save" data-skill="${lesson.skill}" data-lesson-id="${lesson.id}">Save attempt evidence</button><span class="small muted">Your current ${lesson.skill === 'writing' ? 'draft' : 'transcript'} must contain enough language to count as evidence.</span></div>
+    <div class="cluster" style="margin-top:14px"><button class="btn primary" data-pe-action="save" data-skill="${lesson.skill}" data-lesson-id="${lesson.id}">${pendingFeedback?'Save revision / retry evidence':'Save attempt evidence'}</button><span class="small muted">Your current ${lesson.skill === 'writing' ? 'draft' : 'transcript'} must contain enough language to count as evidence.</span></div>
     ${s.improvement == null ? '' : `<div class="callout ${s.improvement >= 0 ? 'success' : 'warning'}" style="margin-top:14px">Latest recorded retry change: <strong>${s.improvement >= 0 ? '+' : ''}${Math.round(s.improvement*100)} percentage points</strong> across the five self-check criteria.</div>`}
   </section>`;
 }
@@ -149,6 +160,13 @@ function htmlToNode(html) {
   const t = document.createElement('template');
   t.innerHTML = html.trim();
   return t.content.firstElementChild;
+}
+
+function rerenderLessonEvidence() {
+  const lesson=currentLesson();
+  const card=document.querySelector('[data-productive-evidence-card]');
+  if (!lesson || !card || !['writing','speaking'].includes(lesson.skill)) return;
+  card.replaceWith(htmlToNode(evidenceCard(lesson)));
 }
 
 function injectToday() {
@@ -196,5 +214,6 @@ document.addEventListener('click', e => {
 });
 window.addEventListener('hashchange', () => setTimeout(apply,0));
 window.addEventListener('ielts-productive-evidence-change', () => setTimeout(apply,0));
+window.addEventListener('ielts-ai-feedback-return-change', () => { rerenderLessonEvidence(); setTimeout(apply,0); });
 new MutationObserver(apply).observe(document.documentElement, { childList:true, subtree:true });
 setTimeout(apply,0);
