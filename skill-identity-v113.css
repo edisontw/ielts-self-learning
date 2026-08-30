@@ -1,0 +1,89 @@
+:root {
+  --skill-learning-better: #7657A6;
+  --skill-reading: #3D6EA8;
+  --skill-listening: #2E7B75;
+  --skill-writing: #A66A27;
+  --skill-speaking: #A25270;
+}
+
+:root[data-theme="dark"] {
+  --skill-learning-better: #C5B2E7;
+  --skill-reading: #9BC3F0;
+  --skill-listening: #8CD2CB;
+  --skill-writing: #E4BC78;
+  --skill-speaking: #E4A7B9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --skill-learning-better: #C5B2E7;
+    --skill-reading: #9BC3F0;
+    --skill-listening: #8CD2CB;
+    --skill-writing: #E4BC78;
+    --skill-speaking: #E4A7B9;
+  }
+}
+
+.ux-lesson-card[data-skill="learning-better"],
+.focus-card[data-skill="learning-better"] { --skill-accent: var(--skill-learning-better); }
+.ux-lesson-card[data-skill="reading"],
+.focus-card[data-skill="reading"] { --skill-accent: var(--skill-reading); }
+.ux-lesson-card[data-skill="listening"],
+.focus-card[data-skill="listening"] { --skill-accent: var(--skill-listening); }
+.ux-lesson-card[data-skill="writing"],
+.focus-card[data-skill="writing"] { --skill-accent: var(--skill-writing); }
+.ux-lesson-card[data-skill="speaking"],
+.focus-card[data-skill="speaking"] { --skill-accent: var(--skill-speaking); }
+
+.ux-lesson-card[data-skill] {
+  border-top: 3px solid var(--skill-accent);
+}
+
+.ux-lesson-card[data-skill] .lesson-icon {
+  color: var(--skill-accent);
+  background: color-mix(in srgb, var(--skill-accent) 13%, var(--surface));
+}
+
+.v113-skill-name {
+  color: var(--skill-accent, var(--primary-strong));
+  background: color-mix(in srgb, var(--skill-accent, var(--primary)) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--skill-accent, var(--primary)) 28%, var(--border));
+}
+
+.learn-filter-row [data-learn-filter="learning-better"] { --skill-filter: var(--skill-learning-better); }
+.learn-filter-row [data-learn-filter="reading"] { --skill-filter: var(--skill-reading); }
+.learn-filter-row [data-learn-filter="listening"] { --skill-filter: var(--skill-listening); }
+.learn-filter-row [data-learn-filter="writing"] { --skill-filter: var(--skill-writing); }
+.learn-filter-row [data-learn-filter="speaking"] { --skill-filter: var(--skill-speaking); }
+
+.learn-filter-row [data-learn-filter]:not([data-learn-filter="all"]) {
+  color: var(--skill-filter);
+  border-color: color-mix(in srgb, var(--skill-filter) 30%, var(--border));
+}
+
+.learn-filter-row [data-learn-filter]:not([data-learn-filter="all"]).active {
+  color: var(--skill-filter);
+  background: color-mix(in srgb, var(--skill-filter) 13%, var(--surface));
+  border-color: color-mix(in srgb, var(--skill-filter) 48%, var(--border));
+}
+
+.v113-chinese-assist {
+  margin: 10px 0 0;
+  padding: 9px 11px;
+  border-left: 3px solid var(--skill-accent, var(--info));
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--skill-accent, var(--info)) 8%, var(--surface-subtle));
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.focus-card[data-skill] {
+  border-left: 4px solid var(--skill-accent);
+}
+
+[data-action="toggle-chinese"][aria-pressed="true"] {
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+}
