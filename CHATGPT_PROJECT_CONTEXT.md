@@ -49,37 +49,46 @@ Always inspect current GitHub `main`, open PRs and Actions before starting a new
 
 ### Closed milestones — do not repeat
 
-1. **V1.7 production gate** — PR #60; see `V1.7-PRODUCTION-E2E-CLOSURE.md`.
-2. **V1.8 learner-journey baseline audit** — see `V1.8-JOURNEY-AUDIT-01.md`.
+1. **V1.7 production gate** — PR #60.
+2. **V1.8 learner-journey baseline audit** — complete.
 3. **V1.8 Test/Mock result prioritization** — PR #61 production-closed.
-   - Result flow: `attempt summary → up to 3 authorized priorities → one recommended next step → full item review`.
-4. **V1.8 navigation/context continuity** — PR #62 production-closed; see `V1.8-CONTEXT-CONTINUITY-CLOSURE.md`.
-   - Supports `submitted review → targeted practice → named Return → read-only exact review snapshot`.
-   - Supports `Error Notebook → targeted practice → Return to Error Notebook`.
-5. **V1.8 Today primary-action consolidation** — PR #63 production-closed; see `V1.8-TODAY-PRIMARY-ACTION-CLOSURE.md`.
-   - merge main at closure: `ec0f814eb077242e78a3399bec8ff0c1749a7188`;
-   - PR Validate #383 PASS;
-   - Pages #227 PASS;
-   - final-main Validate #384 PASS;
-   - Today browser matrix PASS;
-   - MA02 browser interaction PASS;
-   - deployed GitHub Pages E2E PASS.
-
-Today now ranks existing actions:
-
-`due review > current Study Plan session > pending AI feedback retry > productive retry signal > adaptive new material`
-
-Only one candidate stays full-size and is labelled `Do this now`; at most two distinct alternatives remain compact. Fresh pre-Placement onboarding is unchanged.
+   - `attempt summary → up to 3 authorized priorities → one recommended next step → full item review`.
+4. **V1.8 navigation/context continuity** — PR #62 production-closed.
+   - `submitted review → targeted practice → named Return → read-only exact review snapshot`.
+   - `Error Notebook → targeted practice → Return to Error Notebook`.
+5. **V1.8 Today primary-action consolidation** — PR #63 production-closed.
+   - ranks `due review > current Study Plan session > pending AI feedback retry > productive retry > adaptive new material`;
+   - one full-size `Do this now`, at most two compact deduplicated alternatives.
+6. **V1.8 productive feedback → retry clarity** — PR #64 production-closed.
+   - merge main at closure: `226798ff313e47039e8896b8f0685cedc06006a1`;
+   - final-main Validate #388 PASS; Pages #230 PASS; deployed E2E PASS.
+   - Writing/Speaking flow: `attempt → save 2–3 AI coaching priorities → dominant Revise/Retry CTA → focus existing draft/transcript → save Revision/retry evidence → automatically close feedback cycle → compare process evidence`.
+   - pending feedback automatically primes Productive Evidence to `Revision / retry`.
+   - no AI band/examiner score enters learner evidence.
+7. **V1.8 mobile/accessibility QA batch 01** — PR #65 production-closed.
+   - merge main at closure: `3250bb110a79fc1cec05220b09ba32f2ae935be6`;
+   - final-main Validate #390 PASS; Pages #231 PASS; deployed E2E PASS.
+   - real-browser 360 / 390 / 430 / 768 route matrix passes without horizontal page overflow;
+   - visible button/link targets meet the 24px browser gate;
+   - Prompt modal and Site Guide trap Tab/Shift+Tab and restore focus after close;
+   - Prompt modal return focus survives app rerender by relocating the invoking control;
+   - visible-focus, skip-link, reduced-motion and pinch-zoom guardrails remain intact.
+   - PR attempt 1 had an isolated MA02 return-review timing failure; unchanged attempt 2 PASS and final-main #390 PASS, so no reproducible regression remained.
 
 ### NEXT UNFINISHED MILESTONE
 
-> **Productive-skill loop clarity:** after external AI feedback priorities are saved, make the lesson itself show one dominant `Revise / Retry now` action and make it clear that the next saved productive retry closes the feedback cycle.
+> **Performance QA:** measure and lock startup/runtime performance before making optimization changes.
 
-Primary acceptance target:
+Audit first; do not refactor by intuition. Priorities:
 
-`attempt → external feedback → save 2–3 priorities → Revise/Retry now → save retry evidence → feedback cycle recorded`
+1. initial static payload and number of eagerly loaded JS/CSS modules;
+2. startup DOM / render lifecycle cost and duplicate document-wide observers;
+3. route responsiveness after localStorage hydration;
+4. Full Mock / Mini Test payload cost and whether heavy test assets can be deferred safely;
+5. audio loading behavior and whether media is fetched before the learner requests it;
+6. caching/static Pages behavior where measurable in the current architecture.
 
-Preserve the existing rule that AI feedback contributes coaching priorities only—not an AI band or examiner score.
+Any optimization must preserve learner data, existing routes, Test Mode, repair ownership, and the production E2E gates.
 
 ## 4. V1.8 mission
 
@@ -91,9 +100,9 @@ Desired end-state:
 
 ## 5. Remaining V1.8 order
 
-1. **Productive-skill loop clarity — NEXT.**
-2. **Mobile/accessibility/performance QA** — 360/390/430/768 widths, keyboard/focus/modal/audio/editor/recorder behavior, zoom/overflow/tap targets and route responsiveness.
-3. **Only after UX loop stability:** evaluate Full Diagnostic and targeted content gaps such as MA02 production audio or a Task 2 practice bank.
+1. **Performance QA — NEXT:** measure startup/payload/render/media behavior, then make only evidence-backed changes.
+2. **Accessibility follow-up only if evidence finds a real gap:** editor/recorder/audio semantics, 200% zoom or other manual/automated findings not covered by batch 01.
+3. **Only after UX/performance stability:** evaluate Full Diagnostic and targeted content gaps such as MA02 production audio or a Task 2 practice bank.
 
 ## 6. Explicit non-goals for V1.8
 
@@ -120,10 +129,10 @@ Do not:
 ## 8. New-window startup instruction
 
 1. Read `CHATGPT_PROJECT_CONTEXT.md`.
-2. Read `V1.8-LEARNER-JOURNEY-OPTIMIZATION.md`.
+2. Read `V1.8-LEARNER-JOURNEY-OPTIMIZATION.md` if additional rationale is needed.
 3. Inspect latest GitHub main/open PRs/Actions.
-4. Do not restart V1.6 audits, V1.7 closure, result prioritization, context continuity, or Today consolidation.
-5. Continue **Productive-skill loop clarity** unless a newer checkpoint supersedes it.
+4. Do not restart V1.6 audits, V1.7 closure, result prioritization, context continuity, Today consolidation, productive retry clarity, or mobile/accessibility QA batch 01.
+5. Continue **Performance QA** unless a newer checkpoint supersedes it.
 6. Update this file after the next production-closed milestone.
 
 ## 9. Source-of-truth hierarchy
