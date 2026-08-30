@@ -3,7 +3,7 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-https://edisontw.github.io/ielts-self-learning}"
 BASE="${BASE_URL%/}"
-SENTINEL='V1.13-LEARN-FILTER-REVERSIBLE-COMPLETION-20260830-1'
+SENTINEL='V1.13-SKILL-IDENTITY-CHINESE-HELP-20260830-2'
 CACHE_BUST="${GITHUB_SHA:-$(date +%s)}"
 CDP_PORT="${CDP_PORT:-9234}"
 URL="${BASE}/tests/browser-learner-uat-v113.html?sha=${CACHE_BUST}"
@@ -20,6 +20,7 @@ else
 fi
 
 node --check learner-uat-fixes-v113.js
+node --check skill-identity-v113.js
 node --check tests/browser-learner-uat-v113.js
 
 echo "Waiting for V1.13 learner UAT deployment sentinel at ${BASE} ..."
@@ -40,6 +41,8 @@ for asset in \
   index.html \
   learner-uat-fixes-v113.js \
   learner-uat-fixes-v113.css \
+  skill-identity-v113.js \
+  skill-identity-v113.css \
   tests/browser-learner-uat-v113.html \
   tests/browser-learner-uat-v113.js; do
   curl -fsS --max-time 30 "${BASE}/${asset}?sha=${CACHE_BUST}" >/dev/null || { echo "Missing deployed V1.13 asset: ${asset}" >&2; exit 1; }
@@ -79,4 +82,4 @@ if [[ "$status" -ne 0 ]]; then
   exit "$status"
 fi
 
-echo 'V1.13 deployed learner UAT passed: Learn skill filtering and reversible lesson completion work on GitHub Pages.'
+echo 'V1.13 deployed learner UAT passed: skill identity colors, Learning Better labeling, Chinese help, filtering, and reversible completion work on GitHub Pages.'
