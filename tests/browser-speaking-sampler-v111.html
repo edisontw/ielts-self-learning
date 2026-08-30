@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>V1.11 Speaking Sampler QA</title></head>
+<body><pre id="result">V111_SPEAKING_PENDING</pre><iframe id="app" title="IELTS app" style="width:1280px;height:1000px;border:0"></iframe>
+<script type="module">
+const out=document.querySelector('#result'),frame=document.querySelector('#app');
+const CORE='ielts-self-learning-v1',ADAPTIVE='ielts-adaptive-v1',GUIDE='ielts-site-guide-dismissed-v1';
+const wait=async(fn,label,timeout=15000)=>{const start=Date.now();while(Date.now()-start<timeout){try{const v=fn();if(v)return v}catch{}await new Promise(r=>setTimeout(r,50))}throw new Error(`Timed out waiting for ${label}`)};
+const makeWords=n=>Array.from({length:n},(_,i)=>`word${i+1}`).join(' ');
+const input=(el,value)=>{el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));};
+const change=(el,value)=>{el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));};
+const read=k=>JSON.parse(localStorage.getItem(k)||'{}');
+localStorage.clear();sessionStorage.clear();localStorage.setItem(GUIDE,'true');
+localStorage.setItem(CORE,JSON.stringify({profile:{targetBand:7,stage:'B2',referenceLevel:'B2',recommendedDifficulty:3,confidence:'Moderate',placementSections:{vocabulary:3,grammar:3,reading:3,listening:3}},study:{preferredMinutes:20},placement:{total:12,ts:Date.now()},completedLessons:[],lessonAnswers:{},notes:{},errors:[],fixedErrors:[],studyHistory:[],writingDrafts:{},speakingTranscripts:{},ui:{chineseHelp:false}}));
+localStorage.setItem(ADAPTIVE,JSON.stringify({repairProgress:{},learningHistory:[],reviewSchedule:{},vocabularySchedule:{},skillPerformance:{},miniTestHistory:[],productiveEvidence:{writing:[],speaking:[]},productivePriority:{},aiFeedbackReturns:{writing:[],speaking:[]}}));
+try{
+  frame.src='../index.html?spsqa=1#/lesson/SPB01';await new Promise(r=>frame.addEventListener('load',r,{once:true}));
+  const doc=frame.contentDocument,win=frame.contentWindow;
+  const sampler=await wait(()=>doc.querySelector('[data-speaking-sampler]'),'Speaking sampler');
+  const setSelect=sampler.querySelector('[data-sps-set]');
+  if(setSelect.options.length!==12)throw new Error(`Expected 12 linked sets, got ${setSelect.options.length}`);
+  let fields=[...sampler.querySelectorAll('[data-sps-transcript]')];
+  if(fields.length!==5)throw new Error(`Expected 5 linked responses, got ${fields.length}`);
+  input(fields[0],makeWords(25));input(fields[1],makeWords(25));input(fields[2],makeWords(100));input(fields[3],makeWords(50));input(fields[4],makeWords(50));
+  await wait(()=>sampler.querySelector('[data-sps-part="total"]')?.textContent==='250','250 total words');
+  if(!sampler.querySelector('[data-sps-save]').disabled)throw new Error('250-word partial sample incorrectly passed 300-word total gate');
+  input(fields[2],makeWords(150));
+  await wait(()=>sampler.querySelector('[data-sps-part="part1"]')?.textContent==='50'&&sampler.querySelector('[data-sps-part="part2"]')?.textContent==='150'&&sampler.querySelector('[data-sps-part="part3"]')?.textContent==='100'&&sampler.querySelector('[data-sps-part="total"]')?.textContent==='300','complete 300-word sample');
+  if(sampler.querySelector('[data-sps-save]').disabled)throw new Error('Complete Parts 1–3 sample did not unlock evidence save');
+  [...sampler.querySelectorAll('[data-sps-criterion]')].slice(0,3).forEach(x=>x.click());
+  sampler.querySelector('[data-sps-save]').click();
+  await wait(()=>read(ADAPTIVE).productiveEvidence?.speaking?.length===1,'first sampler evidence');
+  let a=read(ADAPTIVE),first=a.productiveEvidence.speaking[0];
+  if(first.lessonId!=='SPB01'||first.blockId!=='SPS-SET-SKILL'||first.attemptKind!=='first'||first.wordCount!==300)throw new Error(`Unexpected first sample evidence: ${JSON.stringify(first)}`);
+  if(JSON.stringify(first.sampleParts)!==JSON.stringify(['part1','part2','part3']))throw new Error('Sampler evidence lost explicit Parts 1–3 coverage');
+  if(first.partWordCounts?.part1!==50||first.partWordCounts?.part2!==150||first.partWordCounts?.part3!==100)throw new Error('Part word counts were not saved correctly');
+  const stored=read(CORE).speakingTranscripts||{};
+  if(Object.keys(stored).length<5)throw new Error('Sampler did not reuse core speakingTranscripts for the five responses');
+  const priorities=[...doc.querySelectorAll('[data-sps-feedback]')];input(priorities[0],'Develop the Part 3 comparison before the example.');input(priorities[1],'Reduce repeated vocabulary across the sample.');
+  doc.querySelector('[data-sps-save-feedback]').click();
+  await wait(()=>read(ADAPTIVE).aiFeedbackReturns?.speaking?.length===1,'sampler feedback priorities');
+  a=read(ADAPTIVE);if(a.aiFeedbackReturns.speaking[0].sourceBlockId!=='SPS-SET-SKILL'||a.aiFeedbackReturns.speaking[0].appliedByEvidenceId)throw new Error('Sampler feedback source/pending state incorrect');
+  await wait(()=>doc.querySelector('[data-sps-kind]')?.value==='retry','retry preselection');
+  fields=[...doc.querySelectorAll('[data-sps-transcript]')];input(fields[2],makeWords(170));
+  [...doc.querySelectorAll('[data-sps-criterion]')].forEach(x=>x.click());
+  doc.querySelector('[data-sps-save]').click();
+  await wait(()=>read(ADAPTIVE).productiveEvidence?.speaking?.length===2,'sampler retry evidence');
+  a=read(ADAPTIVE);const retry=a.productiveEvidence.speaking[1],feedback=a.aiFeedbackReturns.speaking[0];
+  if(retry.attemptKind!=='retry'||retry.wordCount!==320)throw new Error(`Unexpected retry evidence: ${JSON.stringify(retry)}`);
+  if(feedback.appliedByEvidenceId!==retry.id||!feedback.comparison||feedback.comparison.processDelta<=0)throw new Error(`Sampler feedback did not link to retry: ${JSON.stringify(feedback)}`);
+  const currentSelect=doc.querySelector('[data-sps-set]'),second=currentSelect.options[1].value;change(currentSelect,second);
+  await wait(()=>doc.querySelector('[data-sps-set]')?.value===second,'second linked set');
+  fields=[...doc.querySelectorAll('[data-sps-transcript]')];
+  input(fields[0],makeWords(25));input(fields[1],makeWords(25));input(fields[2],makeWords(150));input(fields[3],makeWords(50));input(fields[4],makeWords(50));
+  await wait(()=>doc.querySelector('[data-sps-part="total"]')?.textContent==='300','second complete sample');
+  [...doc.querySelectorAll('[data-sps-criterion]')].slice(0,4).forEach(x=>x.click());
+  doc.querySelector('[data-sps-save]').click();
+  await wait(()=>read(ADAPTIVE).productiveEvidence?.speaking?.filter(x=>x.attemptKind==='first').length===2,'two first sample sets');
+  win.location.hash='#/progress';
+  await wait(()=>doc.querySelector('[data-diagnostic-center]'),'Diagnostic Center after speaking samples');
+  const speaking=doc.querySelector('[data-diagnostic-skill="speaking"]');
+  if(!speaking?.textContent.includes('Broader evidence'))throw new Error(`Two linked first samples did not upgrade Speaking evidence: ${speaking?.textContent}`);
+  const source=await import('../speaking-sampler-v111.js');
+  const prompt=source.coachingPrompt(source.sample(),{});
+  if(!prompt.includes('do not score or judge pronunciation')||!prompt.includes('do not give a fake precise official band score'))throw new Error('Transcript-only AI guardrail missing from sampler prompt');
+  out.textContent='V111_SPEAKING_PASS';
+}catch(error){out.textContent=`V111_SPEAKING_FAIL: ${error.stack||error}`}
+</script></body></html>
