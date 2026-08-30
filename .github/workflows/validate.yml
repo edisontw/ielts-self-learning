@@ -28,6 +28,10 @@ jobs:
         run: bash tests/browser-today-primary-v18.sh
       - name: V1.8 Productive feedback-to-retry browser flow
         run: bash tests/browser-productive-retry-v18.sh
+      - name: V1.8 Mobile/accessibility static guardrails
+        run: node --check site-guide-focus-v18.js && node tests/validate-mobile-a11y-v18.mjs
+      - name: V1.8 Mobile/accessibility browser matrix
+        run: bash tests/browser-mobile-a11y-v18.sh
       - name: V1.7 MA02 browser interaction
         run: bash tests/browser-ma02-v17-local.sh
       - name: Production E2E — deployed GitHub Pages
