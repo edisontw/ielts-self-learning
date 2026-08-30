@@ -45,19 +45,50 @@ Current major learning assets include:
 
 Therefore **do not start the next phase by adding more generic lessons, Mini Tests, Full Mocks or Repairs.**
 
-## 3. Current transition: V1.7 → V1.8
+## 3. Current V1.8 checkpoint — 2026-08-30
 
-V1.7 introduced MA02 and a deployed GitHub Pages E2E gate.
+Always inspect the current GitHub `main`, open PRs and Actions before starting a new batch; do not assume the SHA below is still current.
 
-At the beginning of the V1.8 optimization cycle, first inspect current GitHub `main`, open PRs and Actions. Do not assume this checkpoint's SHA/status is still current.
+### V1.7 production gate — CLOSED
 
-Known gate at creation of this file (2026-08-30):
+- PR #60 merged.
+- V1.7 local MA02 browser interaction and deployed GitHub Pages E2E passed.
+- Closure is recorded in `V1.7-PRODUCTION-E2E-CLOSURE.md`.
+- Do not reopen V1.7 unless a new production regression is observed.
 
-- `main` was `22bc0a674395d7d03934192b0fd79aed4828afe6`.
-- PR #60, `V1.7: fix production E2E result detection`, was still open.
-- Its test suite and general browser smoke passed, but the V1.7 MA02 local browser E2E still failed at `Timed out waiting for QL03 CTA navigation`.
+### V1.8 Milestone 1 journey audit — COMPLETE
 
-Before broad V1.8 learner-facing changes, close any still-open V1.7 release gate and obtain a trustworthy production E2E PASS.
+Baseline findings are in `V1.8-JOURNEY-AUDIT-01.md`.
+
+Highest-value friction identified:
+
+1. Test/Mock results needed a small number of evidence-backed priorities before the full item list.
+2. Repair/review navigation still needs explicit **Return / Continue to original context** continuity.
+3. Today consolidation and productive-skill retry CTA remain later V1.8 work.
+
+### V1.8 result prioritization — PRODUCTION-CLOSED
+
+PR #61 `V1.8: prioritize next actions on Test and Mock results` merged to main:
+
+- merge main at closure: `eac7019d280b8eeeb2ae597ab89d5243feb5dbb0`;
+- PR validation PASS;
+- Pages #222 PASS;
+- final-main Validate #376 PASS;
+- final-main browser smoke PASS;
+- MA02 browser interaction PASS;
+- deployed GitHub Pages production E2E PASS.
+
+Learner-facing result behavior now:
+
+`attempt summary → up to 3 authorized priorities → one recommended next step → full item review`
+
+The summarizer only reuses already-authorized V1.6/V1.7 existing-practice routes, audited RR/LR Skill Repair, or existing V/G Repair. It does not manufacture a new route from a test result or sparse evidence.
+
+### NEXT UNFINISHED MILESTONE
+
+> **Navigation / context continuity:** preserve where the learner came from when a Test/Mock/Error Notebook result sends them to targeted practice or Repair, then provide an explicit `Return to ...` / `Continue ... review` action after the targeted work.
+
+Start by auditing the smallest safe origin-context model. Do not use brittle browser-history assumptions and do not reopen a submitted Test Mode attempt as editable.
 
 ## 4. V1.8 mission — learner-journey-first optimization
 
@@ -81,16 +112,19 @@ The desired end-state is:
 
 The learner should not have to remember where to go next.
 
-## 5. V1.8 optimization order
+## 5. Remaining V1.8 optimization order
 
-1. **Release gate closure** — finish V1.7 production QA if still pending.
-2. **Journey audit** — inspect the five journeys above on real desktop + mobile runtime before redesigning.
-3. **Navigation/context continuity** — preserve origin and provide clear Return/Continue actions across Error Notebook, Repair, Labs, Mini Tests and Full Mocks.
-4. **Result-page prioritization** — avoid presenting long flat error lists as the primary result; surface a small number of evidence-backed priorities and one recommended next action.
-5. **Today simplification** — one primary next action; secondary choices remain available but visually subordinate.
-6. **Productive-skill loop clarity** — make revision/retry the visible next step after AI feedback, not the endpoint.
-7. **Mobile/accessibility/performance QA** — 360/390/430/768 widths, keyboard/focus/modal/audio/editor/recorder behavior, zoom/overflow/tap targets and route responsiveness.
-8. **Only after the UX loop is stable:** consider Full Diagnostic (likely next milestone) and targeted content gaps such as MA02 production audio or a Task 2 practice bank.
+1. **Navigation/context continuity — NEXT**: preserve origin and provide clear Return/Continue actions across result-priority routes, Error Notebook, Repair, Labs, Mini Tests and Full Mocks.
+2. **Today simplification**: one ranked primary next action; secondary choices remain visually subordinate.
+3. **Productive-skill loop clarity**: make revision/retry the visible next step after AI feedback, not the endpoint.
+4. **Mobile/accessibility/performance QA**: 360/390/430/768 widths, keyboard/focus/modal/audio/editor/recorder behavior, zoom/overflow/tap targets and route responsiveness.
+5. **Only after the UX loop is stable**: consider Full Diagnostic and targeted content gaps such as MA02 production audio or a Task 2 practice bank.
+
+Completed and not to repeat:
+
+- V1.7 production gate closure;
+- V1.8 baseline journey audit;
+- V1.8 Test/Mock result prioritization.
 
 ## 6. Explicit non-goals for V1.8
 
@@ -113,7 +147,7 @@ Do not use V1.8 to:
 - Add automated regression coverage for each important learner-facing flow change.
 - For production-sensitive changes, validate locally and against deployed GitHub Pages.
 - Update this file when the project mission, major version direction, or blocking gate changes.
-- Keep detailed V1.8 implementation findings in `V1.8-LEARNER-JOURNEY-OPTIMIZATION.md` so this context file stays compact.
+- Keep detailed V1.8 implementation findings in `V1.8-LEARNER-JOURNEY-OPTIMIZATION.md` and focused closure/checkpoint notes so this context file stays compact.
 
 ## 8. New-window startup instruction
 
@@ -121,10 +155,11 @@ When continuing this project in a new ChatGPT window:
 
 1. Read `CHATGPT_PROJECT_CONTEXT.md`.
 2. Read `V1.8-LEARNER-JOURNEY-OPTIMIZATION.md`.
-3. Inspect the latest GitHub `main`, open PRs and Actions.
-4. Do **not** restart V1.6 semantic audits or re-plan the product from scratch.
-5. Continue the first unfinished V1.8 milestone / blocking gate.
-6. After a meaningful merged milestone, update the V1.8 checkpoint and, if needed, this context file.
+3. Read `V1.8-JOURNEY-AUDIT-01.md` if the task concerns learner-flow priorities.
+4. Inspect the latest GitHub `main`, open PRs and Actions.
+5. Do **not** restart V1.6 semantic audits, V1.7 production closure, or V1.8 result prioritization.
+6. Continue the first unfinished milestone: **navigation/context continuity**, unless a newer checkpoint supersedes it.
+7. After a meaningful merged milestone, update this file so the following window starts from the new boundary.
 
 ## 9. Source-of-truth hierarchy
 
