@@ -1,6 +1,7 @@
 import { CORE_LESSON_META, REPAIR_LESSONS, RECOMMENDATION_WEIGHTS } from './adaptive-data.js';
 import { VOCABULARY_ITEMS } from './learning-extension-data.js';
 import { adaptiveCandidates, recentSkillCounts, skillLabel } from './adaptive-guardrails-v1.js';
+import { registerRenderEnhancement, scheduleEnhancementPass } from './render-lifecycle-v15.js';
 
 const CORE_KEY='ielts-self-learning-v1';
 const ADAPTIVE_KEY='ielts-adaptive-v1';
@@ -103,11 +104,8 @@ function apply(){
   renderNewMaterial(root,core,adaptive);
 }
 
-if(typeof document!=='undefined'){
-  window.addEventListener('hashchange',()=>setTimeout(apply,20));
-  window.addEventListener('ielts-study-plan-change',()=>setTimeout(apply,20));
-  window.addEventListener('ielts-mini-test-submitted',()=>setTimeout(apply,20));
-  new MutationObserver(()=>setTimeout(apply,0)).observe(document.documentElement,{childList:true,subtree:true});
-  setInterval(apply,1100);
-  setTimeout(apply,30);
+if(typeof window!=='undefined'&&typeof document!=='undefined'){
+  registerRenderEnhancement(apply);
+  window.addEventListener('ielts-study-plan-change',scheduleEnhancementPass);
+  window.addEventListener('ielts-mini-test-submitted',scheduleEnhancementPass);
 }
