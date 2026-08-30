@@ -1,6 +1,6 @@
 # IELTS English Self-Learning — ChatGPT Project Context
 
-**Purpose:** Durable cross-chat checkpoint. Read this file first in every new ChatGPT window before changing the repository.
+**Purpose:** Durable cross-chat checkpoint. Read this first in every new ChatGPT window before changing the repository.
 
 **Repository:** `edisontw/ielts-self-learning`  
 **Production:** `https://edisontw.github.io/ielts-self-learning/`
@@ -13,208 +13,166 @@ Core loop:
 
 `DIAGNOSE → LEARN → PRACTISE → FEEDBACK → ERROR → REPAIR → RETRY → REVIEW → ADJUST → REPEAT`
 
-Main product value: **the learner should know the highest-value next action without having to navigate or choose randomly.**
+Primary value: **the learner should know the highest-value next action without random navigation.**
 
 Preserve:
 
-- English development roughly 60%; explicit IELTS preparation up to roughly 40%.
-- English-first UI; Traditional Chinese optional scaffolding.
-- AI is a coach, not an examiner; no false precise IELTS scores.
-- Local-first learner data.
-- Wrong answer → explanation → repair/review → retry → later review.
-- Reuse an existing teaching owner before creating another Repair lesson.
-- No route/Repair from one or two sparse signals.
-- Mini Test / Full Mock Test Mode must not become fake single-question Practice Mode retry.
-- Preserve the 30-unit core curriculum denominator.
+- English development roughly 60%; explicit IELTS preparation up to roughly 40%;
+- English-first UI with optional Traditional Chinese scaffolding;
+- AI as coach, not examiner; no fake precise IELTS score;
+- local-first learner data;
+- wrong answer → explanation → repair/review → retry → later review;
+- reuse existing teaching owners before adding Repairs;
+- no route/Repair from one or two sparse signals;
+- Test Mode does not become single-question Practice Mode retry;
+- Core curriculum denominator remains 30.
 
 ## 2. Current maturity
 
-The site already includes:
+The product now includes enough learning/test content to focus on quality rather than quantity:
 
 - 30-unit core curriculum;
-- evidence-driven V/G and Reading/Listening Repair extensions;
-- 12 Question Type Labs with Set A / B / C depth;
-- 8 Mini Tests (MR01–MR04 / ML01–ML04);
+- V/G and Reading/Listening Repair extensions;
+- 12 Question Type Labs with A/B/C depth;
+- 8 Mini Tests: MR01–MR04 / ML01–ML04;
 - Full Mock MA01 + independent MA02;
-- Academic Writing Task 1 course + 12 reusable prompts;
-- W01–W05 Task 2 teaching + V1.10 Task 2 Practice Bank with 10 full-length prompts;
-- Speaking Practice Bank: 108 original Part 1–3 prompts/questions;
-- V1.11 standardized Speaking Parts 1–3 sampler;
-- Quick Placement, Study Plan, Adaptive Today, Error Notebook, Review Queue, productive evidence, AI feedback return, backup/import/reset and Diagnostics;
+- Task 1 course + 12 reusable prompts;
+- W01–W05 Task 2 teaching + V1.10 full-length Task 2 Practice Bank (10 prompts / 5 families);
+- Speaking Practice Bank with 108 prompts/questions + V1.11 standardized Parts 1–3 sampler;
+- Quick Placement, Study Plan, Adaptive Today, Error Notebook, reviews, productive evidence, AI feedback return, backup/import/reset, Diagnostics;
 - V1.9 Diagnostic Evidence Center;
-- production audio across Placement, Core Listening, Question Type Labs, Mini Tests and MA01;
-- MA02 Listening still explicitly uses browser-voice beta because its four production audio slots are empty.
+- production Listening audio across Placement, Core Listening, Question Type Labs, Mini Tests and MA01.
 
-Do **not** add generic lessons, Mini Tests, Full Mocks, Repairs, Task 2 prompts or Speaking questions merely to increase content count.
+Do not add generic lessons, new Mini Tests/Full Mocks, Task 2 prompts, Speaking questions or Repairs merely to increase count.
 
-## 3. V1.8 Learner Journey Optimization — CLOSED
+## 3. Closed product/UX milestones — do not repeat
 
-Do not repeat V1.8 work:
+### V1.8 Learner Journey Optimization — CLOSED
 
-- PR #61 result priorities;
-- PR #62 return/context continuity;
-- PR #63 Today primary action;
-- PR #64 productive feedback → retry;
-- PR #65 mobile/accessibility QA;
-- PR #66 performance baseline;
-- PR #67 Adaptive Today lifecycle optimization.
+PR #61 result priorities; #62 return/context continuity; #63 Today primary action; #64 productive feedback→retry; #65 mobile/a11y; #66 performance baseline; #67 Adaptive Today lifecycle optimization.
 
-Performance reference after PR #67:
-
-- ~278 ms local startup / ~25 ms representative routes at baseline;
-- zero media prefetch before playback;
-- Adaptive Today idle polling removed.
-
-Do not continue low-value performance micro-optimization without new evidence.
-
-## 4. V1.9 Better Diagnosis — CLOSED
+### V1.9 Better Diagnosis — CLOSED
 
 Read:
 
-- `V1.9-DIAGNOSTIC-AUDIT-01.md`;
-- `V1.9-DIAGNOSTIC-SUFFICIENCY-CLOSURE.md`.
+- `V1.9-DIAGNOSTIC-AUDIT-01.md`
+- `V1.9-DIAGNOSTIC-SUFFICIENCY-CLOSURE.md`
 
-Evidence rules:
+Decision: no separate giant four-skill Full Diagnostic is justified. Reading/Listening already have independent timed evidence; Writing/Speaking accumulate substantial productive evidence across sessions.
 
-- Quick Placement required as starting profile;
-- Reading: ≥1 distinct timed Mini Test / Full Mock form; ≥2 = broader evidence;
-- Listening: ≥1 distinct timed Mini Test / Full Mock form; ≥2 = broader evidence;
-- Writing: ≥1 substantial first productive attempt; multiple substantial independent attempts or complete Mock Writing = broader evidence;
-- Speaking: ≥1 substantial first productive attempt; multiple distinct substantial prompt/sample blocks = broader evidence;
-- Speaking Mock beta completion alone does not count because it stores no transcript/quality evidence.
-
-A new separate four-skill Full Diagnostic test bank is **not justified now**. Reading/Listening already have enough independent timed evidence and diagnosis is progressive across sessions.
-
-## 5. V1.10 Task 2 Practice Bank — CLOSED
+### V1.10 Task 2 Practice Bank — CLOSED
 
 Read `V1.10-TASK2-PRACTICE-BANK-01.md`.
 
-Implemented and production-verified:
+Production closure: PR #71/#72, V1.10 deployed Task 2 E2E PASS. Do not expand Task 2 quantity without new evidence.
 
-- 10 original full-length prompts;
-- 5 task families × 2;
-- 250+ word evidence gate;
-- Practice Mode + 40-minute Test Mode;
-- existing productive evidence / AI feedback / retry comparison reused;
-- core `writingDrafts` / `notes` reused;
-- no parallel Task 2 learner-data schema;
-- first Task 2 evidence strengthens V1.9 Writing evidence naturally.
-
-Production closure:
-
-- PR #71 main `293e5357cdb080989ab1a2349425f16898360c9c`, Validate #403 PASS, Pages #238 PASS;
-- PR #72 main `8b716c99042f6f2383cf3138dbee014b37a5dc2f`, Validate #405 PASS, Pages #239 PASS;
-- **V1.10 Production Task 2 — deployed GitHub Pages PASS**.
-
-Do not add more Task 2 prompts without new use/coverage evidence.
-
-## 6. V1.11 Standardized Speaking Sampler — CLOSED
+### V1.11 Standardized Speaking Sampler — CLOSED
 
 Read:
 
-- `V1.11-SPEAKING-SAMPLER-01.md`;
-- `V1.11-SPEAKING-SAMPLER-CLOSURE.md`.
+- `V1.11-SPEAKING-SAMPLER-01.md`
+- `V1.11-SPEAKING-SAMPLER-CLOSURE.md`
 
-The sampler reuses the existing 12 linked sets / 108-prompt bank. Each sample contains:
+The sampler reuses existing linked sets: Part 1 ×2 questions + Part 2 ×1 cue card + Part 3 ×2 questions. Evidence gate is Part1 ≥50, Part2 ≥100, Part3 ≥100, total ≥300 transcript words. It reuses existing `speakingTranscripts`, `productiveEvidence.speaking` and `aiFeedbackReturns.speaking`. Transcript-only AI cannot judge pronunciation/stress/intonation/pauses/hesitation/actual speech rate.
 
-- Part 1: 2 linked questions;
-- Part 2: 1 linked cue card;
-- Part 3: 2 linked discussion questions.
+Production closure: PR #75 main `a6cfdfaa44ad7ca46a58c2e8a6c69f843058cdaa`; Pages #242 PASS; Validate #411 PASS; deployed Speaking sampler E2E PASS.
 
-Evidence gate:
+## 4. V1.12 MA02 Production Listening Audio — PREPARATION CLOSED / ASSETS PENDING
 
-- Part 1 combined transcript ≥50 words;
-- Part 2 ≥100;
-- Part 3 combined ≥100;
-- total ≥300.
+Read:
 
-Data/guardrails:
+- `V1.12-MA02-AUDIO-PREP-CHECKPOINT.md`
+- `media/audio/mock-tests/MA02-PRODUCTION-AUDIO-PLAN.md`
+- `media/audio/mock-tests/ma02-production-audio-spec-v1.json`
 
-- responses reuse existing `speakingTranscripts` prompt IDs;
-- first/retry reuse `productiveEvidence.speaking`;
-- priorities reuse `aiFeedbackReturns.speaking`;
-- owner remains `SPB01` with distinct linked-set block IDs;
-- no sampler-specific learner-data key;
-- transcript-only AI must not judge pronunciation, stress, intonation, pauses, hesitation or actual speech rate;
-- no fake precise Speaking band;
-- two distinct linked-set first samples naturally produce V1.9 `Broader evidence`.
+PR #77 production-prep closure:
 
-Production closure:
+- merged main: `8a52fddebcffbebe16eed4dfe89172ada75cabfe`;
+- PR Validate #414: PASS;
+- main Validate #415: PASS;
+- Pages #244: PASS;
+- V1.12 exact-script production-prep guard: PASS;
+- MA02 browser interaction: PASS;
+- existing deployed V1.7 / V1.9 / V1.10 / V1.11 E2E gates: PASS.
 
-- PR #74 learner-facing sampler: full PR regression PASS;
-- PR #75 merged main `a6cfdfaa44ad7ca46a58c2e8a6c69f843058cdaa`;
-- Pages #242 build/deploy/report PASS;
-- Validate #411 PASS;
-- **V1.11 Production Speaking sampler — deployed GitHub Pages PASS**;
-- existing V1.7, V1.9 and V1.10 deployed gates remain PASS.
+### What is already locked
 
-Do not add more Speaking questions merely to increase quantity.
+Do **not** redo script/voice/QA planning.
 
-## 7. Current next milestone — MA02 Production Listening Audio
+The machine-readable production spec reconstructs all four MA02 scripts exactly from the source and CI enforces equality with `mock-test-data-v2.js`.
 
-This is now the clearest remaining quality gap.
+Canonical required files:
 
-Current audited state:
+1. `media/audio/mock-tests/ma02-listening-part1-printmaking-workshop-booking.mp3`
+2. `media/audio/mock-tests/ma02-listening-part2-observatory-visitor-orientation.mp3`
+3. `media/audio/mock-tests/ma02-listening-part3-local-history-digitisation-project.mp3`
+4. `media/audio/mock-tests/ma02-listening-part4-seed-banks-seed-storage.mp3`
 
-- `mock-test-audio-upgrade-v1.js` maps MA01 to four production MP3 files;
-- the MA02 production array is currently four empty strings;
-- MA02 player copy explicitly says `Browser voice beta` and production MP3 is pending;
-- `media/audio/mock-tests/` currently contains only four MA01 production files;
-- MA02 already has finalized independent Listening scripts/40 questions, so no content rewrite is needed.
+Locked production targets:
 
-### NEXT UNFINISHED MILESTONE
+- Part 1: Receptionist + Caller, 204 words, ~90–105 s;
+- Part 2: Guide monologue, 257 words, ~110–125 s;
+- Part 3: Tutor + Nina + Omar, 256 words, ~110–125 s;
+- Part 4: Lecturer monologue, 307 words, ~128–145 s.
 
-> **Prepare and produce four MA02 Listening production recordings, then wire, validate and deploy them while retaining labelled browser voice strictly as fallback.**
+Exact speaker direction, pace ranges, pause rules, generation prompts and answer-bearing QA are already in the production plan/spec.
 
-Recommended order:
+### CURRENT LIVE STATE — intentionally not production
 
-1. Audit MA02 Part 1–4 scripts for speaker/turn structure and answer-dependent corrections/distractors.
-2. Create a canonical production plan with exact file names, voice direction, pace/duration targets, pause rules and content QA checks.
-3. Generate/receive four MP3 recordings externally using the locked scripts.
-4. Normalize/QA audio and record provenance, duration, file size and checksums in the audio manifest.
-5. Wire the four paths into `MOCK_AUDIO.MA02`.
-6. Update copy from browser-voice beta to production-first/fallback wording.
-7. Add static/audio-manifest/browser regression and deployed checksum/playback gate.
-8. Do not consume the one-play attempt if production fails before fallback can start.
+Until all four approved MP3s exist:
 
-This is a **media-quality upgrade**, not a new diagnostic/content expansion.
+- `MA02.audioStatus` remains `browser-voice-gate`;
+- `MOCK_AUDIO.MA02` remains four empty source strings;
+- UI remains labelled `Browser voice beta`;
+- browser speech is the active MA02 Listening source;
+- one-play Test Mode semantics remain unchanged.
 
-## 8. Guardrails
+Do not wire nonexistent/unapproved audio paths.
+
+## 5. NEXT UNFINISHED MILESTONE
+
+> **Obtain the four locked MA02 production MP3 files, then perform audio QA → manifest/provenance → runtime integration → deployed production verification.**
+
+After the four audio files arrive:
+
+1. compare spoken content with exact locked scripts / `criticalQa`;
+2. inspect duration, channels, sample rate, bitrate/loudness and clipping;
+3. normalize only if needed without changing wording/timing meaning;
+4. compute SHA-256 and exact file size;
+5. update `media/audio/manifest-v1.json` with provenance/status;
+6. wire all four paths into `MOCK_AUDIO.MA02`;
+7. change MA02 copy/status to production-first + labelled browser fallback;
+8. extend audio-manifest/mock-audio regression coverage;
+9. add a deployed exact-file/checksum/playback production gate;
+10. retain browser speech synthesis strictly as fallback.
+
+This is a media-quality upgrade, not a content rewrite.
+
+## 6. Guardrails
 
 Do not:
 
 - resume closed V1.6 semantic mining;
+- restart V1.8/V1.9/V1.10/V1.11 work;
 - create MA03, MR05 or ML05 without new evidence;
 - expand Core 30 merely to increase content count;
-- manufacture RR/LR/VG Repairs from sparse signals;
-- output one fake overall IELTS band from mixed evidence;
+- manufacture Repairs from sparse evidence;
 - auto-score Writing/Speaking as official IELTS bands;
-- replace productive revision with model-answer consumption;
-- add more Task 2 or Speaking prompts merely to increase count;
-- rewrite MA02 questions/scripts merely because audio production is beginning;
-- add copyrighted commercial IELTS audio.
+- add more Task 2/Speaking questions merely for volume;
+- rewrite MA02 scripts/questions during audio production;
+- mark MA02 production-live before all four files pass QA;
+- use copyrighted commercial IELTS recordings.
 
-## 9. Working method
-
-- Inspect current main/open PRs/Actions before each batch.
-- Read latest closure/checkpoint docs; do not redo closed work.
-- Prefer the smallest safe learner-flow change.
-- Preserve storage schemas unless migration is justified and tested.
-- Add real-browser regression coverage for learner-facing changes.
-- Validate production-sensitive media against deployed GitHub Pages.
-- Record audio provenance/checksums/status in `media/audio/manifest-v1.json`.
-- Update this file after meaningful merged milestones.
-
-## 10. New-window startup instruction
+## 7. New-window startup instruction
 
 1. Read `CHATGPT_PROJECT_CONTEXT.md`.
-2. Read `V1.11-SPEAKING-SAMPLER-CLOSURE.md` and `media/audio/README.md`.
+2. Read `V1.12-MA02-AUDIO-PREP-CHECKPOINT.md` and `media/audio/mock-tests/MA02-PRODUCTION-AUDIO-PLAN.md`.
 3. Inspect current GitHub main/open PRs/Actions.
-4. Do not restart V1.6, V1.8, V1.9, Task 2 breadth or Speaking sampler work.
-5. Continue **MA02 production Listening audio** unless a newer checkpoint supersedes it.
-6. Read `mock-test-data-v2.js` and `mock-test-audio-upgrade-v1.js` before preparing production files.
-7. Preserve MA02 scripts/questions and one-play Test Mode semantics.
+4. Do not redo prior closed UX/diagnostic/content work or MA02 audio planning.
+5. Continue from the **four MA02 MP3 asset handoff**.
+6. If files are available, immediately QA/integrate them using the locked spec.
+7. If files are not yet available, use the locked production plan to generate/obtain them; do not change runtime status meanwhile.
 
-## 11. Source-of-truth hierarchy
+## 8. Source-of-truth hierarchy
 
-`V1.0 product principles → V1.1 UX/architecture → implemented/closed version docs → this checkpoint → current GitHub runtime/tests`
+`V1.0 product principles → V1.1 UX/architecture → closed implementation docs → this checkpoint → current GitHub runtime/tests`
