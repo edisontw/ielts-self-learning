@@ -1,5 +1,6 @@
 const CORE_KEY = 'ielts-self-learning-v1';
 const SCROLL_KEY = 'ielts-v113-lesson-scroll';
+const COMPLETION_NOTE = 'Completion is saved locally. You can mark this lesson incomplete without deleting answers or notes.';
 
 function readCore() {
   try { return JSON.parse(localStorage.getItem(CORE_KEY) || '{}'); }
@@ -14,6 +15,14 @@ function isLessonComplete(id) {
   return Boolean(id && (readCore().completedLessons || []).includes(id));
 }
 
+function setTextIfChanged(node, value) {
+  if (node && node.textContent !== value) node.textContent = value;
+}
+
+function setAttributeIfChanged(node, name, value) {
+  if (node && node.getAttribute(name) !== value) node.setAttribute(name, value);
+}
+
 function enhanceCompletionControl() {
   if (!location.hash.includes('/lesson/')) return;
   const button = document.querySelector('[data-action="complete-lesson"], [data-action="uncomplete-lesson"]');
@@ -24,14 +33,13 @@ function enhanceCompletionControl() {
   const complete = isLessonComplete(id);
   button.dataset.lessonId = id;
   button.dataset.action = complete ? 'uncomplete-lesson' : 'complete-lesson';
-  button.textContent = complete ? 'Mark incomplete' : 'Mark lesson complete';
+  setTextIfChanged(button, complete ? 'Mark incomplete' : 'Mark lesson complete');
   button.classList.toggle('primary', !complete);
   button.classList.toggle('soft', complete);
-  button.setAttribute('aria-pressed', String(complete));
+  setAttributeIfChanged(button, 'aria-pressed', String(complete));
 
   const finish = button.closest('.lesson-section');
-  const note = finish?.querySelector('p.muted');
-  if (note) note.textContent = 'Completion is saved locally. You can mark this lesson incomplete without deleting answers or notes.';
+  setTextIfChanged(finish?.querySelector('p.muted'), COMPLETION_NOTE);
 }
 
 function handleCompletionCapture(event) {
