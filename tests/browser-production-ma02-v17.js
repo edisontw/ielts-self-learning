@@ -78,7 +78,8 @@ try{
   player=await wait(()=>doc.querySelector('[data-mock-player].mock-result'),'MA02 Listening result');
   const listeningPriorities=await wait(()=>player.querySelector('[data-result-priorities-v18]'),'V1.8 MA02 Listening result priorities');
   if(!includes(listeningPriorities,'Your priorities')||!listeningPriorities.querySelector('[data-result-recommended-next]'))throw new Error('MA02 Listening result priority summary missing');
-  if(!listeningPriorities.querySelector('[data-lesson="L04"]')||!listeningPriorities.querySelector('[data-lesson="QL03"]'))throw new Error('MA02 Listening result priorities do not reuse the audited L04 / QL03 teaching owners');
+  if(!listeningPriorities.querySelector('[data-lesson="L05"]')||!listeningPriorities.querySelector('[data-lesson="LR01"]')||!listeningPriorities.querySelector('[data-lesson="L04"]'))throw new Error('MA02 Listening result does not show the three highest-volume authorized priorities: detail, number, conditional outcome');
+  if(listeningPriorities.querySelector('[data-lesson="QL03"]'))throw new Error('MA02 Listening top-3 priorities incorrectly elevate one spatial-sequence miss above larger current-attempt families');
   const saveListening=player.querySelector('[data-mock-action="save-errors"]');
   if(!saveListening)throw new Error('MA02 Listening result has no Save missed items action');
   saveListening.click();
