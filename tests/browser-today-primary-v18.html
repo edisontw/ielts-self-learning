@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>V1.8 Today Primary Action QA</title></head>
+<body>
+<pre id="result">V18_TODAY_PRIMARY_PENDING</pre>
+<iframe id="app" title="IELTS app" style="width:1280px;height:900px;border:0"></iframe>
+<script type="module">
+const out=document.querySelector('#result');
+const frame=document.querySelector('#app');
+const CORE='ielts-self-learning-v1';
+const ADAPTIVE='ielts-adaptive-v1';
+const PLAN='ielts-study-plan-v1';
+const GUIDE='ielts-site-guide-dismissed-v1';
+let serial=0;
+const wait=async(fn,label,timeout=12000)=>{const start=Date.now();while(Date.now()-start<timeout){try{const value=fn();if(value)return value}catch{}await new Promise(r=>setTimeout(r,50))}throw new Error(`Timed out waiting for ${label}`)};
+const localDate=()=>{const now=Date.now();const d=new Date(now-new Date(now).getTimezoneOffset()*60000);return d.toISOString().slice(0,10)};
+const baseCore=(placement=true)=>({
+  profile:{targetBand:7,stage:'B2',referenceLevel:'B2',recommendedDifficulty:3,confidence:'Moderate',placementSections:{vocabulary:3,grammar:3,reading:3,listening:3}},
+  study:{preferredMinutes:20},placement:placement?{total:12,ts:Date.now()}:null,completedLessons:[],lessonAnswers:{},notes:{},errors:[],fixedErrors:[],studyHistory:[],writingDrafts:{},speakingTranscripts:{},ui:{chineseHelp:false}
+});
+const productiveState=()=>{const now=Date.now();return{
+  repairProgress:{},learningHistory:[],reviewSchedule:{},vocabularySchedule:{},skillPerformance:{},miniTestHistory:[],
+  productiveEvidence:{writing:[{id:'pe-source',ts:now-10000,skill:'writing',lessonId:'W05',blockId:'qa',attemptKind:'first',criteria:['task'],score:.2,wordCount:120}],speaking:[]},
+  productivePriority:{writing:{score:.8,attempts:1,retries:0,average:.2,latestAt:now-10000,lessonId:'W05'}},
+  aiFeedbackReturns:{writing:[{id:'afr-source',ts:now-5000,skill:'writing',lessonId:'W05',sourceEvidenceId:'pe-source',sourceAttemptKind:'first',priorities:['Make the position explicit.','Develop the main idea before the example.'],appliedByEvidenceId:null,appliedAt:null,comparison:null}],speaking:[]}
+}};
+const planState=()=>({
+  version:1,generatedAt:Date.now(),startDate:localDate(),config:{weeks:4,daysPerWeek:3,minutesPerSession:20},targetBand:7,profileReady:true,priorities:[],dueAtGeneration:{errors:0,vocab:0},manualDone:[],summary:{totalSessions:1,examSessions:0,examRatio:0},
+  weeks:[{week:1,phase:'Build',sessions:[{key:'W1-S1-lesson-R01',session:1,kind:'lesson',sourceId:'R01',title:'Find the Main Idea Before the Details',skill:'reading',minutes:20,reason:'Continue the current Study Plan session.',examSpecific:false}]}]
+});
+function visibleCandidates(doc){return [...doc.querySelectorAll('[data-today-candidate-v18]')].filter(card=>!card.hidden)}
+function actionKey(button){if(button.dataset.lesson)return`lesson:${button.dataset.lesson}`;if(button.dataset.miniAction==='start')return`mini:${button.dataset.testId||''}`;if(button.dataset.nav)return`nav:${button.dataset.nav}`;return''}
+async function loadScenario(name,{placement=true,due=false,plan=false,feedback=false}={}){
+  localStorage.clear();sessionStorage.clear();localStorage.setItem(GUIDE,'true');
+  const core=baseCore(placement);
+  const adaptive=feedback?productiveState():{repairProgress:{},learningHistory:[],reviewSchedule:{},vocabularySchedule:{},skillPerformance:{},miniTestHistory:[],productiveEvidence:{writing:[],speaking:[]},productivePriority:{},aiFeedbackReturns:{writing:[],speaking:[]}};
+  if(due){
+    const now=Date.now();
+    core.errors=[{id:'due-error',ts:now-5000,questionId:'MA02-R01',lessonId:'MA02',skill:'reading',errorTag:'inference',question:'Due review QA',myAnswer:'A',correctAnswer:'B',rationale:'QA'}];
+    adaptive.reviewSchedule['due-error']={dueAt:now-1000,intervalDays:0,attempts:0,lastReviewedAt:null,lastRating:null};
+  }
+  localStorage.setItem(CORE,JSON.stringify(core));
+  localStorage.setItem(ADAPTIVE,JSON.stringify(adaptive));
+  if(plan)localStorage.setItem(PLAN,JSON.stringify(planState()));
+  frame.src=`../index.html?todayqa=${++serial}#/today`;
+  await new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+  const doc=frame.contentDocument;
+  if(!placement){
+    await wait(()=>doc.querySelector('#main')?.textContent.includes('Quick Placement'),`${name} fresh onboarding`);
+    await new Promise(r=>setTimeout(r,700));
+    if(doc.querySelector('[data-today-primary-action]'))throw new Error(`${name}: pre-Placement onboarding was incorrectly orchestrated`);
+    return doc;
+  }
+  await wait(()=>doc.querySelector('[data-today-primary-action]'),`${name} primary action`);
+  await new Promise(r=>setTimeout(r,750));
+  return doc;
+}
+function assertPrimary(doc,kind,name){
+  const primary=doc.querySelector('[data-today-primary-action]');
+  if(!primary)throw new Error(`${name}: primary card missing`);
+  if(doc.querySelector('#main')?.dataset.todayPrimaryKind!==kind)throw new Error(`${name}: expected ${kind}, got ${doc.querySelector('#main')?.dataset.todayPrimaryKind}`);
+  if(!primary.querySelector('[data-today-primary-label-v18]')?.textContent.includes('Do this now'))throw new Error(`${name}: Do this now label missing`);
+  if(visibleCandidates(doc).length!==1)throw new Error(`${name}: expected exactly one visible full-size candidate, got ${visibleCandidates(doc).length}`);
+  const primaryButton=primary.querySelector('[data-today-promoted-button-v18]');
+  if(!primaryButton?.classList.contains('primary'))throw new Error(`${name}: primary action button was not promoted`);
+  const alternatives=[...doc.querySelectorAll('[data-today-secondary-actions-v18] button')];
+  if(alternatives.length>2)throw new Error(`${name}: more than two compact alternatives rendered`);
+  const keys=alternatives.map(actionKey).filter(Boolean);
+  if(new Set(keys).size!==keys.length)throw new Error(`${name}: duplicate secondary destinations rendered`);
+  if(keys.includes(actionKey(primaryButton)))throw new Error(`${name}: primary destination duplicated in alternatives`);
+}
+try{
+  let doc=await loadScenario('due',{due:true,plan:true,feedback:true});
+  assertPrimary(doc,'due-review','due');
+  if(!doc.querySelector('[data-today-primary-action] [data-nav="improve"]'))throw new Error('due: primary action is not Review Queue');
+
+  doc=await loadScenario('plan',{plan:true,feedback:true});
+  assertPrimary(doc,'study-plan','plan');
+  if(!doc.querySelector('[data-today-primary-action] [data-lesson="R01"]'))throw new Error('plan: current Study Plan session is not primary');
+  const planAlternatives=[...doc.querySelectorAll('[data-today-secondary-actions-v18] button')];
+  if(planAlternatives.filter(button=>button.dataset.lesson==='W05').length!==1)throw new Error('plan: AI/productive duplicate W05 alternatives were not collapsed');
+
+  doc=await loadScenario('feedback',{feedback:true});
+  assertPrimary(doc,'ai-feedback','feedback');
+  if(!doc.querySelector('[data-today-primary-action] [data-lesson="W05"]'))throw new Error('feedback: pending AI feedback retry does not route to W05');
+
+  doc=await loadScenario('adaptive',{});
+  assertPrimary(doc,'adaptive','adaptive');
+
+  await loadScenario('fresh',{placement:false});
+  out.textContent='V18_TODAY_PRIMARY_PASS';
+}catch(error){out.textContent=`V18_TODAY_PRIMARY_FAIL: ${error.stack||error}`}
+</script>
+</body>
+</html>
