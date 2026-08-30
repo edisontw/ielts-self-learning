@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>V1.8 Performance QA</title></head>
+<body>
+<pre id="result">V18_PERFORMANCE_PENDING</pre>
+<iframe id="app" title="IELTS app" style="width:1280px;height:900px;border:0"></iframe>
+<script type="module">
+const out=document.querySelector('#result');
+const frame=document.querySelector('#app');
+const GUIDE='ielts-site-guide-dismissed-v1';
+const wait=async(fn,label,timeout=12000)=>{const start=performance.now();while(performance.now()-start<timeout){try{const value=fn();if(value)return value;}catch{}await new Promise(r=>setTimeout(r,25));}throw new Error(`Timed out waiting for ${label}`);};
+const routeMarkers={today:"Today's study",learn:'Learn by skill',ielts:'IELTS practice',improve:'Errors are learning data.',progress:'Your profile should guide the next step'};
+
+async function initialLoad(){
+  localStorage.clear();
+  localStorage.setItem(GUIDE,'true');
+  const started=performance.now();
+  frame.src='../index.html#/today';
+  await new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+  const doc=frame.contentDocument;
+  await wait(()=>doc.querySelector('#main')?.textContent.includes(routeMarkers.today),'Today render');
+  const readyMs=Math.round(performance.now()-started);
+  const perf=frame.contentWindow.performance;
+  const resources=perf.getEntriesByType('resource');
+  const media=resources.filter(e=>/\.(?:mp3|wav|ogg|m4a)(?:$|\?)/i.test(e.name));
+  const js=resources.filter(e=>/\.js(?:$|\?)/i.test(e.name));
+  const css=resources.filter(e=>/\.css(?:$|\?)/i.test(e.name));
+  const bytes=resources.reduce((sum,e)=>sum+(e.transferSize||e.encodedBodySize||0),0);
+  if(media.length)throw new Error(`Today eager-loaded media: ${media.map(x=>x.name).join(', ')}`);
+  if(readyMs>6000)throw new Error(`Today startup exceeded 6000ms local QA ceiling: ${readyMs}`);
+  return {doc,readyMs,resourceCount:resources.length,jsCount:js.length,cssCount:css.length,resourceBytes:bytes,mediaCount:media.length};
+}
+
+async function routeLatency(name){
+  const win=frame.contentWindow;
+  const doc=frame.contentDocument;
+  const started=performance.now();
+  win.location.hash=`#/${name}`;
+  await wait(()=>doc.querySelector('#main')?.textContent.includes(routeMarkers[name]),`${name} render`);
+  const ms=Math.round(performance.now()-started);
+  if(ms>2500)throw new Error(`${name} route exceeded 2500ms local QA ceiling: ${ms}`);
+  return ms;
+}
+
+try{
+  const initial=await initialLoad();
+  const routeMs={};
+  for(const name of ['learn','ielts','improve','progress','today'])routeMs[name]=await routeLatency(name);
+  const resources=frame.contentWindow.performance.getEntriesByType('resource');
+  const mediaAfterNavigation=resources.filter(e=>/\.(?:mp3|wav|ogg|m4a)(?:$|\?)/i.test(e.name));
+  if(mediaAfterNavigation.length)throw new Error(`Navigation-only flow fetched media before explicit playback: ${mediaAfterNavigation.map(x=>x.name).join(', ')}`);
+  const metrics={...initial,routeMs,maxRouteMs:Math.max(...Object.values(routeMs)),mediaAfterNavigation:mediaAfterNavigation.length};
+  delete metrics.doc;
+  out.textContent=`V18_PERFORMANCE_PASS ${JSON.stringify(metrics)}`;
+}catch(error){
+  out.textContent=`V18_PERFORMANCE_FAIL: ${error.stack||error}`;
+}
+</script>
+</body>
+</html>
