@@ -2,14 +2,22 @@
   "version": 1,
   "mockTestId": "MA02",
   "updatedAt": "2026-08-30",
-  "status": "production-ready",
+  "status": "production-live",
   "policy": "Production MP3 first; labelled browser-voice fallback only when the MP3 cannot be played.",
+  "deploymentEvidence": {
+    "mergeCommit": "f1e5490e664e27786f92fe17575069546fb71fb3",
+    "pagesRunId": 33314994357,
+    "pagesRunNumber": 246,
+    "validateRunId": 33314995065,
+    "validateRunNumber": 419,
+    "verifiedDate": "2026-08-30"
+  },
   "assets": [
     {
       "id": "MA02-L1",
       "part": 1,
       "path": "media/audio/mock-tests/ma02-listening-part1-printmaking-workshop-booking.mp3",
-      "status": "production-ready",
+      "status": "production-live",
       "scriptSource": "mock-test-data-v2.js#MA02.listening.parts[0].script",
       "durationSeconds": 90.409796,
       "sampleRateHz": 44100,
@@ -26,7 +34,7 @@
       "qa": {
         "container": "passed — mono 44.1 kHz / 192 kbps MP3",
         "durationContract": "passed — 90.41 seconds within the 90–105 second production target",
-        "technicalPlayback": "pending deployed verification",
+        "technicalPlayback": "passed — GitHub Pages #246 and Validate #419 verified deployed exact byte size, runtime source wiring and Chrome MP3 metadata decoding on 2026-08-30",
         "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
         "contentApproval": "passed — Dwyer spelling, final 26th date, Studio B, closed shoes, £42 fee, payment deadline, waiting-list outcome and latex allergy verified"
       }
@@ -35,7 +43,7 @@
       "id": "MA02-L2",
       "part": 2,
       "path": "media/audio/mock-tests/ma02-listening-part2-observatory-visitor-orientation.mp3",
-      "status": "production-ready",
+      "status": "production-live",
       "scriptSource": "mock-test-data-v2.js#MA02.listening.parts[1].script",
       "durationSeconds": 114.260408,
       "sampleRateHz": 44100,
@@ -52,7 +60,7 @@
       "qa": {
         "container": "passed — mono 44.1 kHz / 192 kbps MP3",
         "durationContract": "passed — 114.26 seconds within the 110–125 second production target",
-        "technicalPlayback": "pending deployed verification",
+        "technicalPlayback": "passed — GitHub Pages #246 and Validate #419 verified deployed exact byte size, runtime source wiring and Chrome MP3 metadata decoding on 2026-08-30",
         "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
         "contentApproval": "passed — orientation-room first step, red vest, equipment-check sequence, west dome, cloud replacement, 15-minute decision, 8:30 cafe and exit-basket return verified"
       }
@@ -61,7 +69,7 @@
       "id": "MA02-L3",
       "part": 3,
       "path": "media/audio/mock-tests/ma02-listening-part3-local-history-digitisation-project.mp3",
-      "status": "production-ready",
+      "status": "production-live",
       "scriptSource": "mock-test-data-v2.js#MA02.listening.parts[2].script",
       "durationSeconds": 111.732245,
       "sampleRateHz": 44100,
@@ -78,7 +86,7 @@
       "qa": {
         "container": "passed — mono 44.1 kHz / 192 kbps MP3",
         "durationContract": "passed — 111.73 seconds within the 110–125 second production target",
-        "technicalPlayback": "pending deployed verification",
+        "technicalPlayback": "passed — GitHub Pages #246 and Validate #419 verified deployed exact byte size, runtime source wiring and Chrome MP3 metadata decoding on 2026-08-30",
         "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
         "contentApproval": "passed — 900-letter collection, 200-letter sample, every-fourth sampling, photograph permission, Friday conditional plan, shared transcription conventions and 12 volunteers verified"
       }
@@ -87,7 +95,7 @@
       "id": "MA02-L4",
       "part": 4,
       "path": "media/audio/mock-tests/ma02-listening-part4-seed-banks-seed-storage.mp3",
-      "status": "production-ready",
+      "status": "production-live",
       "scriptSource": "mock-test-data-v2.js#MA02.listening.parts[3].script",
       "durationSeconds": 128.549388,
       "sampleRateHz": 44100,
@@ -104,7 +112,7 @@
       "qa": {
         "container": "passed — mono 44.1 kHz / 192 kbps MP3",
         "durationContract": "passed — 128.55 seconds within the 128–145 second production target",
-        "technicalPlayback": "pending deployed verification",
+        "technicalPlayback": "passed — GitHub Pages #246 and Validate #419 verified deployed exact byte size, runtime source wiring and Chrome MP3 metadata decoding on 2026-08-30",
         "transcriptAlignment": "passed against the canonical repository script; do not replace it with automatic transcription",
         "contentApproval": "passed — orthodox/recalcitrant distinction, desiccation definition, genetic-diversity sampling, viability testing, regeneration risk and habitat-conservation conclusion verified",
         "pacing": "passed — approximately 143 wpm; canonical wording unchanged"

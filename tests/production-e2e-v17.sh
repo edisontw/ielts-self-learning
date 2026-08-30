@@ -3,7 +3,7 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-https://edisontw.github.io/ielts-self-learning}"
 BASE="${BASE_URL%/}"
-SENTINEL='V1.12-MA02-PRODUCTION-AUDIO-E2E-GATE-20260830-1'
+SENTINEL='V1.12-MA02-PRODUCTION-AUDIO-LIVE-CLOSURE-20260830-2'
 CACHE_BUST="${GITHUB_SHA:-$(date +%s)}"
 CDP_PORT="${CDP_PORT:-9228}"
 URL="${BASE}/tests/browser-ma02-audio-v112.html?sha=${CACHE_BUST}"
