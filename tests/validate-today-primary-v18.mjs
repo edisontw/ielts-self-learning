@@ -9,7 +9,7 @@ assert.match(runtime,/'study-plan',300/);
 assert.match(runtime,/'ai-feedback',200/);
 assert.match(runtime,/'productive',150/);
 assert.match(runtime,/if\(!core\.placement\)return/);
-assert.match(runtime,/data\.todayPrimaryAction='true'/);
+assert.match(runtime,/dataset\.todayPrimaryAction='true'/);
 assert.match(runtime,/label\.textContent='Do this now'/);
 assert.match(runtime,/rows\.slice\(1\)\.forEach\(row=>\{row\.card\.hidden=true;\}\)/);
 assert.match(runtime,/seen=new Set\(\[primary\.key\]\)/);
