@@ -3,10 +3,10 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-https://edisontw.github.io/ielts-self-learning}"
 BASE="${BASE_URL%/}"
-SENTINEL='V1.7-MA02-PRODUCTION-E2E-GATE-20260829-1'
+SENTINEL='V1.12-MA02-PRODUCTION-AUDIO-E2E-GATE-20260830-1'
 CACHE_BUST="${GITHUB_SHA:-$(date +%s)}"
 CDP_PORT="${CDP_PORT:-9228}"
-URL="${BASE}/tests/browser-production-ma02-v17.html?sha=${CACHE_BUST}"
+URL="${BASE}/tests/browser-ma02-audio-v112.html?sha=${CACHE_BUST}"
 
 if command -v google-chrome >/dev/null 2>&1; then
   CHROME=google-chrome
@@ -19,7 +19,7 @@ else
   exit 1
 fi
 
-node --check tests/browser-production-ma02-v17.js
+node --check tests/browser-ma02-audio-v112.js
 echo "Waiting for the current main deployment sentinel at ${BASE} ..."
 deployed=0
 for attempt in {1..90}; do
@@ -40,15 +40,18 @@ for asset in \
   mock-test-registry-v17.js \
   mock-test-runtime-v1.js \
   mock-test-audio-upgrade-v1.js \
-  existing-practice-routing-v17.js \
-  existing-practice-routing-runtime-v16.js \
-  tests/browser-production-ma02-v17.html \
-  tests/browser-production-ma02-v17.js; do
-  curl -fsS --max-time 15 "${BASE}/${asset}?sha=${CACHE_BUST}" >/dev/null || { echo "Missing deployed V1.7 asset: ${asset}" >&2; exit 1; }
+  media/audio/mock-tests/ma02-production-assets-v1.json \
+  media/audio/mock-tests/ma02-listening-part1-printmaking-workshop-booking.mp3 \
+  media/audio/mock-tests/ma02-listening-part2-observatory-visitor-orientation.mp3 \
+  media/audio/mock-tests/ma02-listening-part3-local-history-digitisation-project.mp3 \
+  media/audio/mock-tests/ma02-listening-part4-seed-banks-seed-storage.mp3 \
+  tests/browser-ma02-audio-v112.html \
+  tests/browser-ma02-audio-v112.js; do
+  curl -fsS --max-time 30 "${BASE}/${asset}?sha=${CACHE_BUST}" >/dev/null || { echo "Missing deployed V1.12 asset: ${asset}" >&2; exit 1; }
 done
 
-LOG='/tmp/ielts-production-v17-chrome.log'
-PROFILE='/tmp/ielts-production-v17-profile'
+LOG='/tmp/ielts-production-v112-chrome.log'
+PROFILE='/tmp/ielts-production-v112-profile'
 rm -rf "$PROFILE" "$LOG"
 CHROME_PID=''
 cleanup(){ [[ -n "$CHROME_PID" ]] && kill "$CHROME_PID" 2>/dev/null || true; }
@@ -76,9 +79,9 @@ CDP_PORT="$CDP_PORT" TARGET_URL="$URL" E2E_TIMEOUT_MS=60000 \
 status=$?
 set -e
 if [[ "$status" -ne 0 ]]; then
-  echo "V1.7 deployed browser E2E failed with status ${status}." >&2
+  echo "V1.12 deployed MA02 production-audio E2E failed with status ${status}." >&2
   cat "$LOG" >&2 || true
   exit "$status"
 fi
 
-echo 'Production E2E passed: deployed GitHub Pages MA01/MA02 selector, MA02 Reading/history/Error Notebook, dynamic Writing ids, browser-voice gate, L04/QL03 existing-practice CTAs, and 390px selector/overflow.'
+echo 'Production E2E passed: deployed MA02 production copy, four exact MP3 assets, browser metadata decoding, runtime source wiring, fallback disclosure and 390px layout.'
