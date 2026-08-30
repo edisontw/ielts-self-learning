@@ -6,6 +6,7 @@ const index = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8')
 const css = fs.readFileSync(new URL('../learning-extension.css', import.meta.url), 'utf8');
 const runtime = fs.readFileSync(new URL('../learning-runtime-v3.js', import.meta.url), 'utf8');
 const adaptiveRuntime = fs.readFileSync(new URL('../adaptive.js', import.meta.url), 'utf8');
+const adaptiveToday = fs.readFileSync(new URL('../adaptive-today-guardrails-v1.js', import.meta.url), 'utf8');
 const repairIndex = fs.readFileSync(new URL('../learn-repair-index-v15.js', import.meta.url), 'utf8');
 const lifecycle = fs.readFileSync(new URL('../render-lifecycle-v15.js', import.meta.url), 'utf8');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
@@ -33,6 +34,13 @@ assert(adaptiveRuntime.includes('registerRenderEnhancement(injectAdaptiveUI)'), 
 assert(!adaptiveRuntime.includes('MutationObserver'), 'Adaptive UI must not observe the whole document.');
 assert(!adaptiveRuntime.includes("window.addEventListener('hashchange'"), 'Adaptive route refresh must come from the shared lifecycle.');
 assert(adaptiveRuntime.includes("localStorage.getItem(ADAPTIVE_STORAGE_KEY) !== next"), 'Adaptive silent writes must avoid redundant localStorage writes.');
+assert(adaptiveToday.includes("from './render-lifecycle-v15.js'"), 'Adaptive Today must depend on the shared V1.5 render lifecycle.');
+assert(adaptiveToday.includes('registerRenderEnhancement(apply)'), 'Adaptive Today must register one deterministic enhancement pass.');
+assert(adaptiveToday.includes("window.addEventListener('ielts-study-plan-change',scheduleEnhancementPass)"), 'Study Plan changes must schedule an Adaptive Today refresh.');
+assert(adaptiveToday.includes("window.addEventListener('ielts-mini-test-submitted',scheduleEnhancementPass)"), 'Mini Test submissions must schedule an Adaptive Today refresh.');
+assert(!adaptiveToday.includes('MutationObserver'), 'Adaptive Today must not observe the whole document.');
+assert(!adaptiveToday.includes('setInterval'), 'Adaptive Today must not use permanent polling.');
+assert(!adaptiveToday.includes("window.addEventListener('hashchange'"), 'Adaptive Today route refresh must come from the shared lifecycle.');
 assert(repairIndex.includes('data-lesson="${lesson.id}"'), 'Learn Repair cards must use the standard data-lesson route contract.');
 assert(repairIndex.includes('registerRenderEnhancement'), 'Learn Repair index must use the shared V1.5 lifecycle.');
 assert(!repairIndex.includes('setInterval') && !repairIndex.includes('MutationObserver'), 'Learn Repair index must not poll or observe the whole DOM.');
@@ -44,8 +52,8 @@ assert(!lifecycle.includes('setInterval') && !lifecycle.includes('MutationObserv
 assert(css.includes('min-height:44px'), 'Mobile QA CSS must preserve 44px primary tap targets.');
 assert(css.includes('env(safe-area-inset-bottom)'), 'Mobile bottom navigation should respect safe-area inset.');
 
-console.log('✓ Adaptive UI and learning runtime use one shared event-driven render lifecycle');
-console.log('✓ Document-wide MutationObserver and one-second learning polling are retired');
+console.log('✓ Adaptive UI, Adaptive Today and learning runtime use one shared event-driven render lifecycle');
+console.log('✓ Adaptive Today permanent MutationObserver and 1.1-second polling are retired');
 console.log('✓ Lifecycle waits for app.js top-level-await startup before enhancement rendering');
 console.log('✓ Learn Repair index uses the shared V1.5 render lifecycle');
 console.log('✓ Repair helpers are explicit module dependencies');
