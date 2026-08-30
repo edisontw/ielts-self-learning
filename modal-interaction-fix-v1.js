@@ -1,4 +1,5 @@
 let modalOpener = null;
+let modalOpenerSelector = '';
 let modalWasOpen = false;
 
 const MODAL_OPENER_SELECTOR = [
@@ -9,10 +10,20 @@ const MODAL_OPENER_SELECTOR = [
   '[data-template-preview]'
 ].join(',');
 
+const attrEsc = (value='') => String(value).replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+
 function focusableElements(panel) {
   if (!panel?.querySelectorAll) return [];
   return [...panel.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')]
     .filter(node => !node.hidden && node.getAttribute?.('aria-hidden') !== 'true');
+}
+
+function openerSelector(opener) {
+  if (!opener?.dataset) return '';
+  if (opener.dataset.action) return `[data-action="${attrEsc(opener.dataset.action)}"]`;
+  if (opener.dataset.errorPrompt) return `[data-error-prompt="${attrEsc(opener.dataset.errorPrompt)}"]`;
+  if (opener.dataset.templatePreview) return `[data-template-preview="${attrEsc(opener.dataset.templatePreview)}"]`;
+  return '';
 }
 
 function sanitizeModal(root = document) {
@@ -43,7 +54,9 @@ function closeViaExistingAction(backdrop) {
 
 function captureModalOpener(event) {
   const opener = event.target?.closest?.(MODAL_OPENER_SELECTOR);
-  if (opener) modalOpener = opener;
+  if (!opener) return;
+  modalOpener = opener;
+  modalOpenerSelector = openerSelector(opener);
 }
 
 function focusModalIfNeeded() {
@@ -63,9 +76,12 @@ function focusModalIfNeeded() {
 function restoreModalFocusIfClosed() {
   if (!modalWasOpen || document.querySelector?.('[data-modal-backdrop]')) return false;
   modalWasOpen = false;
-  const opener = modalOpener;
+  const opener = modalOpener?.isConnected === false && modalOpenerSelector
+    ? document.querySelector?.(modalOpenerSelector)
+    : modalOpener;
   modalOpener = null;
-  if (opener?.isConnected !== false && opener?.focus) {
+  modalOpenerSelector = '';
+  if (opener?.focus) {
     opener.focus({ preventScroll:true });
     return true;
   }
@@ -133,5 +149,6 @@ export {
   handleModalKeydown,
   focusableElements,
   focusModalIfNeeded,
-  restoreModalFocusIfClosed
+  restoreModalFocusIfClosed,
+  openerSelector
 };
