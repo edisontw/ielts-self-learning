@@ -1,0 +1,4 @@
+/* V1.13 UAT fixes: preserve native hidden semantics when card display rules are more specific. */
+#main[data-learn-simplified="true"] .learn-simplified-grid .lesson-card[hidden] {
+  display: none !important;
+}

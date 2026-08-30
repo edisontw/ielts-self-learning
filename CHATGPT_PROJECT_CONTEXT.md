@@ -41,7 +41,7 @@ The product now includes enough learning/test content to focus on quality rather
 - Speaking Practice Bank with 108 prompts/questions + V1.11 standardized Parts 1–3 sampler;
 - Quick Placement, Study Plan, Adaptive Today, Error Notebook, reviews, productive evidence, AI feedback return, backup/import/reset, Diagnostics;
 - V1.9 Diagnostic Evidence Center;
-- production Listening audio across Placement, Core Listening, Question Type Labs, Mini Tests and MA01.
+- production Listening audio across Placement, Core Listening, Question Type Labs, Mini Tests, MA01 and MA02.
 
 Do not add generic lessons, new Mini Tests/Full Mocks, Task 2 prompts, Speaking questions or Repairs merely to increase count.
 
@@ -77,102 +77,97 @@ The sampler reuses existing linked sets: Part 1 ×2 questions + Part 2 ×1 cue c
 
 Production closure: PR #75 main `a6cfdfaa44ad7ca46a58c2e8a6c69f843058cdaa`; Pages #242 PASS; Validate #411 PASS; deployed Speaking sampler E2E PASS.
 
-## 4. V1.12 MA02 Production Listening Audio — PREPARATION CLOSED / ASSETS PENDING
+### V1.12 MA02 Production Listening Audio — CLOSED
 
 Read:
 
 - `V1.12-MA02-AUDIO-PREP-CHECKPOINT.md`
 - `media/audio/mock-tests/MA02-PRODUCTION-AUDIO-PLAN.md`
 - `media/audio/mock-tests/ma02-production-audio-spec-v1.json`
+- `media/audio/mock-tests/ma02-production-assets-v1.json`
+- `V1.12-MA02-PRODUCTION-AUDIO-CLOSURE.md`
 
-PR #77 production-prep closure:
+Production release:
 
-- merged main: `8a52fddebcffbebe16eed4dfe89172ada75cabfe`;
-- PR Validate #414: PASS;
-- main Validate #415: PASS;
-- Pages #244: PASS;
-- V1.12 exact-script production-prep guard: PASS;
-- MA02 browser interaction: PASS;
-- existing deployed V1.7 / V1.9 / V1.10 / V1.11 E2E gates: PASS.
+- PR #79 released the four approved MA02 production MP3 assets and runtime wiring;
+- release merge: `f1e5490e664e27786f92fe17575069546fb71fb3`;
+- Pages #246 PASS;
+- main Validate #419 PASS, including deployed MP3 byte-size and Chrome metadata decoding checks;
+- PR #80 closed the release and marked the manifest/assets `production-live`;
+- current closure main: `2b4cc9103fcfe0d82e26470323c1bb2db7847c6e`;
+- Pages #247 PASS;
+- final Validate #421 PASS, including deployed production E2E.
 
-### What is already locked
+MA02 runtime policy is now:
 
-Do **not** redo script/voice/QA planning.
+`PRODUCTION MP3 → labelled browser-voice fallback only if MP3 playback fails`
 
-The machine-readable production spec reconstructs all four MA02 scripts exactly from the source and CI enforces equality with `mock-test-data-v2.js`.
+Canonical scripts, questions, answers and scoring were not changed during audio production.
 
-Canonical required files:
+## 4. Current product decision
 
-1. `media/audio/mock-tests/ma02-listening-part1-printmaking-workshop-booking.mp3`
-2. `media/audio/mock-tests/ma02-listening-part2-observatory-visitor-orientation.mp3`
-3. `media/audio/mock-tests/ma02-listening-part3-local-history-digitisation-project.mp3`
-4. `media/audio/mock-tests/ma02-listening-part4-seed-banks-seed-storage.mp3`
+The repository now has enough content and automated regression coverage that the next milestone should **not** be another content-expansion release.
 
-Locked production targets:
+The next uncertainty is whether a real learner can move through the full product without confusion, dead ends or low-value navigation.
 
-- Part 1: Receptionist + Caller, 204 words, ~90–105 s;
-- Part 2: Guide monologue, 257 words, ~110–125 s;
-- Part 3: Tutor + Nina + Omar, 256 words, ~110–125 s;
-- Part 4: Lecturer monologue, 307 words, ~128–145 s.
+Therefore V1.13 is a **Real Learner Trial / Product Hardening** milestone.
 
-Exact speaker direction, pace ranges, pause rules, generation prompts and answer-bearing QA are already in the production plan/spec.
+Read `V1.13-REAL-LEARNER-TRIAL-PLAN.md` before changing implementation.
 
-### CURRENT LIVE STATE — intentionally not production
+## 5. NEXT UNFINISHED MILESTONE — V1.13
 
-Until all four approved MP3s exist:
+> **Validate the full learning loop as a learner journey, then fix only evidence-backed friction.**
 
-- `MA02.audioStatus` remains `browser-voice-gate`;
-- `MOCK_AUDIO.MA02` remains four empty source strings;
-- UI remains labelled `Browser voice beta`;
-- browser speech is the active MA02 Listening source;
-- one-play Test Mode semantics remain unchanged.
+Priority journeys:
 
-Do not wire nonexistent/unapproved audio paths.
+1. New learner: Quick Placement → Study Plan → Today → first lesson/practice.
+2. Error loop: wrong answer → explanation → Error Notebook → Repair/review → Retry → corrected state.
+3. Test transfer: Lab/Mini Test/Full Mock result → recommended next action → targeted practice → return to review.
+4. Productive loop: Writing/Speaking attempt → self-check → AI prompt/feedback return → retry/revision → evidence update.
+5. Returning learner: due review + Today recommendation + progress continuity after several days.
 
-## 5. NEXT UNFINISHED MILESTONE
-
-> **Obtain the four locked MA02 production MP3 files, then perform audio QA → manifest/provenance → runtime integration → deployed production verification.**
-
-After the four audio files arrive:
-
-1. compare spoken content with exact locked scripts / `criticalQa`;
-2. inspect duration, channels, sample rate, bitrate/loudness and clipping;
-3. normalize only if needed without changing wording/timing meaning;
-4. compute SHA-256 and exact file size;
-5. update `media/audio/manifest-v1.json` with provenance/status;
-6. wire all four paths into `MOCK_AUDIO.MA02`;
-7. change MA02 copy/status to production-first + labelled browser fallback;
-8. extend audio-manifest/mock-audio regression coverage;
-9. add a deployed exact-file/checksum/playback production gate;
-10. retain browser speech synthesis strictly as fallback.
-
-This is a media-quality upgrade, not a content rewrite.
+V1.13 should begin with seeded/manual UAT and production-browser evidence. Do not pre-design new features before a journey produces a concrete failure or friction signal.
 
 ## 6. Guardrails
 
 Do not:
 
 - resume closed V1.6 semantic mining;
-- restart V1.8/V1.9/V1.10/V1.11 work;
+- restart V1.8/V1.9/V1.10/V1.11/V1.12 work;
 - create MA03, MR05 or ML05 without new evidence;
 - expand Core 30 merely to increase content count;
 - manufacture Repairs from sparse evidence;
 - auto-score Writing/Speaking as official IELTS bands;
 - add more Task 2/Speaking questions merely for volume;
-- rewrite MA02 scripts/questions during audio production;
-- mark MA02 production-live before all four files pass QA;
-- use copyrighted commercial IELTS recordings.
+- rewrite production Listening scripts/questions;
+- replace production audio with browser voice as the default;
+- use copyrighted commercial IELTS recordings;
+- add account sync / PWA unless a concrete product need justifies departing from the current local-first model.
 
-## 7. New-window startup instruction
+## 7. V1.13 implementation rule
+
+For each proposed change:
+
+1. identify a reproducible learner-journey problem;
+2. record the exact state/route/action where it occurs;
+3. verify existing teaching/navigation cannot already solve it;
+4. make the smallest product fix;
+5. add regression coverage;
+6. verify deployed production behavior;
+7. only then consider the issue closed.
+
+No feature should be added merely because it is common in other learning apps.
+
+## 8. New-window startup instruction
 
 1. Read `CHATGPT_PROJECT_CONTEXT.md`.
-2. Read `V1.12-MA02-AUDIO-PREP-CHECKPOINT.md` and `media/audio/mock-tests/MA02-PRODUCTION-AUDIO-PLAN.md`.
-3. Inspect current GitHub main/open PRs/Actions.
-4. Do not redo prior closed UX/diagnostic/content work or MA02 audio planning.
-5. Continue from the **four MA02 MP3 asset handoff**.
-6. If files are available, immediately QA/integrate them using the locked spec.
-7. If files are not yet available, use the locked production plan to generate/obtain them; do not change runtime status meanwhile.
+2. Read `V1.12-MA02-PRODUCTION-AUDIO-CLOSURE.md` only if audio history is relevant.
+3. Read `V1.13-REAL-LEARNER-TRIAL-PLAN.md`.
+4. Inspect current GitHub main/open PRs/Actions.
+5. Do not redo prior closed UX/diagnostic/content/audio work.
+6. Continue from V1.13 learner-journey validation.
+7. Fix only evidence-backed friction; do not expand content by default.
 
-## 8. Source-of-truth hierarchy
+## 9. Source-of-truth hierarchy
 
 `V1.0 product principles → V1.1 UX/architecture → closed implementation docs → this checkpoint → current GitHub runtime/tests`
