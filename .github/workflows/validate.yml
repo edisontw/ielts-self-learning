@@ -32,6 +32,10 @@ jobs:
         run: node --check site-guide-focus-v18.js && node tests/validate-mobile-a11y-v18.mjs
       - name: V1.8 Mobile/accessibility browser matrix
         run: bash tests/browser-mobile-a11y-v18.sh
+      - name: V1.8 Performance static baseline
+        run: node tests/audit-performance-v18.mjs
+      - name: V1.8 Performance browser baseline
+        run: bash tests/browser-performance-v18.sh
       - name: V1.7 MA02 browser interaction
         run: bash tests/browser-ma02-v17-local.sh
       - name: Production E2E — deployed GitHub Pages
