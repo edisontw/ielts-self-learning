@@ -31,12 +31,14 @@ try{
   if(!ma01||!ma02)throw new Error('MA01/MA02 selector cards are not both deployed');
   if(!includes(ma02,'Academic Mock 02')||!includes(ma02,'Browser voice beta'))throw new Error('MA02 learner-facing status copy missing');
 
-  // Reading: verify MA02 data, submit/history, and Error Notebook persistence IDs.
+  // Reading: verify MA02 data, result priorities, submit/history, and Error Notebook persistence IDs.
   ma02.querySelector('[data-mock-test="MA02"][data-mock-start="reading"]').click();
   let player=await wait(()=>doc.querySelector('[data-mock-player][data-mock-test-id="MA02"]'),'MA02 Reading player');
   if(!includes(player,'Academic Mock 02')||!doc.querySelector('#mock-q-MA02-R01'))throw new Error('MA02 Reading did not bind to MA02 data');
   player.querySelector('[data-mock-action="submit"]').click();
   player=await wait(()=>doc.querySelector('[data-mock-player].mock-result'),'MA02 Reading result');
+  const readingPriorities=await wait(()=>player.querySelector('[data-result-priorities-v18]'),'V1.8 MA02 Reading result priorities');
+  if(!includes(readingPriorities,'Your priorities')||!readingPriorities.querySelector('[data-result-recommended-next]')||!readingPriorities.querySelector('[data-lesson]'))throw new Error('MA02 Reading result does not expose an evidence-backed recommended next step');
   const history=JSON.parse(localStorage.getItem(MOCK)||'{}').history||[];
   if(history.length!==1||history[0].testId!=='MA02'||history[0].mode!=='reading')throw new Error('MA02 history did not persist under the existing mock schema');
   player.querySelector('[data-mock-action="save-errors"]').click();
@@ -55,7 +57,7 @@ try{
   if(!includes(player,'Some people think governments should spend more money making existing cities better places to live'))throw new Error('MA02 Writing Task 2 content missing');
   player.querySelector('[data-mock-action="exit"]').click();
 
-  // Listening: verify browser-voice gate, then use the real submit → save errors → Exit
+  // Listening: verify browser-voice gate and V1.8 priorities, then use the real submit → save errors → Exit
   // handoff so the base app must reload its in-memory Error Notebook state.
   localStorage.clear();seedGuide();
   doc=await load('#/ielts');
@@ -74,6 +76,10 @@ try{
 
   player.querySelector('[data-mock-action="submit"]').click();
   player=await wait(()=>doc.querySelector('[data-mock-player].mock-result'),'MA02 Listening result');
+  const listeningPriorities=await wait(()=>player.querySelector('[data-result-priorities-v18]'),'V1.8 MA02 Listening result priorities');
+  if(!includes(listeningPriorities,'Your priorities')||!listeningPriorities.querySelector('[data-result-recommended-next]'))throw new Error('MA02 Listening result priority summary missing');
+  if(!listeningPriorities.querySelector('[data-lesson="L05"]')||!listeningPriorities.querySelector('[data-lesson="LR01"]')||!listeningPriorities.querySelector('[data-lesson="L04"]'))throw new Error('MA02 Listening result does not show the three highest-volume authorized priorities: detail, number, conditional outcome');
+  if(listeningPriorities.querySelector('[data-lesson="QL03"]'))throw new Error('MA02 Listening top-3 priorities incorrectly elevate one spatial-sequence miss above larger current-attempt families');
   const saveListening=player.querySelector('[data-mock-action="save-errors"]');
   if(!saveListening)throw new Error('MA02 Listening result has no Save missed items action');
   saveListening.click();

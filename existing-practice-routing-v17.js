@@ -34,7 +34,7 @@ export const V17_EXISTING_PRACTICE_RULES=[
     family:'listening-spatial-sequence',
     skills:['listening'],
     tags:['listening-spatial-sequence','spatial-sequence'],
-    primary:lesson('QL03','Question Type Lab: Listening Maps & Directions')
+    primary:lesson('QL03','Question Type Lab: Map & Plan Labelling')
   }
 ];
 
