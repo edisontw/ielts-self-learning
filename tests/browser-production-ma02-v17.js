@@ -31,7 +31,7 @@ try{
   if(!ma01||!ma02)throw new Error('MA01/MA02 selector cards are not both deployed');
   if(!includes(ma02,'Academic Mock 02')||!includes(ma02,'Browser voice beta'))throw new Error('MA02 learner-facing status copy missing');
 
-  // Reading: verify MA02 data, result priorities, submit/history, and Error Notebook persistence IDs.
+  // Reading: verify MA02 data, result priorities, return continuity, submit/history, and Error Notebook persistence IDs.
   ma02.querySelector('[data-mock-test="MA02"][data-mock-start="reading"]').click();
   let player=await wait(()=>doc.querySelector('[data-mock-player][data-mock-test-id="MA02"]'),'MA02 Reading player');
   if(!includes(player,'Academic Mock 02')||!doc.querySelector('#mock-q-MA02-R01'))throw new Error('MA02 Reading did not bind to MA02 data');
@@ -44,6 +44,21 @@ try{
   player.querySelector('[data-mock-action="save-errors"]').click();
   const saved=JSON.parse(localStorage.getItem(CORE)||'{}').errors||[];
   if(saved.length!==40||saved.some(error=>error.lessonId!=='MA02'||!String(error.questionId).startsWith('MA02-R')))throw new Error('MA02 Reading errors did not persist with unique MA02 ids');
+
+  const readingNext=readingPriorities.querySelector('[data-lesson]');
+  const readingNextId=readingNext?.dataset.lesson;
+  if(!readingNextId)throw new Error('MA02 Reading priority has no target lesson');
+  readingNext.click();
+  const readingReturn=await wait(()=>frame.contentDocument.querySelector('[data-return-context-v18]'),'MA02 Reading targeted-practice return CTA');
+  if(!includes(readingReturn,'Return to MA02 Reading review'))throw new Error('MA02 Reading targeted practice does not preserve a named return to the submitted review');
+  readingReturn.querySelector('[data-return-context-action="return"]').click();
+  const returnedReading=await wait(()=>frame.contentDocument.querySelector('[data-return-review-v18]'),'MA02 Reading read-only returned review');
+  if(!includes(returnedReading,'Returned review · read-only')||!returnedReading.querySelector('[data-return-review-snapshot]')||!returnedReading.querySelector('.mock-review-list'))throw new Error('MA02 Reading return did not restore the submitted item-review snapshot');
+  if(!returnedReading.querySelector('[data-result-priorities-v18] [data-lesson]'))throw new Error('Returned MA02 Reading review lost its evidence-backed priority links');
+  if(returnedReading.querySelector('[data-mock-action]'))throw new Error('Returned MA02 Reading snapshot incorrectly re-enables submitted Mock actions');
+  returnedReading.querySelector('[data-return-context-action="close-review"]').click();
+  await wait(()=>!frame.contentDocument.querySelector('[data-return-review-v18]')&&frame.contentDocument.querySelector('[data-mock-center]'),'close returned MA02 Reading review');
+  doc=frame.contentDocument;
 
   // Writing: verify dynamic MA02 task IDs rather than MA01 hard-coding.
   localStorage.clear();seedGuide();
@@ -121,12 +136,18 @@ try{
 
   conditionalRoute.querySelector('[data-lesson="L04"]').click();
   await wait(()=>frame.contentWindow.location.hash==='#/lesson/L04'&&frame.contentDocument.querySelector('#main')?.textContent.includes("Don't Fall for the Distractor"),'L04 CTA navigation');
-  frame.contentWindow.location.hash='#/improve';
-  await wait(()=>frame.contentWindow.location.hash==='#/improve'&&frame.contentDocument.querySelector('[data-existing-practice-family="listening-spatial-sequence"]'),'Improve return for QL03');
+  const notebookReturn=await wait(()=>frame.contentDocument.querySelector('[data-return-context-v18]'),'Error Notebook return CTA from L04');
+  if(!includes(notebookReturn,'Return to Error Notebook'))throw new Error('Error Notebook → L04 route does not preserve a named return action');
+  notebookReturn.querySelector('[data-return-context-action="return"]').click();
+  await wait(()=>frame.contentWindow.location.hash==='#/improve'&&frame.contentDocument.querySelector(`[data-error-id="${conditionalSaved.id}"]`),'Return to Error Notebook after L04');
   doc=frame.contentDocument;
   const spatialRouteAfterReturn=await wait(()=>doc.querySelector(`[data-error-id="${spatialSaved.id}"]`)?.closest('.error-item')?.querySelector('[data-v16-existing-practice-error-route]'),'Spatial Error Notebook CTA after Improve return');
   spatialRouteAfterReturn.querySelector('[data-lesson="QL03"]').click();
   await wait(()=>frame.contentWindow.location.hash==='#/lesson/QL03'&&frame.contentDocument.querySelector('#main')?.textContent.includes('Question Type Lab: Map & Plan Labelling'),'QL03 CTA navigation');
+  const ql03Return=await wait(()=>frame.contentDocument.querySelector('[data-return-context-v18]'),'Error Notebook return CTA from QL03');
+  if(!includes(ql03Return,'Return to Error Notebook'))throw new Error('Error Notebook → QL03 route does not preserve return context');
+  ql03Return.querySelector('[data-return-context-action="dismiss"]').click();
+  if(frame.contentDocument.querySelector('[data-return-context-v18]'))throw new Error('Dismiss did not remove the return-context banner');
 
   // Mobile: use the same staged IELTS navigation a learner sees, then verify both mocks
   // and the MA02 Listening section control are reachable without page-level overflow.
