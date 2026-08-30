@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>V1.8 Mobile + Accessibility QA</title></head>
+<body>
+<pre id="result">V18_MOBILE_A11Y_PENDING</pre>
+<iframe id="app" title="IELTS app" style="height:1000px;border:0"></iframe>
+<script type="module">
+const out=document.querySelector('#result');
+const frame=document.querySelector('#app');
+const GUIDE='ielts-site-guide-dismissed-v1';
+const wait=async(fn,label,timeout=14000)=>{const start=Date.now();while(Date.now()-start<timeout){try{const value=fn();if(value)return value;}catch{}await new Promise(r=>setTimeout(r,40));}throw new Error(`Timed out waiting for ${label}`);};
+const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+const focusables=panel=>[...panel.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(node=>!node.hidden&&node.getAttribute('aria-hidden')!=='true');
+
+async function load(route,width){
+  frame.style.width=`${width}px`;
+  localStorage.setItem(GUIDE,'true');
+  frame.src=`../index.html${route}`;
+  await new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+  const doc=frame.contentDocument;
+  await wait(()=>doc.querySelector('#main')&&doc.querySelector('.app-shell'),`${route} at ${width}px`);
+  await nextFrame();
+  return doc;
+}
+
+function assertNoOverflow(doc,label){
+  const html=doc.documentElement;
+  const body=doc.body;
+  if(html.scrollWidth>html.clientWidth+1||body.scrollWidth>body.clientWidth+1){
+    throw new Error(`${label}: horizontal overflow html ${html.scrollWidth}/${html.clientWidth}, body ${body.scrollWidth}/${body.clientWidth}`);
+  }
+}
+
+function assertPointerTargets(doc,label){
+  const candidates=[...doc.querySelectorAll('button:not([disabled]),a[href]')].filter(node=>{
+    const r=node.getBoundingClientRect();
+    const style=doc.defaultView.getComputedStyle(node);
+    return r.width>0&&r.height>0&&style.visibility!=='hidden'&&style.display!=='none';
+  });
+  const tooSmall=candidates.filter(node=>{const r=node.getBoundingClientRect();return r.width<24||r.height<24;});
+  if(tooSmall.length){
+    const sample=tooSmall.slice(0,4).map(node=>`${node.tagName}:${node.textContent.trim().slice(0,28)} ${Math.round(node.getBoundingClientRect().width)}x${Math.round(node.getBoundingClientRect().height)}`).join(' | ');
+    throw new Error(`${label}: pointer target below 24px — ${sample}`);
+  }
+}
+
+async function responsiveMatrix(){
+  const matrix={
+    360:['#/today','#/improve','#/lesson/W05','#/ielts'],
+    390:['#/today','#/improve','#/lesson/W05','#/ielts'],
+    430:['#/today','#/lesson/W05','#/ielts'],
+    768:['#/today','#/lesson/W05','#/ielts']
+  };
+  for(const [widthText,routes] of Object.entries(matrix)){
+    const width=Number(widthText);
+    for(const route of routes){
+      const doc=await load(route,width);
+      assertNoOverflow(doc,`${route} @ ${width}`);
+      assertPointerTargets(doc,`${route} @ ${width}`);
+      const mobile=doc.querySelector('.mobile-nav');
+      const sidebar=doc.querySelector('.sidebar');
+      if(doc.defaultView.getComputedStyle(mobile).display==='none')throw new Error(`${route} @ ${width}: mobile nav is hidden`);
+      if(doc.defaultView.getComputedStyle(sidebar).display!=='none')throw new Error(`${route} @ ${width}: desktop sidebar is still visible`);
+    }
+  }
+}
+
+async function promptModalKeyboard(){
+  const doc=await load('#/today',390);
+  const opener=await wait(()=>doc.querySelector('[data-action="open-prompt-library"]'),'AI Prompt Library opener');
+  opener.focus();
+  opener.click();
+  const panel=await wait(()=>doc.querySelector('[data-modal-backdrop] .modal'),'Prompt Library dialog');
+  if(panel.getAttribute('role')!=='dialog'||panel.getAttribute('aria-modal')!=='true')throw new Error('Prompt modal lacks dialog semantics');
+  await wait(()=>panel.contains(doc.activeElement),'Prompt modal initial focus');
+  const items=focusables(panel);
+  if(items.length<2)throw new Error('Prompt modal has too few keyboard focus targets');
+  items.at(-1).focus();
+  doc.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true}));
+  if(doc.activeElement!==items[0])throw new Error('Prompt modal Tab did not wrap last → first');
+  items[0].focus();
+  doc.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',shiftKey:true,bubbles:true}));
+  if(doc.activeElement!==items.at(-1))throw new Error('Prompt modal Shift+Tab did not wrap first → last');
+  doc.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  await wait(()=>!doc.querySelector('[data-modal-backdrop]'),'Prompt modal close');
+  const replacement=await wait(()=>doc.querySelector('[data-action="open-prompt-library"]'),'rerendered Prompt Library opener');
+  await wait(()=>doc.activeElement===replacement,'Prompt modal return focus');
+}
+
+async function siteGuideKeyboard(){
+  const doc=await load('#/today',390);
+  const opener=await wait(()=>doc.querySelector('.topbar [data-site-guide-open]'),'Site Guide opener');
+  opener.focus();
+  opener.click();
+  const panel=await wait(()=>doc.querySelector('[data-site-guide-backdrop] .site-guide-modal'),'Site Guide dialog');
+  await wait(()=>panel.contains(doc.activeElement),'Site Guide initial focus');
+  const items=focusables(panel);
+  if(items.length<2)throw new Error('Site Guide has too few keyboard focus targets');
+  items.at(-1).focus();
+  doc.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true}));
+  if(doc.activeElement!==items[0])throw new Error('Site Guide Tab did not wrap last → first');
+  items[0].focus();
+  doc.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',shiftKey:true,bubbles:true}));
+  if(doc.activeElement!==items.at(-1))throw new Error('Site Guide Shift+Tab did not wrap first → last');
+  doc.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  await wait(()=>!doc.querySelector('[data-site-guide-backdrop]'),'Site Guide close');
+  await wait(()=>doc.activeElement===opener,'Site Guide return focus');
+}
+
+try{
+  localStorage.clear();
+  localStorage.setItem(GUIDE,'true');
+  await responsiveMatrix();
+  await promptModalKeyboard();
+  await siteGuideKeyboard();
+  out.textContent='V18_MOBILE_A11Y_PASS';
+}catch(error){
+  out.textContent=`V18_MOBILE_A11Y_FAIL: ${error.stack||error}`;
+}
+</script>
+</body>
+</html>
