@@ -44,6 +44,10 @@ jobs:
         run: node --check writing-task2-bank-v110.js && node tests/validate-writing-task2-v110.mjs
       - name: V1.10 Task 2 browser flow
         run: bash tests/browser-writing-task2-v110.sh
+      - name: V1.11 Speaking sampler static guardrails
+        run: node --check speaking-sampler-v111.js && node tests/validate-speaking-sampler-v111.mjs
+      - name: V1.11 Speaking sampler browser flow
+        run: bash tests/browser-speaking-sampler-v111.sh
       - name: V1.7 MA02 browser interaction
         run: bash tests/browser-ma02-v17-local.sh
       - name: Production E2E — deployed GitHub Pages
