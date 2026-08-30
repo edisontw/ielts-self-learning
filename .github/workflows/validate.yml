@@ -24,6 +24,8 @@ jobs:
         run: npm test
       - name: Browser smoke test
         run: bash tests/browser-smoke.sh
+      - name: V1.8 Today primary-action browser matrix
+        run: bash tests/browser-today-primary-v18.sh
       - name: V1.7 MA02 browser interaction
         run: bash tests/browser-ma02-v17-local.sh
       - name: Production E2E — deployed GitHub Pages
