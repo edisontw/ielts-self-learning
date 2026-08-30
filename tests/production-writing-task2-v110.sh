@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_URL="${BASE_URL:-https://edisontw.github.io/ielts-self-learning}"
+BASE="${BASE_URL%/}"
+SENTINEL='V1.10-TASK2-PRODUCTION-E2E-GATE-20260830-1'
+CACHE_BUST="${GITHUB_SHA:-$(date +%s)}"
+URL="${BASE}/tests/browser-writing-task2-v110.html?sha=${CACHE_BUST}"
+
+if command -v google-chrome >/dev/null 2>&1; then CHROME=google-chrome; elif command -v google-chrome-stable >/dev/null 2>&1; then CHROME=google-chrome-stable; elif command -v chromium >/dev/null 2>&1; then CHROME=chromium; else echo 'No Chrome/Chromium binary found on runner' >&2; exit 1; fi
+
+echo "Waiting for V1.10 Task 2 deployment sentinel at ${BASE} ..."
+deployed=0
+for attempt in {1..90}; do
+  if curl -fsS --max-time 10 "${BASE}/V1.10-TASK2-PRODUCTION-E2E-SENTINEL.txt?sha=${CACHE_BUST}-${attempt}" 2>/dev/null | grep -Fq "$SENTINEL"; then deployed=1; break; fi
+  sleep 2
+done
+if [[ "$deployed" -ne 1 ]]; then echo 'V1.10 Task 2 deployment sentinel did not appear before the E2E deadline.' >&2; exit 1; fi
+
+for asset in index.html writing-task2-bank-v110.js diagnostic-center-v19.js tests/browser-writing-task2-v110.html; do
+  curl -fsS --max-time 15 "${BASE}/${asset}?sha=${CACHE_BUST}" >/dev/null || { echo "Missing deployed V1.10 asset: ${asset}" >&2; exit 1; }
+done
+
+DOM='/tmp/ielts-production-v110-task2-dom.html'; LOG='/tmp/ielts-production-v110-task2-chrome.log'; PROFILE='/tmp/ielts-production-v110-task2-profile'; rm -rf "$PROFILE" "$DOM" "$LOG"
+set +e
+timeout 75s "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --disable-background-networking --disable-component-update --disable-crash-reporter --user-data-dir="$PROFILE" --window-size='1280,1000' --virtual-time-budget=26000 --dump-dom "$URL" >"$DOM" 2>"$LOG"
+status=$?
+set -e
+if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then echo "V1.10 deployed Task 2 Chrome exited with status ${status}." >&2; fi
+if ! grep -Fq 'V110_TASK2_PASS' "$DOM"; then echo 'V1.10 deployed Task 2 browser flow failed.' >&2; grep -o 'V110_TASK2_[^<]*' "$DOM" >&2 || true; cat "$LOG" >&2 || true; exit 1; fi
+
+echo 'V1.10 production Task 2 passed on deployed GitHub Pages: 5 families × 2, 250-word evidence gate, feedback → retry linkage, Test Mode guardrails, and Diagnostic Center integration.'
