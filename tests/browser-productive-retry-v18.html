@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>V1.8 Productive Retry QA</title></head>
+<body>
+<pre id="result">V18_PRODUCTIVE_RETRY_PENDING</pre>
+<div id="fixture"></div>
+<script type="module">
+const out=document.querySelector('#result');
+const fixture=document.querySelector('#fixture');
+const ADAPTIVE='ielts-adaptive-v1';
+const wait=async(fn,label,timeout=12000)=>{const start=Date.now();while(Date.now()-start<timeout){try{const value=fn();if(value)return value;}catch{}await new Promise(r=>setTimeout(r,40));}throw new Error(`Timed out waiting for ${label}`);};
+const sentence=(prefix,count)=>Array.from({length:count},(_,i)=>`${prefix}${i+1}`).join(' ');
+
+function mount(lessonId,skill){
+  const writing=skill==='writing';
+  fixture.innerHTML=`<div class="lesson-shell"><section class="lesson-section"><textarea class="${writing?'writing-input':'speaking-input'}" ${writing?'data-writing-id':'data-speaking-id'}="${lessonId}-qa"></textarea></section><section class="lesson-section">Finish</section></div>`;
+  location.hash=`#/lesson/${lessonId}`;
+  window.dispatchEvent(new Event('hashchange'));
+}
+
+async function runCycle({lessonId,skill,firstWords,retryWords,ctaText}){
+  localStorage.clear();
+  mount(lessonId,skill);
+  const input=await wait(()=>document.querySelector(skill==='writing'?'.writing-input':'.speaking-input'),`${skill} input`);
+  input.value=sentence(skill,firstWords);
+
+  let evidence=await wait(()=>document.querySelector('[data-productive-evidence-card]'),`${skill} evidence card`);
+  let checks=[...evidence.querySelectorAll('[data-pe-criterion]')];
+  checks.slice(0,2).forEach(x=>x.checked=true);
+  evidence.querySelector('[data-pe-action="save"]').click();
+  await wait(()=>JSON.parse(localStorage.getItem(ADAPTIVE)||'{}').productiveEvidence?.[skill]?.length===1,`${skill} first evidence`);
+
+  let feedback=await wait(()=>document.querySelector('[data-ai-feedback-return]'),`${skill} feedback card`);
+  const priorities=feedback.querySelectorAll('[data-af-priority]');
+  priorities[0].value='Develop the main idea more clearly.';
+  priorities[1].value='Make the response structure easier to follow.';
+  feedback.querySelector('[data-af-action="save"]').click();
+
+  const pending=await wait(()=>document.querySelector('[data-ai-feedback-pending]'),`${skill} pending feedback`);
+  if(!pending.textContent.includes('revision is the next step'))throw new Error(`${skill}: pending feedback does not state the next step`);
+  const revise=pending.querySelector('[data-af-action="revise-now"]');
+  if(!revise||!revise.textContent.includes(ctaText))throw new Error(`${skill}: dominant revision CTA missing`);
+
+  evidence=await wait(()=>document.querySelector('[data-productive-evidence-card]'),`${skill} rerendered evidence`);
+  const kind=evidence.querySelector('[data-pe-kind]');
+  if(kind?.value!=='retry')throw new Error(`${skill}: pending feedback did not default evidence to retry`);
+  if(!evidence.querySelector('[data-pe-feedback-retry]'))throw new Error(`${skill}: Productive Evidence retry cue missing`);
+
+  revise.click();
+  await new Promise(r=>setTimeout(r,80));
+  if(document.activeElement!==input)throw new Error(`${skill}: revision CTA did not focus the editable input`);
+  if(input.dataset.feedbackRevisionFocus!=='true')throw new Error(`${skill}: revision focus marker missing`);
+
+  input.value=sentence(`${skill}retry`,retryWords);
+  evidence=document.querySelector('[data-productive-evidence-card]');
+  checks=[...evidence.querySelectorAll('[data-pe-criterion]')];
+  checks.slice(0,4).forEach(x=>x.checked=true);
+  if(evidence.querySelector('[data-pe-kind]')?.value!=='retry')throw new Error(`${skill}: evidence lost retry intent before save`);
+  evidence.querySelector('[data-pe-action="save"]').click();
+
+  const complete=await wait(()=>document.querySelector('[data-ai-feedback-cycle-complete]'),`${skill} completed feedback cycle`);
+  if(!complete.textContent.includes('Feedback → retry cycle recorded'))throw new Error(`${skill}: cycle completion message missing`);
+  const adaptive=JSON.parse(localStorage.getItem(ADAPTIVE)||'{}');
+  const feedbackRow=adaptive.aiFeedbackReturns?.[skill]?.at(-1);
+  const retry=adaptive.productiveEvidence?.[skill]?.at(-1);
+  if(retry?.attemptKind!=='retry')throw new Error(`${skill}: saved second evidence is not retry`);
+  if(!feedbackRow?.appliedByEvidenceId||feedbackRow.appliedByEvidenceId!==retry.id)throw new Error(`${skill}: retry did not close pending feedback`);
+  if(!feedbackRow?.comparison||feedbackRow.comparison.processDelta<=0)throw new Error(`${skill}: before/after comparison missing`);
+  if(document.querySelector('[data-pe-feedback-retry]'))throw new Error(`${skill}: pending retry cue remained after cycle closed`);
+}
+
+try{
+  await import('../productive-evidence-v1.js');
+  await import('../ai-feedback-return-v1.js');
+  await runCycle({lessonId:'W05',skill:'writing',firstWords:55,retryWords:70,ctaText:'Revise draft now'});
+  await runCycle({lessonId:'S04',skill:'speaking',firstWords:20,retryWords:28,ctaText:'Retry speaking now'});
+  out.textContent='V18_PRODUCTIVE_RETRY_PASS';
+}catch(error){
+  out.textContent=`V18_PRODUCTIVE_RETRY_FAIL: ${error.stack||error}`;
+}
+</script>
+</body>
+</html>
