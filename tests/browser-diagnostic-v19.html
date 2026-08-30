@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>V1.9 Diagnostic Evidence QA</title></head>
+<body>
+<pre id="result">V19_DIAGNOSTIC_PENDING</pre>
+<iframe id="app" title="IELTS app" style="width:1280px;height:900px;border:0"></iframe>
+<script type="module">
+const out=document.querySelector('#result');
+const frame=document.querySelector('#app');
+const CORE='ielts-self-learning-v1';
+const ADAPTIVE='ielts-adaptive-v1';
+const MOCK='ielts-mock-v1';
+const GUIDE='ielts-site-guide-dismissed-v1';
+const wait=async(fn,label,timeout=12000)=>{const start=Date.now();while(Date.now()-start<timeout){try{const value=fn();if(value)return value}catch{}await new Promise(r=>setTimeout(r,50))}throw new Error(`Timed out waiting for ${label}`)};
+const core={profile:{targetBand:7,stage:'B2',referenceLevel:'B2',recommendedDifficulty:3,confidence:'Moderate',placementSections:{vocabulary:3,grammar:3,reading:3,listening:3}},study:{preferredMinutes:20},placement:{total:12,confidence:'Moderate',ts:Date.now()},completedLessons:[],lessonAnswers:{},notes:{},errors:[],fixedErrors:[],studyHistory:[],writingDrafts:{},speakingTranscripts:{},ui:{chineseHelp:false}};
+const adaptive={repairProgress:{},learningHistory:[],reviewSchedule:{},vocabularySchedule:{},skillPerformance:{},miniTestHistory:[],productiveEvidence:{writing:[],speaking:[]},productivePriority:{},aiFeedbackReturns:{writing:[],speaking:[]}};
+const mock={history:[{id:'mock-speaking-only',ts:Date.now()-1000,testId:'MA01',mode:'Speaking beta'}]};
+localStorage.clear();sessionStorage.clear();
+localStorage.setItem(GUIDE,'true');
+localStorage.setItem(CORE,JSON.stringify(core));
+localStorage.setItem(ADAPTIVE,JSON.stringify(adaptive));
+localStorage.setItem(MOCK,JSON.stringify(mock));
+frame.src='../index.html?v19diag=1#/progress';
+try{
+  await new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+  const doc=frame.contentDocument,win=frame.contentWindow;
+  const center=()=>doc.querySelector('[data-diagnostic-center]');
+  const skill=name=>doc.querySelector(`[data-diagnostic-skill="${name}"]`);
+  const adaptiveState=()=>JSON.parse(win.localStorage.getItem(ADAPTIVE)||'{}');
+  const mockState=()=>JSON.parse(win.localStorage.getItem(MOCK)||'{}');
+  const fire=name=>win.dispatchEvent(new win.CustomEvent(name));
+  await wait(center,'diagnostic center');
+  if(!center().textContent.includes('0/4'))throw new Error('Expected 0/4 skill coverage with Placement only');
+  if(!center().querySelector('[data-diagnostic-next] [data-test-id="MR01"]'))throw new Error('First missing action should start MR01');
+  if(!skill('speaking').textContent.includes('Missing'))throw new Error('Speaking Mock beta completion was incorrectly counted as baseline evidence');
+
+  let a=adaptiveState();
+  a.miniTestHistory=[{id:'mr01-a',ts:Date.now(),testId:'MR01',skill:'reading',correct:8,total:12,unanswered:0,durationSeconds:700}];
+  win.localStorage.setItem(ADAPTIVE,JSON.stringify(a));fire('ielts-mini-test-submitted');
+  await wait(()=>skill('reading')?.textContent.includes('Baseline evidence'),'Reading baseline');
+  if(!center().querySelector('[data-diagnostic-next] [data-test-id="ML01"]'))throw new Error('Second missing action should start ML01');
+
+  a=adaptiveState();
+  a.miniTestHistory.push({id:'ml01-a',ts:Date.now()+1,testId:'ML01',skill:'listening',correct:7,total:10,unanswered:0,durationSeconds:520});
+  win.localStorage.setItem(ADAPTIVE,JSON.stringify(a));fire('ielts-mini-test-submitted');
+  await wait(()=>skill('listening')?.textContent.includes('Baseline evidence'),'Listening baseline');
+  if(!center().querySelector('[data-diagnostic-next] [data-lesson="WT1-05"]'))throw new Error('Third missing action should route to WT1-05');
+
+  a=adaptiveState();
+  a.productiveEvidence.writing=[{id:'w149',ts:Date.now()+2,skill:'writing',lessonId:'WT1-05',blockId:'WT1-LINE-01',attemptKind:'first',criteria:['task'],score:.2,wordCount:149}];
+  win.localStorage.setItem(ADAPTIVE,JSON.stringify(a));fire('ielts-productive-evidence-change');
+  await new Promise(r=>setTimeout(r,120));
+  if(!skill('writing').textContent.includes('Missing'))throw new Error('149-word Writing attempt incorrectly passed the 150-word baseline gate');
+
+  a=adaptiveState();
+  a.productiveEvidence.writing.push({id:'w180',ts:Date.now()+3,skill:'writing',lessonId:'WT1-05',blockId:'WT1-LINE-02',attemptKind:'first',criteria:['task','organization'],score:.4,wordCount:180});
+  win.localStorage.setItem(ADAPTIVE,JSON.stringify(a));fire('ielts-productive-evidence-change');
+  await wait(()=>skill('writing')?.textContent.includes('Baseline evidence'),'Writing baseline');
+  if(!center().querySelector('[data-diagnostic-next] [data-lesson="SPB01"]'))throw new Error('Fourth missing action should route to SPB01');
+
+  a=adaptiveState();
+  a.productiveEvidence.speaking=[{id:'s59',ts:Date.now()+4,skill:'speaking',lessonId:'SPB01',blockId:'SPB-P1-01',attemptKind:'first',criteria:['direct'],score:.2,wordCount:59}];
+  win.localStorage.setItem(ADAPTIVE,JSON.stringify(a));fire('ielts-productive-evidence-change');
+  await new Promise(r=>setTimeout(r,120));
+  if(!skill('speaking').textContent.includes('Missing'))throw new Error('59-word Speaking attempt incorrectly passed the 60-word baseline gate');
+
+  a=adaptiveState();
+  a.productiveEvidence.speaking.push({id:'s70',ts:Date.now()+5,skill:'speaking',lessonId:'SPB01',blockId:'SPB-P2-01',attemptKind:'first',criteria:['direct','development'],score:.4,wordCount:70});
+  win.localStorage.setItem(ADAPTIVE,JSON.stringify(a));fire('ielts-productive-evidence-change');
+  await wait(()=>center()?.textContent.includes('4/4'),'four-skill coverage');
+  if(!center().querySelector('[data-diagnostic-next] [data-nav="today"]'))throw new Error('Completed baseline should return learner to Today');
+
+  a=adaptiveState();
+  a.miniTestHistory.push({id:'mr02-a',ts:Date.now()+6,testId:'MR02',skill:'reading',correct:9,total:12,unanswered:0,durationSeconds:680});
+  win.localStorage.setItem(ADAPTIVE,JSON.stringify(a));fire('ielts-mini-test-submitted');
+  await wait(()=>skill('reading')?.textContent.includes('Broader evidence'),'Reading broader evidence');
+
+  const m=mockState();
+  m.history.push({id:'mock-writing',ts:Date.now()+7,testId:'MA01',mode:'writing',writing:{wordCounts:{'MA01-W1':175,'MA01-W2':285}}});
+  win.localStorage.setItem(MOCK,JSON.stringify(m));fire('ielts-productive-evidence-change');
+  await wait(()=>skill('writing')?.textContent.includes('Broader evidence'),'Writing broader evidence');
+  if(!center().textContent.includes('evidence coverage, not an IELTS band'))throw new Error('Diagnostic non-band guardrail copy missing');
+  out.textContent='V19_DIAGNOSTIC_PASS';
+}catch(error){out.textContent=`V19_DIAGNOSTIC_FAIL: ${error.stack||error}`}
+</script>
+</body>
+</html>
