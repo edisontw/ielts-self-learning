@@ -4,7 +4,7 @@ set -euo pipefail
 PORT="${PORT:-4187}"
 BASE="http://127.0.0.1:${PORT}"
 CDP_PORT="${CDP_PORT:-9227}"
-URL="$BASE/tests/browser-production-ma02-v17.html"
+URL="$BASE/tests/browser-ma02-audio-v112.html"
 
 if command -v google-chrome >/dev/null 2>&1; then
   CHROME=google-chrome
@@ -17,8 +17,8 @@ else
   exit 1
 fi
 
-node --check tests/browser-production-ma02-v17.js
-python3 -m http.server "$PORT" --bind 127.0.0.1 >/tmp/ielts-v17-http.log 2>&1 &
+node --check tests/browser-ma02-audio-v112.js
+python3 -m http.server "$PORT" --bind 127.0.0.1 >/tmp/ielts-v112-http.log 2>&1 &
 SERVER_PID=$!
 CHROME_PID=''
 cleanup(){
@@ -31,8 +31,8 @@ for _ in {1..20}; do
   sleep 0.25
 done
 
-LOG='/tmp/ielts-v17-local-chrome.log'
-PROFILE='/tmp/ielts-v17-local-profile'
+LOG='/tmp/ielts-v112-local-chrome.log'
+PROFILE='/tmp/ielts-v112-local-profile'
 rm -rf "$PROFILE" "$LOG"
 "$CHROME" \
   --headless=new \
@@ -57,9 +57,9 @@ CDP_PORT="$CDP_PORT" TARGET_URL="$URL" E2E_TIMEOUT_MS=60000 \
 status=$?
 set -e
 if [[ "$status" -ne 0 ]]; then
-  echo "V1.7 MA02 local browser harness failed with status ${status}." >&2
+  echo "V1.12 MA02 local production-audio harness failed with status ${status}." >&2
   cat "$LOG" >&2 || true
   exit "$status"
 fi
 
-echo 'V1.7 local browser harness passed: multi-mock selector, MA02 storage/error flow, dynamic Writing, browser-voice gate, new existing-practice CTAs, and 390px overflow check.'
+echo 'V1.12 local browser harness passed: MA02 production copy, four exact MP3 byte sizes, browser metadata decoding, runtime paths, one-play control, fallback disclosure and 390px layout.'
