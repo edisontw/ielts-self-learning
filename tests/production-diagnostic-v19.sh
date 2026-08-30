@@ -3,6 +3,7 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-https://edisontw.github.io/ielts-self-learning}"
 BASE="${BASE_URL%/}"
+SENTINEL='V1.9-DIAGNOSTIC-PRODUCTION-E2E-GATE-20260830-1'
 CACHE_BUST="${GITHUB_SHA:-$(date +%s)}"
 URL="${BASE}/tests/browser-diagnostic-v19.html?sha=${CACHE_BUST}"
 
@@ -17,20 +18,23 @@ else
   exit 1
 fi
 
-echo "Waiting for V1.9 diagnostic assets at ${BASE} ..."
+echo "Waiting for V1.9 diagnostic deployment sentinel at ${BASE} ..."
 deployed=0
 for attempt in {1..90}; do
-  if curl -fsS --max-time 10 "${BASE}/diagnostic-center-v19.js?sha=${CACHE_BUST}-${attempt}" >/dev/null 2>&1 \
-    && curl -fsS --max-time 10 "${BASE}/tests/browser-diagnostic-v19.html?sha=${CACHE_BUST}-${attempt}" >/dev/null 2>&1; then
+  if curl -fsS --max-time 10 "${BASE}/V1.9-DIAGNOSTIC-PRODUCTION-E2E-SENTINEL.txt?sha=${CACHE_BUST}-${attempt}" 2>/dev/null | grep -Fq "$SENTINEL"; then
     deployed=1
     break
   fi
   sleep 2
 done
 if [[ "$deployed" -ne 1 ]]; then
-  echo 'V1.9 diagnostic assets did not appear before the production E2E deadline.' >&2
+  echo 'V1.9 diagnostic deployment sentinel did not appear before the production E2E deadline.' >&2
   exit 1
 fi
+
+for asset in diagnostic-center-v19.js tests/browser-diagnostic-v19.html; do
+  curl -fsS --max-time 15 "${BASE}/${asset}?sha=${CACHE_BUST}" >/dev/null || { echo "Missing deployed V1.9 diagnostic asset: ${asset}" >&2; exit 1; }
+done
 
 DOM='/tmp/ielts-production-v19-diagnostic-dom.html'
 LOG='/tmp/ielts-production-v19-diagnostic-chrome.log'
