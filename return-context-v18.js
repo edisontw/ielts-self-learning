@@ -4,6 +4,7 @@ export const RETURN_CONTEXT_KEY='ielts-return-context-v18';
 export const RETURN_CONTEXT_MAX_AGE_MS=2*60*60*1000;
 
 const esc=(value='')=>String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+const attrEsc=(value='')=>String(value).replace(/\\/g,'\\\\').replace(/"/g,'\\"');
 
 export function freshReturnContext(context,now=Date.now()){
   return Boolean(context&&context.version===1&&Number.isFinite(context.createdAt)&&now-context.createdAt>=0&&now-context.createdAt<=RETURN_CONTEXT_MAX_AGE_MS);
@@ -150,7 +151,7 @@ function completeSimpleReturn(){
   clearContext();
   if(focusId){
     setTimeout(()=>{
-      const card=document.querySelector(`[data-error-id="${CSS.escape(focusId)}"]`)?.closest('.error-item');
+      const card=document.querySelector(`[data-error-id="${attrEsc(focusId)}"]`)?.closest('.error-item');
       card?.scrollIntoView({block:'center'});
     },0);
   }
@@ -181,12 +182,17 @@ function closeReturnedReview(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function dismissLessonReturn(action){
+  clearContext();
+  action.closest('[data-return-context-v18]')?.remove();
+}
+
 function handleClick(event){
   const action=event.target.closest('[data-return-context-action]');
   if(action){
     const type=action.dataset.returnContextAction;
     if(type==='return')beginReturn();
-    else if(type==='dismiss')clearContext();
+    else if(type==='dismiss')dismissLessonReturn(action);
     else if(type==='close-review')closeReturnedReview();
     return;
   }
