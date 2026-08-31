@@ -3,7 +3,7 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-https://edisontw.github.io/ielts-self-learning}"
 BASE="${BASE_URL%/}"
-SENTINEL='V1.13-A2-ERROR-RETRY-SPACED-REVIEW-20260831-1'
+SENTINEL='V1.13-A2-PRODUCTION-HARNESS-CACHE-BUST-20260831-2'
 CACHE_BUST="${GITHUB_SHA:-$(date +%s)}"
 CDP_PORT="${CDP_PORT:-9234}"
 URL="${BASE}/tests/browser-learner-uat-v113.html?sha=${CACHE_BUST}"
