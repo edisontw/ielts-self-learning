@@ -281,7 +281,9 @@ function handleUxClick(event) {
     return;
   }
 
-  const stage = event.target?.closest?.('[data-ielts-stage]');
+  // #main also carries data-ielts-stage as state. Match only the actual tab
+  // button so ordinary controls inside the IELTS page keep their default action.
+  const stage = event.target?.closest?.('button[data-ielts-stage]');
   if (stage) {
     event.preventDefault();
     const main = document.querySelector('#main');
