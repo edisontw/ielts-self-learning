@@ -18,6 +18,7 @@ function seedReturningLearner(){
   localStorage.setItem(GUIDE,'true');
   const now=Date.now();
   const fourDaysAgo=now-4*DAY;
+  const futureVocab={dueAt:now+7*DAY,intervalDays:7,attempts:1,selected:null,checked:false,lastCorrect:true,lastRating:'easy'};
   const core={
     profile:{targetBand:7,stage:'B2',referenceLevel:'B2',recommendedDifficulty:3,confidence:'Moderate',placementSections:{vocabulary:4,grammar:4,reading:3,listening:4}},
     study:{preferredMinutes:20},
@@ -34,7 +35,14 @@ function seedReturningLearner(){
   };
   const adaptive={
     reviewSchedule:{'returning-due-1':{dueAt:now-2*DAY,intervalDays:0,attempts:0,lastReviewedAt:null,lastRating:null}},
-    reviewHistory:[],repairProgress:{},learningHistory:[],vocabularySchedule:{},vocabularyHistory:[],
+    reviewHistory:[],repairProgress:{},learningHistory:[],
+    vocabularySchedule:{
+      'v-main-idea':{...futureVocab},
+      'v-supporting-detail':{...futureVocab},
+      'v-distractor':{...futureVocab},
+      'v-task-response':{...futureVocab}
+    },
+    vocabularyHistory:[],
     skillPerformance:{reading:{answered:12,correct:6,accuracy:.5,confidence:'Moderate',updatedAt:fourDaysAgo}},
     miniTestHistory:[{testId:'MR01',skill:'reading',correct:6,total:12,ts:fourDaysAgo}],
     productiveEvidence:{writing:[{id:'returning-w-first',ts:now-5*DAY,skill:'writing',lessonId:'W01',blockId:'w01',attemptKind:'first',criteria:['task','position','organization'],score:.6,wordCount:185}],speaking:[]},
