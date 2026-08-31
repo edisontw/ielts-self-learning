@@ -277,6 +277,8 @@ The canonical post-Batch-3 full coverage decision gate is documented in [`V1.6-P
 
 V1.6 Batch 4 routing expansion and production closure are documented in [`V1.6-BATCH4-ROUTING-EXPANSION.md`](V1.6-BATCH4-ROUTING-EXPANSION.md). Production main `52b92cc20b81f5feb2d60c2909cbbb35c1652975` passed main Validate #304, Pages #195, and deployed Batch 4 E2E **5/5** in Run `33090281510` with artifact `9654050907`.
 
+V1.13 learner-journey hardening and production closure are documented in [`V1.13-REAL-LEARNER-TRIAL-PLAN.md`](V1.13-REAL-LEARNER-TRIAL-PLAN.md) and [`V1.13-REAL-LEARNER-TRIAL-CLOSURE.md`](V1.13-REAL-LEARNER-TRIAL-CLOSURE.md). Closure main `c1221b253e395fa38c194578e77a9e2bdef5783d` passed Validate #472 and Pages #258, including deployed production gates for all five seeded learner journeys.
+
 ## Source of truth
 
 See [`docs/SOURCE_OF_TRUTH.md`](docs/SOURCE_OF_TRUTH.md).
@@ -290,13 +292,20 @@ Implementation hierarchy:
 5. V1.4 — error-driven Vocabulary / Grammar Repair extensions
 6. V1.5 — progressive DOM-patching consolidation
 7. V1.6 — evidence-driven Reading / Listening Skill Repair and evidence-aware existing-practice routing
-8. regression tests
+8. V1.7 — Full Mock / deployed production E2E foundation
+9. V1.8 — learner-journey optimization and return-context continuity
+10. V1.9 — diagnostic evidence and sufficiency closure
+11. V1.10 — full-length Writing Task 2 practice bank
+12. V1.11 — standardized Speaking sampler
+13. V1.12 — MA02 production Listening audio
+14. V1.13 — real learner trial / product hardening
+15. regression tests and deployed GitHub Pages gates
 
 ## Next implementation priorities
 
-1. design a **question-type-aware transfer rule** for heterogeneous `reading-evidence` (9 signals) rather than forcing one fixed Lab destination;
-2. inspect actual questions before adding any lower-frequency route; likely candidates are Reading paragraph-purpose (6), heading-purpose (5), Listening attitude (4) and direction (4), but frequency alone is not sufficient;
-3. keep the five frequency-3 `GAP-REVIEW` families under observation until more multi-layer evidence accumulates rather than creating new RR/LR Repair now;
-4. keep Mini Test / Full Mock Test Mode boundaries explicit when adding future Error Notebook actions;
-5. keep the 30-unit core denominator, learner-state keys, and backup schema stable;
-6. defer account sync / PWA unless a concrete product need outweighs the current local-first model.
+1. keep the V1.13 production-verified baseline stable; do not reopen closed V1.6 semantic families or add routes from sparse evidence;
+2. if representative IELTS learners are available, run a small real-user observation trial using the five V1.13 learner tasks and record hesitation, misunderstood terminology, route choice and trust in the recommended next action without storing private learner content;
+3. treat any new reproducible P0/P1 learner-journey finding as the highest-priority implementation candidate; repeated low-risk/high-value P2 findings may justify a focused next milestone, while P3 polish should normally wait;
+4. before opening a V1.14 content or feature release, require evidence that the current Core / Repair / Lab / Mini Test / Full Mock / productive-feedback routes cannot already solve the observed problem;
+5. preserve Test Mode boundaries, the 30-unit Core denominator, local-first learner data, backup compatibility, production-MP3-first Listening policy and the rule that AI feedback is coaching rather than an official IELTS band;
+6. keep the full regression suite and deployed GitHub Pages production gates mandatory for every accepted product change.
