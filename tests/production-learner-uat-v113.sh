@@ -3,7 +3,7 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-https://edisontw.github.io/ielts-self-learning}"
 BASE="${BASE_URL%/}"
-SENTINEL='V1.13-SKILL-IDENTITY-CHINESE-HELP-20260830-2'
+SENTINEL='V1.13-A2-ERROR-RETRY-SPACED-REVIEW-20260831-1'
 CACHE_BUST="${GITHUB_SHA:-$(date +%s)}"
 CDP_PORT="${CDP_PORT:-9234}"
 URL="${BASE}/tests/browser-learner-uat-v113.html?sha=${CACHE_BUST}"
@@ -39,6 +39,10 @@ fi
 
 for asset in \
   index.html \
+  app.js \
+  adaptive.js \
+  repair-retry-v1.js \
+  existing-practice-routing-runtime-v16.js \
   learner-uat-fixes-v113.js \
   learner-uat-fixes-v113.css \
   skill-identity-v113.js \
@@ -82,4 +86,4 @@ if [[ "$status" -ne 0 ]]; then
   exit "$status"
 fi
 
-echo 'V1.13 deployed learner UAT passed: skill identity colors, Learning Better labeling, Chinese help, filtering, and reversible completion work on GitHub Pages.'
+echo 'V1.13 deployed learner UAT passed: skill identity, Chinese help, filtering, reversible completion, Error Notebook retry, automatic Corrected state, spaced-review scheduling, due-review priority, recall rescheduling and Test Mode retry guard all work on GitHub Pages.'
