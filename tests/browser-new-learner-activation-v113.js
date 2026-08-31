@@ -123,7 +123,9 @@ try{
   assert(createPlan&&text(createPlan).includes('Create Study Plan'),'Study Plan is not discoverable after Placement');
   await checkpoint(doc,'Today after Placement');
 
-  createPlan.click();
+  const currentCreatePlan=doc.querySelector('[data-site-guide-welcome] [data-site-guide-nav="progress"]');
+  assert(currentCreatePlan&&currentCreatePlan.isConnected&&isVisible(currentCreatePlan),'Current Study Plan CTA disappeared after Today enhancements settled');
+  currentCreatePlan.click();
   await wait(()=>win.location.hash==='#/progress','Progress / Study Plan navigation');
   doc=frame.contentDocument;
   const builder=await wait(()=>doc.querySelector('[data-study-plan-builder]'),'Study Plan builder');
@@ -162,7 +164,8 @@ try{
   await checkpoint(doc,'Today with Study Plan');
 
   // Open the recommended plan action to prove there is no prerequisite/navigation dead end.
-  const action=primary.querySelector('[data-lesson]')||primary.querySelector('[data-nav]')||primary.querySelector('[data-mini-action]');
+  const currentPrimary=doc.querySelector('[data-today-primary-action]');
+  const action=currentPrimary?.querySelector('[data-lesson]')||currentPrimary?.querySelector('[data-nav]')||currentPrimary?.querySelector('[data-mini-action]');
   assert(action,'Today Study Plan primary card has no actionable destination');
   const lessonId=action.dataset.lesson||'';
   action.click();
