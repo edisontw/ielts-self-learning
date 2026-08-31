@@ -151,10 +151,13 @@ try{
   todayNav.click();
   await wait(()=>win.location.hash==='#/today','Study Plan → Today navigation');
   doc=frame.contentDocument;
-  const primary=await wait(()=>doc.querySelector('[data-today-primary-action]'),'Today primary action after Study Plan');
   await wait(()=>doc.querySelector('#main')?.dataset.todayPrimaryKind==='study-plan','Study Plan selected as Today primary action');
+  const primary=await wait(()=>{
+    const card=doc.querySelector('[data-today-primary-action][data-study-plan-today]');
+    return card&&isVisible(card)?card:null;
+  },'orchestrated Study Plan primary card');
   assert(text(primary).includes(firstSession.title),`Today primary action does not match Study Plan session: expected ${firstSession.title}, got ${text(primary).slice(0,140)}`);
-  assert(text(primary).includes(firstSession.reason),'Today does not explain why the first Study Plan action is recommended');
+  assert(text(primary).includes(firstSession.reason),`Today does not preserve the Study Plan rationale: expected ${firstSession.reason}; got ${text(primary).slice(0,220)}`);
   const fullPrimaries=[...doc.querySelectorAll('[data-today-primary-action]')].filter(isVisible);
   assert(fullPrimaries.length===1,`Today exposes ${fullPrimaries.length} full-size primary actions instead of one`);
 
@@ -164,7 +167,7 @@ try{
   await checkpoint(doc,'Today with Study Plan');
 
   // Open the recommended plan action to prove there is no prerequisite/navigation dead end.
-  const currentPrimary=doc.querySelector('[data-today-primary-action]');
+  const currentPrimary=doc.querySelector('[data-today-primary-action][data-study-plan-today]');
   const action=currentPrimary?.querySelector('[data-lesson]')||currentPrimary?.querySelector('[data-nav]')||currentPrimary?.querySelector('[data-mini-action]');
   assert(action,'Today Study Plan primary card has no actionable destination');
   const lessonId=action.dataset.lesson||'';
