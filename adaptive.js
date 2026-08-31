@@ -35,7 +35,9 @@ function ensureAdaptiveState(state, adaptive = readAdaptiveState()) {
       lastRating: null
     };
     const schedule = adaptive.reviewSchedule[error.id];
-    if ((state.fixedErrors || []).includes(error.id) && schedule.attempts === 0 && schedule.dueAt <= Date.now()) {
+    const corrected = (state.fixedErrors || []).includes(error.id);
+    const needsCorrectionSeed = corrected && schedule.attempts === 0 && schedule.lastRating !== 'corrected-in-retry';
+    if (needsCorrectionSeed && schedule.dueAt <= Date.now()) {
       schedule.intervalDays = 3;
       schedule.dueAt = Date.now() + 3 * DAY;
       schedule.lastRating = 'corrected-in-retry';
