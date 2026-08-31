@@ -38,6 +38,9 @@ for (const token of [
   "data-mock-center"
 ]) assert(js.includes(token), `UX polish JS missing ${token}`);
 
+assert(js.includes("closest?.('button[data-ielts-stage]')"), 'IELTS stage click handling must target the actual stage-tab button.');
+assert(!js.includes("closest?.('[data-ielts-stage]')"), 'IELTS stage click handling must not match #main[data-ielts-stage] and cancel unrelated controls.');
+
 for (const token of [
   '#main[data-today-simplified="true"]',
   '.site-guide-welcome-compact',
@@ -66,4 +69,5 @@ console.log('✓ How-to-use Close / X / Go to Today interactions are hardened in
 console.log('✓ Today keeps one primary next action and compact secondary shortcuts');
 console.log('✓ Learn removes duplicated guide/scope copy and adds skill filtering to the 30-unit curriculum');
 console.log('✓ IELTS exposes Strategy / Question Types / Mini Tests / Full Mock as one-stage-at-a-time navigation');
+console.log('✓ IELTS stage tabs no longer cancel default actions on unrelated IELTS-page controls');
 console.log('✓ Learn and IELTS card density is reduced responsively without removing underlying content');
