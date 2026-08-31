@@ -18,10 +18,14 @@ async function selectChecks(doc,selector,count,label){
     const before=[...doc.querySelectorAll(selector)];
     const box=before[index];
     if(!box)throw new Error(`${label} checkbox ${index+1} is missing`);
-    if(!box.checked)box.click();
+    if(!box.checked){
+      box.click();
+      if(!box.checked)throw new Error(`${label} checkbox ${index+1} click was cancelled immediately (likely preventDefault)`);
+    }
     await settle(45);
     const current=[...doc.querySelectorAll(selector)][index];
-    if(!current?.checked)throw new Error(`${label} checkbox ${index+1} did not remain checked after the user-style click`);
+    if(current!==box)throw new Error(`${label} checkbox ${index+1} DOM node was replaced after click; replacement checked=${Boolean(current?.checked)}`);
+    if(!current?.checked)throw new Error(`${label} checkbox ${index+1} was reset after click without DOM replacement`);
   }
   const checked=[...doc.querySelectorAll(selector)].filter(box=>box.checked).length;
   if(checked<count)throw new Error(`${label} retained only ${checked}/${count} selected self-check criteria`);
@@ -54,7 +58,6 @@ try{
   await new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
   let doc=frame.contentDocument,win=frame.contentWindow;
 
-  // Writing: attempt → self-check → copied coaching prompt → returned priorities → retry.
   const task2Card=await wait(()=>doc.querySelector('[data-wt2-bank-card]'),'Task 2 bank card');
   task2Card.querySelector('[data-wt2-open]').click();
   await wait(()=>doc.querySelector('[data-wt2-workspace]'),'Task 2 workspace');
@@ -110,7 +113,6 @@ try{
   if(writingRetry.attemptKind!=='retry'||writingRetry.criteria?.length!==5||writingLinked.appliedByEvidenceId!==writingRetry.id||Number(writingLinked.comparison?.processDelta)<=0)throw new Error('Writing feedback → retry state did not close visibly in learner data');
   await wait(()=>includes(doc.querySelector('[data-wt2-workspace]'),'Feedback → retry cycle recorded.'),'Writing retry completion state');
 
-  // Speaking: transcript sample → self-check → copied transcript-only prompt → priorities → retry.
   win.location.hash='#/lesson/SPB01';
   await wait(()=>frame.contentDocument.querySelector('[data-speaking-sampler]'),'Speaking sampler');
   doc=frame.contentDocument;win=frame.contentWindow;
