@@ -58,6 +58,8 @@ jobs:
         run: bash tests/browser-ielts-transfer-v113.sh
       - name: V1.13 Productive skill handoff — Writing + Speaking
         run: bash tests/browser-productive-handoff-v113.sh
+      - name: V1.13 Returning learner continuity — due review to next plan action
+        run: node tests/validate-returning-continuity-v113.mjs && bash tests/browser-returning-continuity-v113.sh
       - name: Production E2E — deployed GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
@@ -93,3 +95,8 @@ jobs:
         env:
           BASE_URL: https://edisontw.github.io/ielts-self-learning
         run: bash tests/production-productive-handoff-v113.sh
+      - name: V1.13 Production returning learner continuity — deployed GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          BASE_URL: https://edisontw.github.io/ielts-self-learning
+        run: bash tests/production-returning-continuity-v113.sh

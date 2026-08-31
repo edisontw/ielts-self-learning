@@ -35,6 +35,7 @@ const clamp = (v,min=0,max=1) => Math.min(max, Math.max(min, v));
 const lessonById = id => LESSONS.find(l => l.id === id);
 const label = skill => ({reading:'Reading',listening:'Listening',writing:'Writing',speaking:'Speaking',vocabulary:'Vocabulary',grammar:'Grammar','learning-better':'Learning Better','ielts-strategy':'IELTS Strategy'})[skill] || skill;
 const retryCount = (adaptive, skill) => (adaptive.productiveEvidence?.[skill] || []).filter(x => x.attemptKind === 'retry').length;
+const reviewEvidenceCount = adaptive => (adaptive.reviewHistory || []).length + (adaptive.vocabularyHistory || []).length;
 
 function localDateString(ts=Date.now()) {
   const d = new Date(ts - new Date(ts).getTimezoneOffset() * 60000);
@@ -226,6 +227,7 @@ function generatePlan(config={}) {
 
   const allSessions = planWeeks.flatMap(x=>x.sessions);
   const examCount = allSessions.filter(x=>x.examSpecific).length;
+  const evidenceBaseline = reviewEvidenceCount(adaptive);
   const plan = {
     version:1,
     generatedAt:Date.now(),
@@ -237,6 +239,9 @@ function generatePlan(config={}) {
     dueAtGeneration:due,
     weeks:planWeeks,
     manualDone:[],
+    reviewEvidenceDone:[],
+    reviewEvidenceBaseline:evidenceBaseline,
+    reviewEvidenceConsumed:evidenceBaseline,
     summary:{ totalSessions:allSessions.length, examSessions:examCount, examRatio:allSessions.length ? examCount/allSessions.length : 0 }
   };
   write(PLAN_KEY,plan);
@@ -250,17 +255,53 @@ function currentWeek(plan) {
   return Math.min(plan.config.weeks, Math.floor(elapsed/7)+1);
 }
 
-function automaticallyDone(taskItem, core, adaptive) {
+function automaticallyDone(taskItem, core, adaptive, plan) {
   if (taskItem.kind === 'placement') return Boolean(core.placement);
   if (taskItem.kind === 'lesson' || taskItem.kind === 'lab') return (core.completedLessons || []).includes(taskItem.sourceId);
   if (taskItem.kind === 'mini-test') return (adaptive.miniTestHistory || []).some(x => x.testId === taskItem.sourceId);
   if (taskItem.kind === 'productive-retry') return retryCount(adaptive,taskItem.skill) >= Number(taskItem.requiredRetryCount || 1);
+  if (taskItem.kind === 'review') return (plan?.reviewEvidenceDone || []).includes(taskItem.key);
   return false;
 }
 
 function actualDone(taskItem, core, adaptive, plan) {
-  if (automaticallyDone(taskItem,core,adaptive)) return true;
+  if (automaticallyDone(taskItem,core,adaptive,plan)) return true;
   return taskItem.kind === 'review' && (plan.manualDone || []).includes(taskItem.key);
+}
+
+function latestReviewEvidenceAt(adaptive) {
+  return Math.max(0,...(adaptive.reviewHistory || []).map(x=>Number(x?.ts)||0),...(adaptive.vocabularyHistory || []).map(x=>Number(x?.ts)||0));
+}
+
+function syncReviewPlanEvidence() {
+  const plan = read(PLAN_KEY);
+  if (!plan?.weeks?.length) return false;
+  const core = read(CORE_KEY);
+  const adaptive = read(ADAPTIVE_KEY);
+  const due = dueCounts(core,adaptive);
+  if (due.errors || due.vocab) return false;
+
+  const evidenceCount = reviewEvidenceCount(adaptive);
+  const latest = latestReviewEvidenceAt(adaptive);
+  if (!latest || latest < Number(plan.generatedAt || 0) || Date.now() - latest > 5000) return false;
+
+  const consumed = Number.isFinite(Number(plan.reviewEvidenceConsumed))
+    ? Number(plan.reviewEvidenceConsumed)
+    : Math.max(0,evidenceCount - 1);
+  if (evidenceCount <= consumed) return false;
+
+  const weekNo = currentWeek(plan);
+  const week = plan.weeks.find(w=>w.week===weekNo) || plan.weeks[0];
+  const evidenceDone = new Set(plan.reviewEvidenceDone || []);
+  const manualDone = new Set(plan.manualDone || []);
+  const target = week?.sessions?.find(t=>t.kind==='review' && !evidenceDone.has(t.key) && !manualDone.has(t.key));
+  if (!target) return false;
+
+  plan.reviewEvidenceDone = [...evidenceDone,target.key];
+  plan.reviewEvidenceConsumed = evidenceCount;
+  write(PLAN_KEY,plan);
+  window.dispatchEvent(new CustomEvent('ielts-study-plan-change',{detail:plan}));
+  return true;
 }
 
 function taskButton(t) {
@@ -272,10 +313,12 @@ function taskButton(t) {
 }
 
 function taskRow(t, core, adaptive, plan) {
-  const auto = automaticallyDone(t,core,adaptive);
+  const auto = automaticallyDone(t,core,adaptive,plan);
   const done = actualDone(t,core,adaptive,plan);
   const completionControl = t.kind === 'review'
-    ? `<button class="btn ghost small-btn" data-sp-action="toggle-done" data-task-key="${esc(t.key)}">${done?'Undo':'Mark done'}</button>`
+    ? (auto
+      ? '<span class="small muted">Auto tracked from review evidence</span>'
+      : `<button class="btn ghost small-btn" data-sp-action="toggle-done" data-task-key="${esc(t.key)}">${done?'Undo':'Mark done'}</button>`)
     : `<span class="small muted">${auto?'Auto tracked':'Completion is auto tracked'}</span>`;
   return `<div class="card subtle" style="padding:14px;${done?'opacity:.72':''}">
     <div class="cluster" style="justify-content:space-between;align-items:flex-start"><div><div class="cluster"><span class="chip ${done?'success':(t.examSpecific?'warning':'')}">${done?'Done':esc(t.kind.replaceAll('-',' '))}</span><span class="small muted">${esc(label(t.skill))} · ${t.minutes} min</span></div><strong style="display:block;margin-top:8px">${esc(t.title)}</strong><div class="small muted" style="margin-top:5px">${esc(t.reason)}</div></div><div class="cluster">${taskButton(t)}${completionControl}</div></div>
@@ -370,7 +413,7 @@ function handleAction(button) {
     plan.manualDone ||= [];
     const key=button.dataset.taskKey;
     const taskItem=plan.weeks.flatMap(w=>w.sessions).find(t=>t.key===key);
-    if(!taskItem || taskItem.kind!=='review') return;
+    if(!taskItem || taskItem.kind!=='review' || (plan.reviewEvidenceDone || []).includes(key)) return;
     const i=plan.manualDone.indexOf(key);
     if(i>=0)plan.manualDone.splice(i,1); else plan.manualDone.push(key);
     write(PLAN_KEY,plan);
@@ -393,7 +436,8 @@ window.addEventListener('hashchange',()=>setTimeout(apply,0));
 window.addEventListener('ielts-study-plan-change',()=>setTimeout(apply,0));
 window.addEventListener('ielts-mini-test-submitted',()=>setTimeout(apply,0));
 window.addEventListener('ielts-productive-evidence-change',()=>setTimeout(apply,0));
+window.addEventListener('ielts-adaptive-state-change',()=>{ syncReviewPlanEvidence(); setTimeout(apply,0); });
 new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});
 setTimeout(apply,0);
 
-export { generatePlan, prioritySnapshot, phaseFor, actualDone };
+export { generatePlan, prioritySnapshot, phaseFor, actualDone, syncReviewPlanEvidence, reviewEvidenceCount };
