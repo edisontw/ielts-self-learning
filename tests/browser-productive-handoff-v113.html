@@ -4,6 +4,7 @@
 <body>
 <pre id="result">V113_PRODUCTIVE_HANDOFF_PENDING</pre>
 <iframe id="app" title="IELTS productive skill handoff app" style="width:1280px;height:1000px;border:0"></iframe>
+<script src="./prevent-default-probe-v113.js"></script>
 <script type="module">
   const sha=new URLSearchParams(location.search).get('sha')||Date.now();
   import(`./browser-productive-handoff-v113.js?sha=${encodeURIComponent(sha)}`);
