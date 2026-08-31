@@ -5,11 +5,27 @@ out.textContent='V113_PRODUCTIVE_HANDOFF_RUNNING';
 const CORE='ielts-self-learning-v1';
 const ADAPTIVE='ielts-adaptive-v1';
 const GUIDE='ielts-site-guide-dismissed-v1';
-const wait=async(fn,label,timeout=18000)=>{const start=Date.now();while(Date.now()-start<timeout){try{const value=fn();if(value)return value}catch{}await new Promise(r=>setTimeout(r,60))}throw new Error(`Timed out waiting for ${label}`)};
+const settle=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const wait=async(fn,label,timeout=18000)=>{const start=Date.now();while(Date.now()-start<timeout){try{const value=fn();if(value)return value}catch{}await settle(60)}throw new Error(`Timed out waiting for ${label}`)};
 const makeWords=n=>Array.from({length:n},(_,i)=>`word${i+1}`).join(' ');
 const input=(el,value)=>{el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));};
 const read=k=>JSON.parse(localStorage.getItem(k)||'{}');
 const includes=(node,text)=>Boolean(node?.textContent?.includes(text));
+
+async function selectChecks(doc,selector,count,label){
+  await settle(220);
+  for(let index=0;index<count;index++){
+    const before=[...doc.querySelectorAll(selector)];
+    const box=before[index];
+    if(!box)throw new Error(`${label} checkbox ${index+1} is missing`);
+    if(!box.checked)box.click();
+    await settle(45);
+    const current=[...doc.querySelectorAll(selector)][index];
+    if(!current?.checked)throw new Error(`${label} checkbox ${index+1} did not remain checked after the user-style click`);
+  }
+  const checked=[...doc.querySelectorAll(selector)].filter(box=>box.checked).length;
+  if(checked<count)throw new Error(`${label} retained only ${checked}/${count} selected self-check criteria`);
+}
 
 function trapClipboard(win){
   let copied='';
@@ -45,12 +61,12 @@ try{
   let draft=doc.querySelector('[data-wt2-draft]');
   input(draft,makeWords(260));
   await wait(()=>doc.querySelector('[data-wt2-count]')?.textContent==='260 words','260-word Writing attempt');
-  [...doc.querySelectorAll('[data-wt2-criterion]')].slice(0,3).forEach(box=>box.click());
+  await selectChecks(doc,'[data-wt2-criterion]',3,'Writing first-attempt self-check');
   doc.querySelector('[data-wt2-save-evidence]').click();
   await wait(()=>read(ADAPTIVE).productiveEvidence?.writing?.length===1,'Writing first-attempt evidence');
   let adaptive=read(ADAPTIVE);
   const writingFirst=adaptive.productiveEvidence.writing[0];
-  if(writingFirst.attemptKind!=='first'||writingFirst.wordCount!==260||Number(writingFirst.score)<=0)throw new Error(`Writing self-check evidence is invalid: ${JSON.stringify(writingFirst)}`);
+  if(writingFirst.attemptKind!=='first'||writingFirst.wordCount!==260||writingFirst.criteria?.length!==3||Number(writingFirst.score)!==0.6)throw new Error(`Writing self-check evidence is invalid: ${JSON.stringify(writingFirst)}`);
 
   const writingCopy=doc.querySelector('[data-wt2-copy]');
   const writingAiSection=writingCopy?.closest('section');
@@ -84,28 +100,29 @@ try{
   await wait(()=>doc.querySelector('[data-wt2-kind]')?.value==='retry','Writing retry preselection');
   draft=doc.querySelector('[data-wt2-draft]');
   input(draft,makeWords(275));
-  [...doc.querySelectorAll('[data-wt2-criterion]')].forEach(box=>{if(!box.checked)box.click()});
+  await wait(()=>doc.querySelector('[data-wt2-count]')?.textContent==='275 words','275-word Writing retry');
+  await selectChecks(doc,'[data-wt2-criterion]',5,'Writing retry self-check');
   doc.querySelector('[data-wt2-save-evidence]').click();
   await wait(()=>read(ADAPTIVE).productiveEvidence?.writing?.length===2,'Writing retry evidence');
   adaptive=read(ADAPTIVE);
   const writingRetry=adaptive.productiveEvidence.writing[1];
   const writingLinked=adaptive.aiFeedbackReturns.writing[0];
-  if(writingRetry.attemptKind!=='retry'||writingLinked.appliedByEvidenceId!==writingRetry.id||Number(writingLinked.comparison?.processDelta)<=0)throw new Error('Writing feedback → retry state did not close visibly in learner data');
+  if(writingRetry.attemptKind!=='retry'||writingRetry.criteria?.length!==5||writingLinked.appliedByEvidenceId!==writingRetry.id||Number(writingLinked.comparison?.processDelta)<=0)throw new Error('Writing feedback → retry state did not close visibly in learner data');
   await wait(()=>includes(doc.querySelector('[data-wt2-workspace]'),'Feedback → retry cycle recorded.'),'Writing retry completion state');
 
   // Speaking: transcript sample → self-check → copied transcript-only prompt → priorities → retry.
   win.location.hash='#/lesson/SPB01';
-  const sampler=await wait(()=>frame.contentDocument.querySelector('[data-speaking-sampler]'),'Speaking sampler');
+  await wait(()=>frame.contentDocument.querySelector('[data-speaking-sampler]'),'Speaking sampler');
   doc=frame.contentDocument;win=frame.contentWindow;
-  let fields=[...sampler.querySelectorAll('[data-sps-transcript]')];
+  let fields=[...doc.querySelectorAll('[data-sps-transcript]')];
   input(fields[0],makeWords(25));input(fields[1],makeWords(25));input(fields[2],makeWords(150));input(fields[3],makeWords(50));input(fields[4],makeWords(50));
   await wait(()=>doc.querySelector('[data-sps-part="total"]')?.textContent==='300','300-word Speaking transcript sample');
-  [...doc.querySelectorAll('[data-sps-criterion]')].slice(0,3).forEach(box=>box.click());
+  await selectChecks(doc,'[data-sps-criterion]',3,'Speaking first-sample self-check');
   doc.querySelector('[data-sps-save]').click();
   await wait(()=>read(ADAPTIVE).productiveEvidence?.speaking?.length===1,'Speaking first-sample evidence');
   adaptive=read(ADAPTIVE);
   const speakingFirst=adaptive.productiveEvidence.speaking[0];
-  if(speakingFirst.attemptKind!=='first'||speakingFirst.wordCount!==300||Number(speakingFirst.score)<=0)throw new Error(`Speaking self-check evidence is invalid: ${JSON.stringify(speakingFirst)}`);
+  if(speakingFirst.attemptKind!=='first'||speakingFirst.wordCount!==300||speakingFirst.criteria?.length!==3||Number(speakingFirst.score)!==0.6)throw new Error(`Speaking self-check evidence is invalid: ${JSON.stringify(speakingFirst)}`);
 
   const speakingCopy=doc.querySelector('[data-sps-copy]');
   const speakingAiSection=speakingCopy?.closest('section');
@@ -139,13 +156,14 @@ try{
   await wait(()=>doc.querySelector('[data-sps-kind]')?.value==='retry','Speaking retry preselection');
   fields=[...doc.querySelectorAll('[data-sps-transcript]')];
   input(fields[2],makeWords(170));
-  [...doc.querySelectorAll('[data-sps-criterion]')].forEach(box=>{if(!box.checked)box.click()});
+  await wait(()=>doc.querySelector('[data-sps-part="total"]')?.textContent==='320','320-word Speaking retry');
+  await selectChecks(doc,'[data-sps-criterion]',5,'Speaking retry self-check');
   doc.querySelector('[data-sps-save]').click();
   await wait(()=>read(ADAPTIVE).productiveEvidence?.speaking?.length===2,'Speaking retry evidence');
   adaptive=read(ADAPTIVE);
   const speakingRetry=adaptive.productiveEvidence.speaking[1];
   const speakingLinked=adaptive.aiFeedbackReturns.speaking[0];
-  if(speakingRetry.attemptKind!=='retry'||speakingLinked.appliedByEvidenceId!==speakingRetry.id||Number(speakingLinked.comparison?.processDelta)<=0)throw new Error('Speaking feedback → retry state did not close visibly in learner data');
+  if(speakingRetry.attemptKind!=='retry'||speakingRetry.criteria?.length!==5||speakingLinked.appliedByEvidenceId!==speakingRetry.id||Number(speakingLinked.comparison?.processDelta)<=0)throw new Error('Speaking feedback → retry state did not close visibly in learner data');
   await wait(()=>includes(doc.querySelector('[data-speaking-sampler]'),'Speaking feedback → retry cycle recorded.'),'Speaking retry completion state');
 
   out.textContent='V113_PRODUCTIVE_HANDOFF_PASS';
