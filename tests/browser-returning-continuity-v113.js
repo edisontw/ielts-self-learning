@@ -48,7 +48,7 @@ function seedReturningLearner(){
     dueAtGeneration:{errors:1,vocab:0},manualDone:[],summary:{totalSessions:12,examSessions:3,examRatio:.25},
     weeks:[
       {week:1,phase:'Foundation',sessions:[
-        {key:'W1-S1-review-REVIEW-W1',session:1,kind:'review',sourceId:'REVIEW-W1',title:'Adaptive Review Queue',skill:'review',minutes:15,reason:'Clear the review item that became due while you were away.',examSpecific:false,requiredReviewCount:1},
+        {key:'W1-S1-review-REVIEW-W1',session:1,kind:'review',sourceId:'REVIEW-W1',title:'Adaptive Review Queue',skill:'review',minutes:15,reason:'Clear the review item that became due while you were away.',examSpecific:false},
         {key:'W1-S2-lesson-R02',session:2,kind:'lesson',sourceId:'R02',title:'Reading: next core step',skill:'reading',minutes:20,reason:'Continue the current Study Plan session after review is cleared.',examSpecific:false},
         {key:'W1-S3-lesson-L02',session:3,kind:'lesson',sourceId:'L02',title:'Listening: next core step',skill:'listening',minutes:20,reason:'Keep skill balance after the Reading session.',examSpecific:false}
       ]},
@@ -75,7 +75,6 @@ try{
   const win=frame.contentWindow;
   const main=()=>doc.querySelector('#main');
 
-  // Returning after several days: due retrieval must interrupt the normal plan.
   if(main()?.dataset.todayPrimaryKind!=='due-review')throw new Error(`Expected due-review first, got ${main()?.dataset.todayPrimaryKind||'none'}`);
   const duePrimary=doc.querySelector('[data-today-primary-action]');
   const improve=duePrimary?.querySelector('[data-nav="improve"]');
@@ -98,8 +97,8 @@ try{
     return adaptive.reviewHistory?.length===1 && adaptive.reviewSchedule?.['returning-due-1']?.dueAt>Date.now();
   },'saved spaced-review result');
   await wait(()=>doc.querySelector('[data-adaptive-root="review"]')?.textContent.includes('caught up'),'caught-up Review Queue');
+  await wait(()=>read(PLAN).reviewEvidenceDone?.includes('W1-S1-review-REVIEW-W1'),'Study Plan review evidence sync');
 
-  // Returning to Today after a real review should advance the plan, not repeat Review.
   win.location.hash='#/today';
   await wait(()=>main()?.dataset.todayPrimaryKind==='study-plan','Study Plan handoff after review');
   await settle(650);
@@ -113,15 +112,15 @@ try{
   if(secondary.some(button=>button.dataset.lesson==='R01'))throw new Error('Recently completed R01 was recycled as a secondary action.');
   if(!nextPrimary.textContent.includes('Continue the current Study Plan session after review is cleared.'))throw new Error('Today does not explain why the next Study Plan action is being shown.');
 
-  // Progress must agree with Today and show the completed review as completed evidence.
   const progress=nextPrimary.querySelector('[data-nav="progress"]');
   if(!progress)throw new Error('Study Plan primary action has no View full plan route.');
   progress.click();
   await wait(()=>win.location.hash.includes('/progress'),'Progress navigation');
   const builder=await wait(()=>doc.querySelector('[data-study-plan-builder]'),'Study Plan builder');
-  const reviewToggle=builder.querySelector('[data-task-key="W1-S1-review-REVIEW-W1"]');
-  const reviewRow=reviewToggle?.closest('.card.subtle');
+  const reviewRow=[...builder.querySelectorAll('.card.subtle')].find(row=>row.textContent.includes('Adaptive Review Queue'));
   if(!reviewRow?.textContent.includes('Done'))throw new Error('Progress did not mark the completed returning review session as Done.');
+  if(!reviewRow.textContent.includes('Auto tracked from review evidence'))throw new Error('Progress did not identify the review session as evidence-tracked.');
+  if(reviewRow.querySelector('[data-sp-action="toggle-done"]'))throw new Error('Evidence-tracked review still exposes a misleading manual Undo control.');
   const r02=builder.querySelector('[data-lesson="R02"]')?.closest('.card.subtle');
   if(!r02)throw new Error('Progress no longer contains the R02 next Study Plan session.');
   if(r02.textContent.includes('Done'))throw new Error('R02 was incorrectly marked complete before the learner opened it.');
