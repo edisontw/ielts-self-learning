@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>V1.13 Returning Learner Continuity UAT</title></head>
+<body>
+<pre id="result">V113_RETURNING_CONTINUITY_PENDING</pre>
+<iframe id="app" title="IELTS returning learner continuity app" style="width:1280px;height:1000px;border:0"></iframe>
+<script type="module">
+  const sha=new URLSearchParams(location.search).get('sha')||Date.now();
+  import(`./browser-returning-continuity-v113.js?sha=${encodeURIComponent(sha)}`);
+</script>
+</body>
+</html>
