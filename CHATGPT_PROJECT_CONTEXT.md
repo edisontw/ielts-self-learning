@@ -144,19 +144,21 @@ New work should start from one of these evidence sources:
 - a reproducible production defect or regression;
 - a separately approved product goal with a clear learner-value hypothesis.
 
-The optional V1.13 Phase D representative-human trial was not performed in-repository. When representative IELTS learners are available, it remains the highest-value next evidence source because automated UAT cannot measure trust, hesitation or terminology comprehension.
+The optional V1.13 Phase D representative-human trial was not performed in-repository. A ready-to-run protocol now exists at `POST-V1.13-REAL-USER-OBSERVATION-PROTOCOL.md`. When representative IELTS learners are available, this remains the highest-value next evidence source because automated UAT cannot measure trust, hesitation or terminology comprehension.
 
 ## 5. NEXT DECISION POINT — POST-V1.13
 
 Do not assign a V1.14 implementation scope merely to continue version numbering.
 
+Repository documentation hygiene was synchronized after V1.13 in PR #90; README no longer points to the old V1.6 semantic-mining priorities.
+
 Preferred next sequence:
 
-1. synchronize low-risk repository documentation hygiene, especially the README's stale V1.6-era `Next implementation priorities` section;
-2. if representative IELTS learners are available, run the five V1.13 observation tasks without storing private learner content;
-3. classify new findings using the V1.13 P0/P1/P2/P3 rules;
-4. implement only evidence-backed friction or a separately approved product milestone;
-5. keep content expansion deferred unless new evidence shows a real coverage need.
+1. when representative IELTS learners are available, run `POST-V1.13-REAL-USER-OBSERVATION-PROTOCOL.md` without storing private learner content;
+2. classify new findings using the V1.13 P0/P1/P2/P3 rules;
+3. implement only evidence-backed friction or a separately approved product milestone;
+4. keep content expansion deferred unless new evidence shows a real coverage need;
+5. if no repeated P0/P1 or high-value repeated P2 emerges, keep the current production baseline rather than manufacturing V1.14 work.
 
 ## 6. Guardrails
 
@@ -194,8 +196,9 @@ No feature should be added merely because it is common in other learning apps.
 2. Read `V1.13-REAL-LEARNER-TRIAL-CLOSURE.md`.
 3. Inspect current GitHub main/open PRs/Actions.
 4. Do not redo prior closed UX/diagnostic/content/audio/seeded-UAT work.
-5. Start from new learner evidence, a reproducible regression, or explicitly approved scope.
-6. Prefer documentation hygiene / maintainability over content expansion when no learner evidence exists.
+5. If doing representative human observation, read `POST-V1.13-REAL-USER-OBSERVATION-PROTOCOL.md` and record only anonymized friction evidence.
+6. Otherwise start from a new reproducible regression or explicitly approved scope.
+7. Prefer maintainability over content expansion when no learner evidence exists.
 
 ## 9. Source-of-truth hierarchy
 
