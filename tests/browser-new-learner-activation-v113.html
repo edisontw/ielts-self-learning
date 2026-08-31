@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>V1.13 New Learner Activation UAT</title></head>
+<body>
+<pre id="result">V113_NEW_LEARNER_ACTIVATION_PENDING</pre>
+<iframe id="app" title="IELTS new learner activation app" style="width:390px;height:1180px;border:0"></iframe>
+<script type="module">
+  const sha=new URLSearchParams(location.search).get('sha')||Date.now();
+  import(`./browser-new-learner-activation-v113.js?sha=${encodeURIComponent(sha)}`);
+</script>
+</body>
+</html>
