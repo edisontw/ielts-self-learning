@@ -52,6 +52,8 @@ jobs:
         run: node tests/validate-ma02-audio-prep-v112.mjs
       - name: V1.12 MA02 production-audio browser interaction
         run: bash tests/browser-ma02-v17-local.sh
+      - name: V1.13 New learner activation — Placement to first plan action
+        run: bash tests/browser-new-learner-activation-v113.sh
       - name: V1.13 Learner UX regression — skill identity, Chinese help, filtering, completion
         run: node --check skill-identity-v113.js && bash tests/browser-learner-uat-v113.sh
       - name: V1.13 IELTS transfer continuity — Mini Test submitted review
@@ -80,6 +82,11 @@ jobs:
         env:
           BASE_URL: https://edisontw.github.io/ielts-self-learning
         run: bash tests/production-speaking-sampler-v111.sh
+      - name: V1.13 Production new learner activation — deployed GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          BASE_URL: https://edisontw.github.io/ielts-self-learning
+        run: bash tests/production-new-learner-activation-v113.sh
       - name: V1.13 Production learner UAT — deployed GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
