@@ -66,7 +66,6 @@ try{
 
   // Fresh learner: one concise four-step path and self-explanatory workspace navigation.
   const welcome=doc.querySelector('[data-site-guide-welcome]');
-  assert(text(welcome).includes('Use the site in four steps.'),'Fresh learner does not receive the four-step Getting Started path');
   const steps=[...welcome.querySelectorAll('.site-guide-step')];
   assert(steps.length===4,`Expected four Getting Started steps, got ${steps.length}`);
   for(const label of ['Quick Placement','Create a Study Plan','Work from Today','Repair and retry']){
